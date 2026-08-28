@@ -31,16 +31,19 @@ def generate_answer(query: str, candidates: list[str], model, tokenizer, max_new
     prompt = build_prompt(query, candidates)
     messages = [{"role": "user", "content": prompt}]
 
-    input_ids = tokenizer.apply_chat_template(
-        messages, return_tensors="pt", add_generation_prompt=True
+    inputs = tokenizer.apply_chat_template(
+        messages,
+        return_tensors="pt",
+        add_generation_prompt=True,
+        return_dict=True,
     ).to(model.device)
 
     output_ids = model.generate(
-        input_ids,
+        **inputs,
         max_new_tokens=max_new_tokens,
-        do_sample=False,       # deterministic — important for reproducible baseline numbers
+        do_sample=False,
         pad_token_id=tokenizer.eos_token_id,
     )
 
-    generated = output_ids[0][input_ids.shape[-1]:]  # strip the prompt back out
+    generated = output_ids[0][inputs["input_ids"].shape[-1]:]
     return tokenizer.decode(generated, skip_special_tokens=True).strip()
