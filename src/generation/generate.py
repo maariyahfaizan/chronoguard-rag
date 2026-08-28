@@ -14,13 +14,14 @@ def load_model(model_name: str = "mistralai/Mistral-7B-Instruct-v0.2"):
     )
     return model, tokenizer
 
-# src/generation/generate.py
 
 def build_prompt(query: str, candidates: list[str], max_passage_chars: int = 1500) -> str:
     """Concatenate retrieved passages into a context block + question."""
     context = "\n\n".join(c[:max_passage_chars] for c in candidates)
     return (
-        f"Answer the question using only the context below. "
+        f"Answer the question using only the context below.\n"
+        f"Answer with only the specific fact requested — a name, date, or short phrase.\n"
+        f"Do not answer in a full sentence and do not add explanation.\n"
         f"If the answer is not in the context, say 'unknown'.\n\n"
         f"Context:\n{context}\n\nQuestion: {query}\nAnswer:"
     )
