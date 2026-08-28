@@ -8,7 +8,7 @@ def load_model(model_name: str = "mistralai/Mistral-7B-Instruct-v0.2"):
     quant_config = BitsAndBytesConfig(load_in_4bit=True)
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.float16,
+        dtype=torch.float16,
         quantization_config=quant_config,
         device_map="auto",
     )
