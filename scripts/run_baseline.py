@@ -18,6 +18,8 @@ def run_baseline(model=None, tokenizer=None, input_path=INPUT_PATH, log_path=LOG
     if model is None or tokenizer is None:
         model, tokenizer = load_model()
 
+    os.makedirs(os.path.dirname(log_path), exist_ok=True)
+
     with open(input_path) as f:
         rows = [json.loads(line) for line in f]
 
