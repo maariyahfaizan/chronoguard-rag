@@ -11,7 +11,7 @@ from src.eval.metrics import exact_match, f1_score
 
 INPUT_PATH = "data/processed/triviaqa_control_clean.jsonl"
 LOG_PATH = "logs/baseline_run.jsonl"
-TOP_K = 3
+TOP_K = 5
 
 
 def run_baseline(model=None, tokenizer=None, input_path=INPUT_PATH, log_path=LOG_PATH, top_k=TOP_K):

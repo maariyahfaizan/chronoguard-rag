@@ -1,6 +1,10 @@
 from datasets import load_dataset
+import random
 
-dataset = load_dataset("mandarjoshi/trivia_qa", "rc", split="validation[:50]")
+random.seed(42)
+dataset = load_dataset("mandarjoshi/trivia_qa", "rc", split="validation")
+indices = random.sample(range(len(dataset)), 100)
+sample = dataset.select(indices)
 
-print(dataset[0])
-print(f"Total examples loaded: {len(dataset)}")
+print(sample[0])
+print(f"Total examples loaded: {len(sample)}")
