@@ -1,0 +1,54 @@
+# ChronoGuard-RAG clean baseline experiment configuration
+# Weeks 3-4 | TriviaQA
+# E1 and E2 are controlled clean baselines.
+
+shared:
+  dataset: TriviaQA
+  input_path: data/processed/triviaqa_control_clean.jsonl
+  num_examples: 100
+  seed: 42
+  top_k: 5
+  generator:
+    model: mistralai/Mistral-7B-Instruct-v0.2
+    quantization: 4-bit
+    decoding:
+      do_sample: false
+      max_new_tokens: 64
+  evaluation:
+    metrics:
+      - exact_match
+      - f1
+  attack_condition: clean
+  prompt: src/generation/generate.py::build_prompt
+
+experiments:
+  E1:
+    name: TriviaQA + BM25
+    dataset: TriviaQA
+    retriever:
+      type: lexical
+      method: BM25
+      implementation: rank_bm25.BM25Okapi
+      module: src/retrieval/bm25.py
+      function: retrieve_best
+      similarity: BM25
+    log_path: logs/baseline_run.jsonl
+    results:
+      average_em: 0.5300
+      average_f1: 0.6762
+
+  E2:
+    name: TriviaQA + Dense Retrieval
+    dataset: TriviaQA
+    retriever:
+      type: dense_bi_encoder
+      model: facebook/contriever
+      implementation: transformers.AutoModel
+      pooling: mean_pooling_with_attention_mask
+      similarity: dot_product
+      module: src/retrieval/dense.py
+      function: retrieve_best
+    log_path: logs/dense_run.jsonl
+    results:
+      average_em: 0.5500
+      average_f1: 0.6933
