@@ -1,6 +1,6 @@
-# src/eval/metrics.py
 import re
 import string
+import math
 
 
 def normalize_answer(text: str) -> str:
@@ -49,3 +49,49 @@ def f1_score(prediction: str, gold_answer: str, gold_aliases: list[str] = None) 
         best_f1 = max(best_f1, f1)
 
     return best_f1
+
+
+def get_relevance_labels(candidates: list[str], gold_answer: str, gold_aliases: list[str] = None) -> list[int]:
+    """Weak-supervision relevance label per candidate: 1 if it contains the gold answer or any alias, else 0."""
+    gold_list = [gold_answer] + (gold_aliases or [])
+    gold_norms = [normalize_answer(g) for g in gold_list]
+    return [
+        int(any(g in normalize_answer(c) for g in gold_norms))
+        for c in candidates
+    ]
+
+
+def recall_at_k(retrieved_indices: list[int], relevance_labels: list[int], k: int) -> float | None:
+    """Fraction of all relevant candidates (across the full pool) that appear in the top-k retrieved.
+    Returns None if there are no relevant candidates at all (undefined, not zero)."""
+    total_relevant = sum(relevance_labels)
+    if total_relevant == 0:
+        return None
+
+    top_k_indices = retrieved_indices[:k]
+    hits = sum(relevance_labels[i] for i in top_k_indices if i < len(relevance_labels))
+    return hits / total_relevant
+
+
+def ndcg_at_k(retrieved_indices: list[int], relevance_labels: list[int], k: int) -> float | None:
+    """Binary-relevance NDCG@k. Returns None if there are no relevant candidates (undefined)."""
+    total_relevant = sum(relevance_labels)
+    if total_relevant == 0:
+        return None
+
+    def dcg(indices):
+        return sum(
+            relevance_labels[idx] / math.log2(pos + 2)  # pos+2 because pos starts at 0
+            for pos, idx in enumerate(indices)
+            if idx < len(relevance_labels)
+        )
+
+    actual_dcg = dcg(retrieved_indices[:k])
+
+    # Ideal ranking: all relevant candidates first
+    ideal_order = sorted(range(len(relevance_labels)), key=lambda i: relevance_labels[i], reverse=True)
+    ideal_dcg = dcg(ideal_order[:k])
+
+    if ideal_dcg == 0:
+        return None
+    return actual_dcg / ideal_dcg
