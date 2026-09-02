@@ -1,6 +1,6 @@
 # ChronoGuard-RAG clean baseline experiment configuration
 # Weeks 3-4 | TriviaQA
-# E1 and E2 are controlled clean baselines.
+
 
 shared:
   dataset: TriviaQA
@@ -92,4 +92,8 @@ E3:
     results:
       average_em: 0.5300
       average_f1: 0.6811
+      
+    Recall@5: 0.8311 # n=99 cause of an unanswerable question in the sample set
+    nDCG@5: 1.0000 # n=99 cause of an unanswerable question in the sample set
+
   
