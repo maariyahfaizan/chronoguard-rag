@@ -52,3 +52,40 @@ experiments:
     results:
       average_em: 0.5500
       average_f1: 0.6933
+
+E3:
+    name: TriviaQA + BM25 + Contriever + RRF
+    dataset: TriviaQA
+
+    retriever:
+      type: hybrid
+
+      bm25:
+        type: lexical
+        method: BM25
+        implementation: rank_bm25.BM25Okapi
+        module: src/retrieval/bm25.py
+        function: retrieve_best
+
+      contriever:
+        type: dense_bi_encoder
+        model: facebook/contriever
+        implementation: transformers.AutoModel
+        pooling: mean_pooling_with_attention_mask
+        similarity: dot_product
+        module: src/retrieval/dense.py
+        function: retrieve_best
+
+      fusion:
+        method: reciprocal_rank_fusion
+        rrf_k: 60
+
+      candidate_top_k: 20
+      final_top_k: 5
+
+    log_path: logs/hybrid_rrf_run.jsonl
+
+    results:
+      average_em: 0.5300
+      average_f1: 0.6811
+  
