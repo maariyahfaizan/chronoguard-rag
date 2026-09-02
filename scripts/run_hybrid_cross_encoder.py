@@ -361,10 +361,22 @@ def run_hybrid_cross_encoder(
 
             results.append(record)
 
+            recall_display = (
+    f"{recall:.4f}"
+    if recall is not None
+    else "N/A"
+)
+
+            ndcg_display = (
+                f"{ndcg:.4f}"
+                if ndcg is not None
+                else "N/A"
+            )
+
             print(
                 f"[{query_id + 1}/{len(rows)}] "
-                f"Recall@5={recall:.4f} "
-                f"nDCG@5={ndcg:.4f} "
+                f"Recall@5={recall_display} "
+                f"nDCG@5={ndcg_display} "
                 f"EM={em} "
                 f"F1={f1:.2f} "
                 f"Q: {query[:60]}"
