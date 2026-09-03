@@ -96,4 +96,10 @@ E3:
     Recall@5: 0.8311 # n=99 cause of an unanswerable question in the sample set
     nDCG@5: 1.0000 # n=99 cause of an unanswerable question in the sample set
 
+E4:
+
+  Recall@5: 0.8311
+  nDCG@5: 1.0000
+  Average EM: 0.5400
+  Average F1: 0.6797
   
