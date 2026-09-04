@@ -96,10 +96,51 @@ E3:
     Recall@5: 0.8311 # n=99 cause of an unanswerable question in the sample set
     nDCG@5: 1.0000 # n=99 cause of an unanswerable question in the sample set
 
-E4:
+  E4:
+    name: TriviaQA + Hybrid RRF + BGE Reranker
+    dataset: TriviaQA
 
-  Recall@5: 0.8311
-  nDCG@5: 1.0000
-  Average EM: 0.5400
-  Average F1: 0.6797
+    retriever:
+      type: hybrid
+
+      bm25:
+        type: lexical
+        method: BM25
+        implementation: rank_bm25.BM25Okapi
+        module: src/retrieval/bm25.py
+        function: retrieve_best
+        similarity: BM25
+
+      contriever:
+        type: dense_bi_encoder
+        model: facebook/contriever
+        implementation: transformers.AutoModel
+        pooling: mean_pooling_with_attention_mask
+        similarity: dot_product
+        module: src/retrieval/dense.py
+        function: retrieve_best
+
+      fusion:
+        method: reciprocal_rank_fusion
+        rrf_k: 60
+
+      candidate_top_k: 20
+      fused_top_k: 20
+
+    reranker:
+      type: cross_encoder
+      model: BAAI/bge-reranker-base
+      implementation: sentence_transformers.CrossEncoder
+      input: query_document_pairs
+
+    final_top_k: 5
+
+    log_path: logs/hybrid_reranker_run.jsonl
+
+    results:
+      average_em: 0.5400
+      average_f1: 0.6797
+      average_recall_at_5: 0.8311
+      average_ndcg_at_5: 1.0000
+      
   
