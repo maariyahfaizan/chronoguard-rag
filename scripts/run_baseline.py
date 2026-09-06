@@ -33,10 +33,10 @@ def run_baseline(model=None, tokenizer=None, input_path=INPUT_PATH, log_path=LOG
 
             # Retrieve
             retrieved = retrieve_best(query, candidates, top_k=top_k)
-            retrieved_passages = [text for text, score in retrieved]
-            retrieved_scores = [float(score) for text, score in retrieved]
-            retrieved_indices = [candidates.index(p) for p in retrieved_passages]
-
+            retrieved_indices = [idx for idx, text, score in retrieved]
+            retrieved_passages = [text for idx, text, score in retrieved]
+            retrieved_scores = [float(score) for idx, text, score in retrieved]
+            
             # Generate
             prompt = build_prompt(query, retrieved_passages)
             start_time = time.time()

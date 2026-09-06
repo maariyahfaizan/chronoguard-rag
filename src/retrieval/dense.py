@@ -69,37 +69,25 @@ def retrieve_best(
     device,
     top_k=5
 ):
-    """Retrieve the top-k candidates using Contriever dot-product similarity."""
+    """Retrieve the top-k candidates using Contriever dot-product similarity.
+
+    Returns a list of (index, passage, score) tuples -- see bm25.retrieve_best
+    for why the index travels alongside the text.
+    """
 
     query_embedding = encode_texts(
-        [query],
-        model,
-        tokenizer,
-        device,
-        batch_size=1
+        [query], model, tokenizer, device, batch_size=1
     )[0]
 
-    candidate_embeddings = encode_texts(
-        candidates,
-        model,
-        tokenizer,
-        device
-    )
+    candidate_embeddings = encode_texts(candidates, model, tokenizer, device)
 
-    scores = torch.matmul(
-        candidate_embeddings,
-        query_embedding
-    )
+    scores = torch.matmul(candidate_embeddings, query_embedding)
 
     top_k = min(top_k, len(candidates))
-
-    top_scores, top_indices = torch.topk(
-        scores,
-        k=top_k
-    )
+    top_scores, top_indices = torch.topk(scores, k=top_k)
 
     ranked = [
-        (candidates[int(index)], float(score))
+        (int(index), candidates[int(index)], float(score))
         for index, score in zip(top_indices, top_scores)
     ]
 

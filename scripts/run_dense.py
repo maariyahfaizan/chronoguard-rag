@@ -72,19 +72,18 @@ def run_dense(
                 top_k=top_k
             )
 
+            retrieved_indices = [
+                idx for idx, text, score in retrieved
+            ]
+
             retrieved_passages = [
-                text for text, score in retrieved
+                text for idx, text, score in retrieved
             ]
 
             retrieved_scores = [
-                float(score) for text, score in retrieved
+                float(score) for idx, text, score in retrieved
             ]
-
-            retrieved_indices = [
-                candidates.index(p)
-                for p in retrieved_passages
-            ]
-
+            
             # -------------------------
             # Generation
             # -------------------------

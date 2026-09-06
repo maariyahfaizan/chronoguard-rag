@@ -33,39 +33,25 @@ def rerank(
     """
     Rerank candidates using the BGE cross-encoder.
 
-    candidates must be a list of:
-        (passage, score)
+    `candidates` must be a list of (index, passage, score), matching the
+    output of retrieve_best / reciprocal_rank_fusion.
 
-    Returns:
-        (passage, reranker_score)
+    Returns (index, passage, reranker_score) -- the index is preserved so
+    the caller never needs to re-look-up the passage by text.
     """
 
     if not candidates:
         return []
 
-    # Create query-document pairs.
-    pairs = [
-        [query, passage]
-        for passage, score in candidates
-    ]
+    pairs = [[query, passage] for idx, passage, score in candidates]
 
-    # Score every query-document pair.
-    scores = model.predict(
-        pairs,
-        batch_size=batch_size,
-        show_progress_bar=False
-    )
+    scores = model.predict(pairs, batch_size=batch_size, show_progress_bar=False)
 
-    # Attach cross-encoder scores.
     ranked = [
-        (passage, float(score))
-        for (passage, _), score in zip(candidates, scores)
+        (idx, passage, float(score))
+        for (idx, passage, _), score in zip(candidates, scores)
     ]
 
-    # Highest score first.
-    ranked.sort(
-        key=lambda x: x[1],
-        reverse=True
-    )
+    ranked.sort(key=lambda x: x[2], reverse=True)
 
     return ranked[:top_k]

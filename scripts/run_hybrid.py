@@ -112,21 +112,22 @@ def run_hybrid(
                 rrf_k=rrf_k
             )
 
+            # Original candidate indices
+            retrieved_indices = [
+                idx
+                for idx, text, score in fused_results
+            ]
+
             # Final passages sent to Mistral
             retrieved_passages = [
                 text
-                for text, score in fused_results
+                for idx, text, score in fused_results
             ]
 
             # RRF scores
             retrieved_scores = [
                 float(score)
-                for text, score in fused_results
-            ]
-
-            retrieved_indices = [
-                candidates.index(passage)
-                for passage in retrieved_passages
+                for idx, text, score in fused_results
             ]
 
             # -------------------------

@@ -185,24 +185,22 @@ def run_hybrid_cross_encoder(
             # Final passages
             # =================================================
 
+            # Original candidate indices
+            retrieved_indices = [
+                idx
+                for idx, text, score in reranked_results
+            ]
+
+            # Final passages
             retrieved_passages = [
                 text
-                for text, score in reranked_results
+                for idx, text, score in reranked_results
             ]
 
             # BGE scores
             retrieved_scores = [
                 float(score)
-                for text, score in reranked_results
-            ]
-
-            # =================================================
-            # Original candidate indices
-            # =================================================
-
-            retrieved_indices = [
-                candidates.index(passage)
-                for passage in retrieved_passages
+                for idx, text, score in reranked_results
             ]
 
             # =================================================
