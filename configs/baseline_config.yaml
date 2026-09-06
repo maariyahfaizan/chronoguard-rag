@@ -1,7 +1,6 @@
 # ChronoGuard-RAG clean baseline experiment configuration
 # Weeks 3-4 | TriviaQA
 
-
 shared:
   dataset: TriviaQA
   input_path: data/processed/triviaqa_control_clean.jsonl
@@ -18,6 +17,8 @@ shared:
     metrics:
       - exact_match
       - f1
+      - recall_at_5
+      - ndcg_at_5
   attack_condition: clean
   prompt: src/generation/generate.py::build_prompt
 
@@ -36,8 +37,8 @@ experiments:
     results:
       average_em: 0.5300
       average_f1: 0.6762
-      Recall@5: 0.8311 # n=99 cause of an unanswerable question in the sample set
-      nDCG@5: 1.0000  
+      average_recall_at_5: 0.8311  # n=99, one unanswerable question in the sample set
+      average_ndcg_at_5: 1.0000
 
   E2:
     name: TriviaQA + Dense Retrieval
@@ -54,23 +55,20 @@ experiments:
     results:
       average_em: 0.5500
       average_f1: 0.6933
-      Recall@5: 0.8311 # n=99 cause of an unanswerable question in the sample set
-      nDCG@5: 1.0000 # n=99 cause of an unanswerable question in the sample set
+      average_recall_at_5: 0.8311  # n=99, one unanswerable question in the sample set
+      average_ndcg_at_5: 1.0000
 
-E3:
+  E3:
     name: TriviaQA + BM25 + Contriever + RRF
     dataset: TriviaQA
-
     retriever:
       type: hybrid
-
       bm25:
         type: lexical
         method: BM25
         implementation: rank_bm25.BM25Okapi
         module: src/retrieval/bm25.py
         function: retrieve_best
-
       contriever:
         type: dense_bi_encoder
         model: facebook/contriever
@@ -79,30 +77,23 @@ E3:
         similarity: dot_product
         module: src/retrieval/dense.py
         function: retrieve_best
-
       fusion:
         method: reciprocal_rank_fusion
         rrf_k: 60
-
       candidate_top_k: 20
       final_top_k: 5
-
-    log_path: logs/hybrid_rrf_run.jsonl
-
+    log_path: logs/hybrid_run.jsonl
     results:
       average_em: 0.5300
       average_f1: 0.6811
-      
-    Recall@5: 0.8311 # n=99 cause of an unanswerable question in the sample set
-    nDCG@5: 1.0000 # n=99 cause of an unanswerable question in the sample set
+      average_recall_at_5: 0.8311  # n=99, one unanswerable question in the sample set
+      average_ndcg_at_5: 1.0000
 
   E4:
     name: TriviaQA + Hybrid RRF + BGE Reranker
     dataset: TriviaQA
-
     retriever:
       type: hybrid
-
       bm25:
         type: lexical
         method: BM25
@@ -110,7 +101,6 @@ E3:
         module: src/retrieval/bm25.py
         function: retrieve_best
         similarity: BM25
-
       contriever:
         type: dense_bi_encoder
         model: facebook/contriever
@@ -119,28 +109,20 @@ E3:
         similarity: dot_product
         module: src/retrieval/dense.py
         function: retrieve_best
-
       fusion:
         method: reciprocal_rank_fusion
         rrf_k: 60
-
       candidate_top_k: 20
       fused_top_k: 20
-
     reranker:
       type: cross_encoder
       model: BAAI/bge-reranker-base
       implementation: sentence_transformers.CrossEncoder
       input: query_document_pairs
-
     final_top_k: 5
-
     log_path: logs/hybrid_reranker_run.jsonl
-
     results:
       average_em: 0.5400
       average_f1: 0.6797
       average_recall_at_5: 0.8311
       average_ndcg_at_5: 1.0000
-      
-  
