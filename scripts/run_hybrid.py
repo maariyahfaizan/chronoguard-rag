@@ -14,10 +14,7 @@ from src.generation.generate import (
     build_prompt
 )
 
-from src.eval.metrics import (
-    exact_match,
-    f1_score
-)
+from src.eval.evaluator import evaluate_query, aggregate_metrics
 
 
 INPUT_PATH = "data/processed/triviaqa_control_clean.jsonl"
@@ -166,16 +163,13 @@ def run_hybrid(
             # Evaluation
             # -------------------------
 
-            em = exact_match(
-                answer,
-                gold_answer,
-                gold_aliases
-            )
-
-            f1 = f1_score(
-                answer,
-                gold_answer,
-                gold_aliases
+            metrics = evaluate_query(
+                answer=answer,
+                gold_answer=gold_answer,
+                gold_aliases=gold_aliases,
+                candidates=candidates,
+                retrieved_indices=retrieved_indices,
+                k=final_top_k,
             )
 
             # -------------------------
@@ -212,8 +206,7 @@ def run_hybrid(
 
                 "attack_condition": "clean",
 
-                "em": em,
-                "f1": f1
+                **metrics,
             }
 
             log_file.write(
@@ -226,8 +219,10 @@ def run_hybrid(
 
             print(
                 f"[{query_id + 1}/{len(rows)}] "
-                f"EM={em} "
-                f"F1={f1:.2f} "
+                f"EM={metrics['em']} "
+                f"F1={metrics['f1']:.2f} "
+                f"Recall@{final_top_k}={metrics[f'recall_at_{final_top_k}']} "
+                f"nDCG@{final_top_k}={metrics[f'ndcg_at_{final_top_k}']} "
                 f"Q: {query[:60]}"
             )
 
@@ -235,26 +230,20 @@ def run_hybrid(
     # Final results
     # -------------------------
 
-    avg_em = sum(
-        r["em"]
-        for r in results
-    ) / len(results)
-
-    avg_f1 = sum(
-        r["f1"]
-        for r in results
-    ) / len(results)
+    summary = aggregate_metrics(results, k=final_top_k)
 
     print("\n=== Hybrid RRF Results ===")
-    print(f"Examples: {len(results)}")
+    print(f"Examples: {summary['n_examples']}")
     print("Retrievers: BM25 + facebook/contriever")
     print(f"Candidate Top-K: {candidate_top_k}")
     print(f"Final Top-K: {final_top_k}")
     print(f"RRF K: {rrf_k}")
-    print(f"Average EM: {avg_em:.4f}")
-    print(f"Average F1: {avg_f1:.4f}")
+    print(f"Average EM: {summary['average_em']:.4f}")
+    print(f"Average F1: {summary['average_f1']:.4f}")
+    print(f"Average Recall@{final_top_k}: {summary[f'average_recall_at_{final_top_k}']}")
+    print(f"Average nDCG@{final_top_k}: {summary[f'average_ndcg_at_{final_top_k}']}")
 
-    return results
+    return results, summary
 
 
 if __name__ == "__main__":

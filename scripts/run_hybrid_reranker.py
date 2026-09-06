@@ -28,12 +28,9 @@ from src.generation.generate import (
     build_prompt
 )
 
-from src.eval.metrics import (
-    exact_match,
-    f1_score,
-    get_relevance_labels,
-    recall_at_k,
-    ndcg_at_k
+from src.eval.evaluator import (
+    evaluate_query,
+    aggregate_metrics
 )
 
 
@@ -204,36 +201,6 @@ def run_hybrid_cross_encoder(
             ]
 
             # =================================================
-            # Retrieval relevance labels
-            # =================================================
-
-            relevance_labels = get_relevance_labels(
-                candidates,
-                gold_answer,
-                gold_aliases
-            )
-
-            # =================================================
-            # Recall@5
-            # =================================================
-
-            recall = recall_at_k(
-                retrieved_indices,
-                relevance_labels,
-                k=FINAL_TOP_K
-            )
-
-            # =================================================
-            # nDCG@5
-            # =================================================
-
-            ndcg = ndcg_at_k(
-                retrieved_indices,
-                relevance_labels,
-                k=FINAL_TOP_K
-            )
-
-            # =================================================
             # Generation
             # =================================================
 
@@ -266,19 +233,16 @@ def run_hybrid_cross_encoder(
             )
 
             # =================================================
-            # Evaluation
+            # Evaluation (EM, F1, Recall@k, nDCG@k -- shared evaluator)
             # =================================================
 
-            em = exact_match(
-                answer,
-                gold_answer,
-                gold_aliases
-            )
-
-            f1 = f1_score(
-                answer,
-                gold_answer,
-                gold_aliases
+            metrics = evaluate_query(
+                answer=answer,
+                gold_answer=gold_answer,
+                gold_aliases=gold_aliases,
+                candidates=candidates,
+                retrieved_indices=retrieved_indices,
+                k=final_top_k,
             )
 
             # =================================================
@@ -320,12 +284,6 @@ def run_hybrid_cross_encoder(
                 "retrieved_scores":
                     retrieved_scores,
 
-                "recall_at_5":
-                    recall,
-
-                "ndcg_at_5":
-                    ndcg,
-
                 "prompt":
                     prompt,
 
@@ -344,11 +302,7 @@ def run_hybrid_cross_encoder(
                 "attack_condition":
                     "clean",
 
-                "em":
-                    em,
-
-                "f1":
-                    f1
+                **metrics
             }
 
             log_file.write(
@@ -360,14 +314,14 @@ def run_hybrid_cross_encoder(
             results.append(record)
 
             recall_display = (
-    f"{recall:.4f}"
-    if recall is not None
-    else "N/A"
-)
+                f"{metrics['recall_at_5']:.4f}"
+                if metrics['recall_at_5'] is not None
+                else "N/A"
+            )
 
             ndcg_display = (
-                f"{ndcg:.4f}"
-                if ndcg is not None
+                f"{metrics['ndcg_at_5']:.4f}"
+                if metrics['ndcg_at_5'] is not None
                 else "N/A"
             )
 
@@ -375,8 +329,8 @@ def run_hybrid_cross_encoder(
                 f"[{query_id + 1}/{len(rows)}] "
                 f"Recall@5={recall_display} "
                 f"nDCG@5={ndcg_display} "
-                f"EM={em} "
-                f"F1={f1:.2f} "
+                f"EM={metrics['em']} "
+                f"F1={metrics['f1']:.2f} "
                 f"Q: {query[:60]}"
             )
 
@@ -384,93 +338,29 @@ def run_hybrid_cross_encoder(
     # Final results
     # =====================================================
 
-    valid_recall = [
-        r["recall_at_5"]
-        for r in results
-        if r["recall_at_5"] is not None
-    ]
-
-    valid_ndcg = [
-        r["ndcg_at_5"]
-        for r in results
-        if r["ndcg_at_5"] is not None
-    ]
-
-    avg_recall = (
-        sum(valid_recall) / len(valid_recall)
-        if valid_recall
-        else 0.0
-    )
-
-    avg_ndcg = (
-        sum(valid_ndcg) / len(valid_ndcg)
-        if valid_ndcg
-        else 0.0
-    )
-
-    avg_em = (
-        sum(r["em"] for r in results)
-        / len(results)
-    )
-
-    avg_f1 = (
-        sum(r["f1"] for r in results)
-        / len(results)
-    )
+    summary = aggregate_metrics(results, k=final_top_k)
 
     # =====================================================
     # Print final results
     # =====================================================
 
     print(
-        "\n=== Hybrid RRF + BGE Reranker Results ==="
+        f"Recall@5: {summary['average_recall_at_5']}"
     )
 
     print(
-        f"Examples: {len(results)}"
+        f"nDCG@5: {summary['average_ndcg_at_5']}"
     )
 
     print(
-        "Retrievers: BM25 + facebook/contriever"
+        f"Average EM: {summary['average_em']:.4f}"
     )
 
     print(
-        f"Candidate Top-K: {candidate_top_k}"
+        f"Average F1: {summary['average_f1']:.4f}"
     )
 
-    print(
-        f"Fused Top-K: {fused_top_k}"
-    )
-
-    print(
-        f"RRF K: {rrf_k}"
-    )
-
-    print(
-        f"Reranker: {RERANKER_MODEL}"
-    )
-
-    print(
-        f"Final Top-K: {final_top_k}"
-    )
-
-    print(
-        f"Recall@5: {avg_recall:.4f}"
-    )
-
-    print(
-        f"nDCG@5: {avg_ndcg:.4f}"
-    )
-
-    print(
-        f"Average EM: {avg_em:.4f}"
-    )
-
-    print(
-        f"Average F1: {avg_f1:.4f}"
-    )
-
-    return results
+    return results, summary
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from src.retrieval.bm25 import retrieve_best
 from src.generation.generate import load_model, generate_answer, build_prompt
-from src.eval.metrics import exact_match, f1_score
+from src.eval.evaluator import evaluate_query, aggregate_metrics
 
 INPUT_PATH = "data/processed/triviaqa_control_clean.jsonl"
 LOG_PATH = "logs/baseline_run.jsonl"
@@ -36,7 +36,7 @@ def run_baseline(model=None, tokenizer=None, input_path=INPUT_PATH, log_path=LOG
             retrieved_indices = [idx for idx, text, score in retrieved]
             retrieved_passages = [text for idx, text, score in retrieved]
             retrieved_scores = [float(score) for idx, text, score in retrieved]
-            
+
             # Generate
             prompt = build_prompt(query, retrieved_passages)
             start_time = time.time()
@@ -47,9 +47,15 @@ def run_baseline(model=None, tokenizer=None, input_path=INPUT_PATH, log_path=LOG
             input_token_count = len(tokenizer(prompt)["input_ids"])
             output_token_count = len(tokenizer(answer)["input_ids"])
 
-            # Score
-            em = exact_match(answer, gold_answer, gold_aliases)
-            f1 = f1_score(answer, gold_answer, gold_aliases)
+            # Score (EM, F1, Recall@k, nDCG@k -- same evaluator every experiment uses)
+            metrics = evaluate_query(
+                answer=answer,
+                gold_answer=gold_answer,
+                gold_aliases=gold_aliases,
+                candidates=candidates,
+                retrieved_indices=retrieved_indices,
+                k=top_k,
+            )
 
             record = {
                 "query_id": query_id,
@@ -64,25 +70,27 @@ def run_baseline(model=None, tokenizer=None, input_path=INPUT_PATH, log_path=LOG
                 "input_token_count": input_token_count,
                 "output_token_count": output_token_count,
                 "attack_condition": "clean",
-                "em": em,
-                "f1": f1,
+                **metrics,
             }
 
             log_file.write(json.dumps(record) + "\n")
             log_file.flush()  # write incrementally in case the Kaggle session drops
             results.append(record)
 
-            print(f"[{query_id+1}/{len(rows)}] EM={em} F1={f1:.2f}  Q: {query[:60]}")
+            print(f"[{query_id+1}/{len(rows)}] EM={metrics['em']} F1={metrics['f1']:.2f} "
+                  f"Recall@{top_k}={metrics[f'recall_at_{top_k}']} "
+                  f"nDCG@{top_k}={metrics[f'ndcg_at_{top_k}']}  Q: {query[:60]}")
 
-    avg_em = sum(r["em"] for r in results) / len(results)
-    avg_f1 = sum(r["f1"] for r in results) / len(results)
+    summary = aggregate_metrics(results, k=top_k)
 
     print("\n=== Baseline Results ===")
-    print(f"Examples: {len(results)}")
-    print(f"Average EM: {avg_em:.4f}")
-    print(f"Average F1: {avg_f1:.4f}")
+    print(f"Examples: {summary['n_examples']}")
+    print(f"Average EM: {summary['average_em']:.4f}")
+    print(f"Average F1: {summary['average_f1']:.4f}")
+    print(f"Average Recall@{top_k}: {summary[f'average_recall_at_{top_k}']}")
+    print(f"Average nDCG@{top_k}: {summary[f'average_ndcg_at_{top_k}']}")
 
-    return results
+    return results, summary
 
 
 if __name__ == "__main__":
