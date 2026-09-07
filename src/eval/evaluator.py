@@ -6,6 +6,7 @@ from src.eval.metrics import (
     ndcg_at_k,
 )
 
+from src.generation.generate import truncate_passage, DEFAULT_MAX_PASSAGE_CHARS
 
 def evaluate_query(
     answer,
@@ -14,24 +15,20 @@ def evaluate_query(
     candidates,
     retrieved_indices,
     k=5,
+    max_passage_chars=DEFAULT_MAX_PASSAGE_CHARS,
 ):
     """
-    Compute the full metric suite for a single query.
+    ...(existing docstring)...
 
-    `retrieved_indices` must be the ORIGINAL candidate positions (the `idx`
-    values from Step 2's retrieval functions), not passage text -- Recall@k
-    and nDCG@k index directly into the candidate pool using these.
-
-    Returns a dict with keys: em, f1, recall_at_{k}, ndcg_at_{k}.
-    recall_at_{k} / ndcg_at_{k} may be None, meaning "undefined for this
-    query" (e.g. no relevant candidate exists anywhere in its pool) -- this
-    must be excluded, not treated as zero, when averaging across queries.
+    `max_passage_chars` must match whatever build_prompt used for this run --
+    it defaults to the same constant generate.py uses, so relevance is scored
+    on exactly the text the generator saw, not the full untruncated candidate.
     """
     em = exact_match(answer, gold_answer, gold_aliases)
     f1 = f1_score(answer, gold_answer, gold_aliases)
 
-    relevance_labels = get_relevance_labels(candidates, gold_answer, gold_aliases)
-
+    truncated_candidates = [truncate_passage(c, max_passage_chars) for c in candidates]
+    relevance_labels = get_relevance_labels(truncated_candidates, gold_answer, gold_aliases)
     recall = recall_at_k(retrieved_indices, relevance_labels, k=k)
     ndcg = ndcg_at_k(retrieved_indices, relevance_labels, k=k)
 

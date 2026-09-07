@@ -15,9 +15,23 @@ def load_model(model_name: str = "mistralai/Mistral-7B-Instruct-v0.2"):
     return model, tokenizer
 
 
-def build_prompt(query: str, candidates: list[str], max_passage_chars: int = 1500) -> str:
+DEFAULT_MAX_PASSAGE_CHARS = 1500
+
+def truncate_passage(text: str, max_chars: int = DEFAULT_MAX_PASSAGE_CHARS) -> str:
+    """
+    Truncate a passage to the same length the generator's prompt will use.
+
+    Centralized here (rather than inlined in build_prompt) so that relevance
+    labeling in src/eval/evaluator.py can truncate candidates identically
+    before scoring them -- guaranteeing "relevant" always means "relevant
+    within the text the model actually received," not the full candidate.
+    """
+    return text[:max_chars]
+
+
+def build_prompt(query: str, candidates: list[str], max_passage_chars: int = DEFAULT_MAX_PASSAGE_CHARS) -> str:
     """Concatenate retrieved passages into a context block + question."""
-    context = "\n\n".join(c[:max_passage_chars] for c in candidates)
+    context = "\n\n".join(truncate_passage(c, max_passage_chars) for c in candidates)
     return (
         f"Answer the question using only the context below.\n"
         f"Answer with only the specific fact requested — a name, date, or short phrase.\n"
