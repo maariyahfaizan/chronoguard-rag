@@ -52,11 +52,31 @@ def f1_score(prediction: str, gold_answer: str, gold_aliases: list[str] = None) 
 
 
 def get_relevance_labels(candidates: list[str], gold_answer: str, gold_aliases: list[str] = None) -> list[int]:
-    """Weak-supervision relevance label per candidate: 1 if it contains the gold answer or any alias, else 0."""
+    """
+    Weak-supervision relevance label per candidate: 1 if it contains the gold
+    answer or any alias as a WHOLE WORD/PHRASE, else 0.
+
+    Uses a word-boundary regex rather than plain substring containment.
+    Plain substring matching (`g in text`) would mark a passage relevant if
+    it merely contains the gold answer as a fragment of a longer, unrelated
+    word -- e.g. gold answer "Cook" would match "cookies," "Cookson," or
+    "cookware." Word-boundary matching requires the gold answer to appear as
+    its own token(s), not embedded inside a different word.
+    """
     gold_list = [gold_answer] + (gold_aliases or [])
     gold_norms = [normalize_answer(g) for g in gold_list]
+
+    # Empty strings after normalization (e.g. gold_answer was punctuation-only)
+    # can't be meaningfully searched for -- skip them rather than let an empty
+    # pattern match everything.
+    gold_patterns = [
+        re.compile(r"\b" + re.escape(g) + r"\b")
+        for g in gold_norms
+        if g
+    ]
+
     return [
-        int(any(g in normalize_answer(c) for g in gold_norms))
+        int(any(pattern.search(normalize_answer(c)) for pattern in gold_patterns))
         for c in candidates
     ]
 
