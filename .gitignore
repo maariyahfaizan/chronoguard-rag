@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Environments
+.venv/
+venv/
+.env
+
+# Notebook / Kaggle artifacts
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# Model / HF caches (large, regenerable by re-downloading)
+huggingface_cache/
+*.bin
+*.safetensors
+
+# Raw dataset dump -- regenerable deterministically via
+# src/eval/save_snapshot.py (seed=42), no need to version-control it
+data/raw/
