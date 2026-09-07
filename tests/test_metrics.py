@@ -14,8 +14,9 @@ def test_exact_match_basic():
 
 
 def test_f1_partial_overlap():
-    # "the eiffel tower" vs gold "eiffel tower" -> partial token overlap, not exact
-    score = f1_score("the eiffel tower", "eiffel tower")
+    # Gold "eiffel tower" vs prediction "eiffel tower in paris" -> shares both
+    # gold tokens but adds extra ones, so precision < 1 while recall = 1.
+    score = f1_score("eiffel tower in paris", "eiffel tower")
     assert 0.0 < score < 1.0
 
 
