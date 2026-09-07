@@ -7,3 +7,6 @@ pyyaml
 numpy
 pandas
 tqdm
+sentence-transformers
+bitsandbytes>=0.46.1
+accelerate
