@@ -37,19 +37,6 @@ greedy decoding), the same evaluation logic (`src/eval/evaluator.py`), and
 the same fixed 100-question sample, so retrieval architecture is the only
 variable that differs between them.
 
-## Repo structure
-
-src/
-retrieval/ BM25, dense (Contriever), RRF hybrid fusion, cross-encoder reranking
-generation/ Prompt construction + Mistral generation
-eval/ Metrics (EM/F1/Recall@k/nDCG@k), shared evaluator, data prep
-scripts/ One entry point per experiment (E1-E4)
-configs/ Experiment configuration (baseline_config.yaml)
-data/ raw/ (sampled dataset) and processed/ (cleaned run input)
-logs/ Per-query JSONL logs, one file per experiment
-tests/ Unit tests for retrieval and evaluation correctness
-
-
 ## Known dataset property: Recall@5/nDCG@5 saturation on TriviaQA
 
 Recall@5 and nDCG@5 come out identical across all four systems despite
