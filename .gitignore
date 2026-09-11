@@ -24,3 +24,4 @@ huggingface_cache/
 # Raw dataset dump -- regenerable deterministically via
 # src/eval/save_snapshot.py (seed=42), no need to version-control it
 data/raw/
+data/processed/freshqa_control_pools.jsonl

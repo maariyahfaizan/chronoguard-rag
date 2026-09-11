@@ -32,11 +32,31 @@ fails. Set these before running:
                  export WMT_NEWSCRAWL_PASS=<password>
 
 Requires curl on PATH.
+
+---
+NOTE ON THIS REVISION (WMTPassage fix):
+extraction.WMTPassage only has two fields -- `id` and `text` (bytes). It
+carries NO date of its own. The real publication_ts lives on the parent
+WMTDoc, and is only recoverable via the sorting_key embedded in the
+passage's id ('{sorting_key}_{passage_idx}', see extraction._PASSAGE_ID).
+So we now: (1) materialize wmt_docs into a list and build a
+sorting_key -> publication_ts lookup BEFORE handing docs to
+get_wmt_passages_from_docs (which consumes them once), (2) recover
+sorting_key from each passage id via regex (splitting on the trailing
+'_{digits}' rather than a plain '_' split, since sorting_key itself may
+contain underscores), (3) decode passage.text from bytes to str before
+JSON-serializing it, and (4) force prepend_date=False, since with
+publication_ts now captured as clean structured metadata, leaving
+prepend_date=True would ALSO stamp the date into passage text itself --
+duplicating it and leaking a temporal signal into content that a
+poisoning experiment shouldn't have baked in as free text.
+---
 """
 
 import datetime
 import json
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -200,7 +220,9 @@ def compute_retention_windows(sample: list[dict], window_days: int) -> list[tupl
     margin = window_days * RETENTION_MARGIN_MULTIPLIER
     windows = []
     for q in sample:
-        gold_dt = datetime.datetime.utcfromtimestamp(q["evidence_ts"])
+        gold_dt = datetime.datetime.fromtimestamp(
+            q["evidence_ts"], tz=datetime.timezone.utc
+        )
         lo = gold_dt - datetime.timedelta(days=margin)
         hi = gold_dt + datetime.timedelta(days=margin)
         windows.append((lo, hi))
@@ -211,19 +233,37 @@ def in_any_window(date: datetime.datetime, windows: list[tuple]) -> bool:
     return any(lo <= date <= hi for lo, hi in windows)
 
 
-def _passage_date(p) -> datetime.datetime:
-    raw = p["date"] if isinstance(p, dict) else p.date
-    if isinstance(raw, datetime.datetime):
-        return raw
-    return datetime.datetime.fromisoformat(raw)
+def _extract_sorting_key(passage_id: str) -> str:
+    """Recovers the parent WMTDoc's sorting_key from a WMTPassage id of the
+    form '{sorting_key}_{passage_idx}' (see extraction._PASSAGE_ID). Splits
+    on the trailing digits only, since sorting_key itself may contain '_'
+    (it's built via _SORTING_KEY_FIELD_SEPARATOR.join(...), which doesn't
+    guarantee '_' is absent from its fields).
+    """
+    match = re.match(r'^(.*)_(\d+)$', passage_id)
+    if not match:
+        raise ValueError(f"Unexpected passage id format: {passage_id!r}")
+    return match.group(1)
+
+
+def _passage_timestamp(p, sorting_key_to_ts: dict) -> datetime.datetime:
+    """WMTPassage carries no date of its own (only `id` and `text`) -- the
+    real publication_ts lives on the parent WMTDoc and must be looked up
+    via the sorting_key embedded in the passage id."""
+    sorting_key = _extract_sorting_key(p.id)
+    ts = sorting_key_to_ts[sorting_key]
+    return datetime.datetime.fromtimestamp(ts, tz=datetime.timezone.utc)
 
 
 def _passage_text(p) -> str:
-    return p["text"] if isinstance(p, dict) else p.text
+    text = p["text"] if isinstance(p, dict) else p.text
+    if isinstance(text, bytes):
+        return text.decode("utf-8", errors="replace")
+    return text
 
 
-def _passage_evidence_id(p):
-    return p["evidence_id"] if isinstance(p, dict) else p.evidence_id
+def _passage_doc_id(p):
+    return p["doc_id"] if isinstance(p, dict) else p.id
 
 
 def process_year(
@@ -245,22 +285,30 @@ def process_year(
     _download_with_curl(curl_path, url, archive_path, netrc_path)
 
     print(f"[{year}] deduplicating + extracting...")
-    wmt_docs = extraction.get_deduplicated_wmt_docs(
+    wmt_docs = list(extraction.get_deduplicated_wmt_docs(
         wmt_archive_files=[str(archive_path)],
         deduplicated_sorting_keys_file=str(sorting_keys_path),
-    )
+    ))
+    sorting_key_to_ts = {doc.sorting_key: doc.publication_ts for doc in wmt_docs}
+
     passages = extraction.get_wmt_passages_from_docs(
-        wmt_docs, prepend_date=cfg["candidate_pool"]["prepend_date"]
+        wmt_docs,
+        prepend_date=False,  # publication_ts is now captured separately via
+                              # sorting_key_to_ts -- leaving this True would
+                              # ALSO stamp the date into passage text itself,
+                              # duplicating it and leaking a temporal signal
+                              # into content that a poisoning experiment
+                              # shouldn't have baked in as free text
     )
 
     kept = 0
     for p in passages:
-        d = _passage_date(p)
-        if in_any_window(d, windows):
+        dt = _passage_timestamp(p, sorting_key_to_ts)
+        if in_any_window(dt, windows):
             out_f.write(json.dumps({
-                "doc_id": _passage_evidence_id(p),
+                "doc_id": _passage_doc_id(p),
                 "text": _passage_text(p),
-                "timestamp": d.isoformat(),
+                "timestamp": dt.isoformat(),
             }) + "\n")
             kept += 1
 
