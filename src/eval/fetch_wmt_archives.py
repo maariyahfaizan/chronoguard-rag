@@ -1,18 +1,24 @@
 """
-Weeks 3-4 | StreamingQA Step 2a: fetch WMT News Crawl archives.
+Weeks 3-4 | StreamingQA combined fetch+extract, year-by-year, disk-bounded.
 
-Downloads only the years the seeded n=100 StreamingQA sample's evidence_ts
-values actually span (2008-2020, confirmed by save_snapshot_streamingqa.py),
-plus the deduplicated sorting-key file, from a SINGLE confirmed source:
+REPLACES the old fetch_wmt_archives.py (which downloaded all 13 years'
+raw archives before any extraction happened -- ~50GB peak disk usage,
+which broke on Kaggle when running several years in parallel: curl started
+failing with "Failure writing output to destination" and burning
+bandwidth throwing away gigabytes on every retry).
 
-    https://data.statmt.org/news-crawl/doc/en/news-docs.<year>.en.filtered.gz
+This version never holds more than ONE year's raw archive on disk at a
+time: for each year it downloads the archive, extracts ONLY the passages
+that fall within a safety margin of any sampled question's evidence_ts
+(not the whole year), appends those to a running "relevant passages"
+file, then DELETES the raw archive before moving to the next year.
 
-NOTE on source choice: data.statmt.org/news-crawl/doc/ also has a
-doc/wmt19/en-doc/ directory covering 2007-2018, but its files are a
-DIFFERENT (earlier, smaller) crawl vintage of the same years -- e.g. 2008 is
-610M there vs 1.6G in doc/en/. We deliberately source every year from doc/en/
-only, so no year is silently built from a different underlying corpus than
-its neighbors. See configs/streamingqa_config.yaml for the frozen year list.
+Run this, then build_streamingqa_pools.py (also replaced -- see that
+file's own docstring), then preprocess_streamingqa.py (unchanged).
+
+Prerequisite: data/raw/streamingqa_control_sample.jsonl must already exist
+(from save_snapshot_streamingqa.py) -- this script reads it, it does not
+regenerate it.
 
 AUTH: doc/en/ is login-gated (user: newscrawl). Credentials are read from
 environment variables and written to a temporary --netrc-file for curl (so
@@ -25,15 +31,11 @@ fails. Set these before running:
     bash:        export WMT_NEWSCRAWL_USER=newscrawl
                  export WMT_NEWSCRAWL_PASS=<password>
 
-Requires curl on PATH (ships with Windows 10 1803+ by default).
-
-Downloads are resumable: each file downloads to a .partial path first via
-`curl -C -` (auto-resume) with --retry-all-errors so a dropped connection
-(including local interference like AV/VPN killing long-lived connections --
-if you keep seeing WinError 10053, that's the next thing to check) retries
-automatically; only renamed to its final name on a clean exit.
+Requires curl on PATH.
 """
 
+import datetime
+import json
 import os
 import shutil
 import stat
@@ -42,7 +44,6 @@ import sys
 import tempfile
 import time
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import yaml
@@ -50,11 +51,29 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[2]  # src/eval -> src -> repo root
 CONFIG_PATH = REPO_ROOT / "configs" / "streamingqa_config.yaml"
 
+# TODO: point this at wherever third_party/streamingqa
+# (google-deepmind/streamingqa) actually lives in your cloned repo.
+sys.path.insert(0, str(REPO_ROOT / "third_party" / "streamingqa"))
+import extraction  # noqa: E402
+
+# How far beyond the configured candidate_pool.window_days we retain
+# passages during extraction, to cover build_streamingqa_pools.py's own
+# window-widening fallback (which widens up to window_days * 8 if a
+# window is sparse). Must be >= that cap, or the widening fallback has
+# nothing to widen INTO, since anything outside this margin was never
+# extracted at all.
+RETENTION_MARGIN_MULTIPLIER = 8
+
 
 def load_config(path: Path = CONFIG_PATH) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
+
+# ---------------------------------------------------------------------------
+# curl/auth helpers (previously imported from the old fetch_wmt_archives.py --
+# inlined here since this file now IS fetch_wmt_archives.py)
+# ---------------------------------------------------------------------------
 
 def _require_curl() -> str:
     curl_path = shutil.which("curl") or shutil.which("curl.exe")
@@ -77,8 +96,6 @@ def _write_netrc(user: str, password: str, host: str) -> Path:
     path = Path(path_str)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         f.write(f"machine {host}\nlogin {user}\npassword {password}\n")
-    # Best-effort lock-down; Windows ACLs aren't fully controlled by chmod,
-    # but this at least clears world/group read bits where it does apply.
     try:
         os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
     except OSError:
@@ -95,17 +112,9 @@ def _download_with_curl(
     retry_per_attempt: int = 3,
 ) -> None:
     """Resumable download via curl -C - (auto-resume), backed by a .partial
-    file so a run that dies mid-download never leaves something at out_path
-    that a later `if out_path.exists(): skip` check would mistake for done.
-
-    Handles two distinct failure modes differently, since conflating them
-    is what caused the previous version to retry a doomed request 5 times:
-      - mid-transfer connection drop -> curl's own --retry handles this
-        within one attempt (the partial bytes are still good, resume works)
-      - server doesn't support Range at all (curl exit 33, confirmed on
-        this host for news-docs.2015) -> resuming can NEVER succeed, so we
-        discard the partial and restart from byte 0 instead of retrying
-        the same doomed resume request.
+    file. Falls back to a full restart if the server doesn't support Range
+    (confirmed exit code 33 on this host for news-docs.2015) instead of
+    retrying the same doomed resume request.
     """
     if out_path.exists():
         print(f"  already have {out_path.name}, skipping")
@@ -119,11 +128,11 @@ def _download_with_curl(
         cmd = [
             curl_path,
             "--netrc-file", str(netrc_path),
-            "-C", "-",                 # auto-resume from tmp_path's current size (no-op if 0)
+            "-C", "-",
             "--retry", str(retry_per_attempt),
             "--retry-delay", "5",
-            "--retry-all-errors",      # retry on connection resets too, not just 5xx/timeouts
-            "--fail",                  # non-zero exit on HTTP errors instead of saving an error page
+            "--retry-all-errors",
+            "--fail",
             "--show-error",
             "-o", str(tmp_path),
             url,
@@ -136,11 +145,6 @@ def _download_with_curl(
             print(f"  downloading {out_path.name} via curl "
                   f"(full-attempt {attempt}/{max_full_attempts})")
 
-        # Not capturing stdout/stderr here on purpose: curl's live progress
-        # meter (% complete, speed, ETA) prints straight to your terminal,
-        # which matters on files this large -- capturing it would leave you
-        # staring at a blank screen for the better part of an hour on 2017's
-        # 16GB archive with no way to tell if it's stalled.
         result = subprocess.run(cmd)
 
         if result.returncode == 0:
@@ -148,10 +152,6 @@ def _download_with_curl(
             return
 
         if result.returncode == 33:
-            # Confirmed: this server does not support byte-range requests
-            # for at least some of these files. Resuming can't work here --
-            # discard the partial and let the next loop iteration start a
-            # clean full download instead of repeating the same failure.
             print("  server doesn't support resuming this file -- discarding "
                   f"partial ({resume_from:,} bytes) and restarting from 0")
             tmp_path.unlink(missing_ok=True)
@@ -164,68 +164,12 @@ def _download_with_curl(
 
     raise RuntimeError(
         f"Failed to download {url} after {max_full_attempts} full attempts. "
-        f"Partial file kept at {tmp_path} -- rerun this script to keep trying "
-        f"(if the server doesn't support resume, each attempt restarts from 0, "
-        f"so a flaky connection may need several runs to get lucky with an "
-        f"uninterrupted pass)."
+        f"Partial file kept at {tmp_path} -- rerun this script to keep trying."
     )
 
 
-def download_year_archives(cfg: dict, raw_dir: Path, parallelism: int = 4) -> list[Path]:
-    """Downloads all configured years, up to `parallelism` at once.
-
-    Added after we measured ~27.5 KB/s on a single connection to
-    data.statmt.org -- at that rate 50GB across 13 years is ~3 weeks, not
-    workable. This is almost certainly server-side per-connection
-    throttling (small academic mirror, not a CDN) rather than a local
-    bandwidth limit, so running several downloads concurrently can multiply
-    effective throughput even though any single file's speed stays capped.
-    If total throughput does NOT increase with parallelism > 1, the limit
-    is per-IP instead and this won't help -- at that point the fix is
-    running the fetch from a different network (e.g. a Kaggle notebook)
-    rather than more concurrency here.
-    """
-    curl_path = _require_curl()
-    src = cfg["evidence_source"]
-
-    user = os.environ.get("WMT_NEWSCRAWL_USER")
-    password = os.environ.get("WMT_NEWSCRAWL_PASS")
-    if not user or not password:
-        raise RuntimeError(
-            "Set WMT_NEWSCRAWL_USER and WMT_NEWSCRAWL_PASS environment "
-            "variables before running (data.statmt.org/news-crawl/doc/ is "
-            "credential-gated)."
-        )
-    netrc_path = _write_netrc(user, password, host="data.statmt.org")
-
-    jobs = []
-    for year in src["years"]:
-        fname = src["filename_pattern"].format(year=year)
-        url = src["base_url"] + fname
-        out_path = raw_dir / "wmt" / fname
-        jobs.append((url, out_path))
-
-    paths = [out for _, out in jobs]
-    try:
-        with ThreadPoolExecutor(max_workers=parallelism) as pool:
-            futures = {
-                pool.submit(_download_with_curl, curl_path, url, out_path, netrc_path): out_path
-                for url, out_path in jobs
-            }
-            for future in as_completed(futures):
-                out_path = futures[future]
-                future.result()  # re-raises if that year's download ultimately failed
-                print(f"  finished {out_path.name}")
-    finally:
-        netrc_path.unlink(missing_ok=True)  # never leave the password file behind
-
-    return paths
-
-
 def download_sorting_keys(cfg: dict, raw_dir: Path) -> Path:
-    # This file is hosted on storage.googleapis.com (no auth needed) --
-    # reuse the plain urlretrieve path from save_snapshot_streamingqa.py's
-    # convention rather than the authed opener.
+    # Hosted on storage.googleapis.com (no auth needed).
     url = cfg["evidence_source"]["sorting_keys_url"]
     out_path = raw_dir / "wmt_sorting_key_ids.txt.gz"
     if out_path.exists():
@@ -237,20 +181,136 @@ def download_sorting_keys(cfg: dict, raw_dir: Path) -> Path:
     return out_path
 
 
+# ---------------------------------------------------------------------------
+# per-year fetch + filtered extraction + cleanup
+# ---------------------------------------------------------------------------
+
+def load_sample(raw_dir: Path) -> list[dict]:
+    sample_path = raw_dir / "streamingqa_control_sample.jsonl"
+    if not sample_path.exists():
+        raise FileNotFoundError(
+            f"{sample_path} not found -- run save_snapshot_streamingqa.py "
+            f"first (this script reads the sample, it doesn't create it)."
+        )
+    with open(sample_path, "r", encoding="utf-8") as f:
+        return [json.loads(line) for line in f]
+
+
+def compute_retention_windows(sample: list[dict], window_days: int) -> list[tuple]:
+    margin = window_days * RETENTION_MARGIN_MULTIPLIER
+    windows = []
+    for q in sample:
+        gold_dt = datetime.datetime.utcfromtimestamp(q["evidence_ts"])
+        lo = gold_dt - datetime.timedelta(days=margin)
+        hi = gold_dt + datetime.timedelta(days=margin)
+        windows.append((lo, hi))
+    return windows
+
+
+def in_any_window(date: datetime.datetime, windows: list[tuple]) -> bool:
+    return any(lo <= date <= hi for lo, hi in windows)
+
+
+def _passage_date(p) -> datetime.datetime:
+    raw = p["date"] if isinstance(p, dict) else p.date
+    if isinstance(raw, datetime.datetime):
+        return raw
+    return datetime.datetime.fromisoformat(raw)
+
+
+def _passage_text(p) -> str:
+    return p["text"] if isinstance(p, dict) else p.text
+
+
+def _passage_evidence_id(p):
+    return p["evidence_id"] if isinstance(p, dict) else p.evidence_id
+
+
+def process_year(
+    year: int,
+    cfg: dict,
+    raw_dir: Path,
+    curl_path: str,
+    netrc_path: Path,
+    sorting_keys_path: Path,
+    windows: list[tuple],
+    out_f,
+) -> int:
+    src = cfg["evidence_source"]
+    fname = src["filename_pattern"].format(year=year)
+    url = src["base_url"] + fname
+    archive_path = raw_dir / "wmt" / fname
+
+    print(f"[{year}] downloading...")
+    _download_with_curl(curl_path, url, archive_path, netrc_path)
+
+    print(f"[{year}] deduplicating + extracting...")
+    wmt_docs = extraction.get_deduplicated_wmt_docs(
+        wmt_archive_files=[str(archive_path)],
+        deduplicated_sorting_keys_file=str(sorting_keys_path),
+    )
+    passages = extraction.get_wmt_passages_from_docs(
+        wmt_docs, prepend_date=cfg["candidate_pool"]["prepend_date"]
+    )
+
+    kept = 0
+    for p in passages:
+        d = _passage_date(p)
+        if in_any_window(d, windows):
+            out_f.write(json.dumps({
+                "doc_id": _passage_evidence_id(p),
+                "text": _passage_text(p),
+                "timestamp": d.isoformat(),
+            }) + "\n")
+            kept += 1
+
+    print(f"[{year}] kept {kept} passages within the retention margin")
+
+    # The whole point of this rewrite: free the disk before the next
+    # (possibly 16GB, for 2017) year starts downloading.
+    archive_path.unlink()
+    print(f"[{year}] deleted raw archive, freed disk")
+
+    return kept
+
+
 if __name__ == "__main__":
     cfg = load_config()
     raw_dir = REPO_ROOT / cfg["output"]["raw_dir"]
 
-    # Optional: python fetch_wmt_archives.py 6   -> 6 years downloading at once.
-    # Default 4 is a reasonable starting guess; push it higher if throughput
-    # keeps scaling, back off if individual downloads start timing out more.
-    parallelism = int(sys.argv[1]) if len(sys.argv) > 1 else 4
+    sample = load_sample(raw_dir)
+    print(f"Loaded {len(sample)} sampled questions.")
 
-    print(f"Fetching sorting keys...")
+    window_days = cfg["candidate_pool"]["window_days"]
+    windows = compute_retention_windows(sample, window_days)
+    print(f"Retention margin: +/-{window_days * RETENTION_MARGIN_MULTIPLIER} days "
+          f"around each of {len(windows)} gold dates.")
+
+    curl_path = _require_curl()
+    user = os.environ.get("WMT_NEWSCRAWL_USER")
+    password = os.environ.get("WMT_NEWSCRAWL_PASS")
+    if not user or not password:
+        raise RuntimeError(
+            "Set WMT_NEWSCRAWL_USER and WMT_NEWSCRAWL_PASS environment "
+            "variables before running."
+        )
+    netrc_path = _write_netrc(user, password, host="data.statmt.org")
+
     sorting_keys_path = download_sorting_keys(cfg, raw_dir)
 
-    print(f"Fetching {len(cfg['evidence_source']['years'])} WMT archive years "
-          f"from {cfg['evidence_source']['base_url']} ({parallelism} at a time)")
-    archive_paths = download_year_archives(cfg, raw_dir, parallelism=parallelism)
+    relevant_path = raw_dir / "streamingqa_relevant_passages.jsonl"
+    relevant_path.parent.mkdir(parents=True, exist_ok=True)
 
-    print(f"Done. {len(archive_paths)} archives + sorting keys in {raw_dir}")
+    try:
+        total_kept = 0
+        with open(relevant_path, "w", encoding="utf-8") as out_f:
+            for year in cfg["evidence_source"]["years"]:
+                total_kept += process_year(
+                    year, cfg, raw_dir, curl_path, netrc_path,
+                    sorting_keys_path, windows, out_f,
+                )
+    finally:
+        netrc_path.unlink(missing_ok=True)
+
+    print(f"Done. {total_kept} relevant passages written to {relevant_path}")
+    print("Next: run build_streamingqa_pools.py.")
