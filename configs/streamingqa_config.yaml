@@ -1,0 +1,33 @@
+# StreamingQA clean-baseline configuration (Weeks 3-4)
+# Mirrors configs/baseline_config.yaml's role for TriviaQA: this is the single
+# frozen source of truth for how the StreamingQA candidate pool was built.
+# Do not hand-edit downstream of a run without re-running preprocessing.
+
+sample:
+  seed: 42
+  n: 100
+  split: eval
+
+evidence_source:
+  # Both wmt19/en-doc/ and doc/en/ host overlapping years (2008-2018) but are
+  # DIFFERENT crawl vintages of the same year (doc/en/ is a later, larger
+  # re-crawl -- confirmed by differing file sizes, e.g. 2008: 610M vs 1.6G).
+  # Sourcing every year from a single directory avoids silently mixing two
+  # different corpora for the same calendar year.
+  base_url: "https://data.statmt.org/news-crawl/doc/en/"
+  filename_pattern: "news-docs.{year}.en.filtered.gz"
+  sorting_keys_url: "https://storage.googleapis.com/dm-streamingqa/wmt_sorting_key_ids.txt.gz"
+  years: [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020]
+  # credentials are NOT stored here -- data.statmt.org/news-crawl/doc/ is
+  # login-gated (user: newscrawl); export WMT_NEWSCRAWL_USER / WMT_NEWSCRAWL_PASS
+  # as environment variables before running the download step.
+
+candidate_pool:
+  window_days: 30          # distractors drawn from within +/- this many days of evidence_ts
+  candidates_per_query: 20  # gold article + distractors, total
+  distractor_selection: window   # {window, same_year, stratified} -- window chosen; see progress notes
+  prepend_date: true        # passed through to extraction.py's get_wmt_passages_from_docs
+
+output:
+  raw_dir: "data/raw"
+  processed_path: "data/processed/streamingqa_control_pools.jsonl"
