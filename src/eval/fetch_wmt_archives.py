@@ -51,6 +51,21 @@ prepend_date=True would ALSO stamp the date into passage text itself --
 duplicating it and leaking a temporal signal into content that a
 poisoning experiment shouldn't have baked in as free text.
 ---
+NOTE ON THIS REVISION (streaming fix, no raw archive ever touches disk):
+2017's archive turned out to be ~11GB (vs 1.6-3GB for every other year),
+which alone exceeds free disk even after the gzip-shard fix below reduced
+steady-state usage. Since extraction.get_deduplicated_wmt_docs's own type
+hint (Iterable[Union[str, BinaryIO]]) confirms it accepts a live file-like
+stream, not just a path, we now pipe curl's stdout directly into it via
+subprocess.Popen(..., stdout=PIPE) -- the compressed archive is decoded
+in-flight and NEVER written to disk as a whole file. This trades away
+curl's byte-offset resume (-C -): a failure mid-stream means restarting
+that year's download+decode from scratch, since there's no partial file
+to resume from. Accepted trade-off given the alternative is simply not
+being able to fetch oversized years at all under a 20GB disk budget.
+Applies to every not-yet-fetched year uniformly (not just 2017), as a
+guard against other large years (2018-2020, sizes not yet observed).
+---
 NOTE ON THIS REVISION (disk-exhaustion fix):
 The previous version wrote ALL years into one single, ever-growing,
 uncompressed streamingqa_relevant_passages.jsonl. On a 20GB Kaggle disk
@@ -147,69 +162,63 @@ def _write_netrc(user: str, password: str, host: str) -> Path:
     return path
 
 
-def _download_with_curl(
+def _start_curl_stream(curl_path: str, url: str, netrc_path: Path) -> subprocess.Popen:
+    """Launches curl with its stdout piped back to us, instead of writing to
+    a file. The (possibly 10+GB) compressed archive is never fully written
+    to disk -- extraction reads and decompresses it in-flight from this
+    pipe. No -C/resume support here: a mid-stream failure means starting
+    over from byte zero on the next attempt, since there's nothing partial
+    on disk to resume from.
+    """
+    cmd = [
+        curl_path,
+        "--netrc-file", str(netrc_path),
+        "--fail",
+        "--show-error",
+        "--silent",
+        url,
+    ]
+    return subprocess.Popen(cmd, stdout=subprocess.PIPE)
+
+
+def _stream_year_docs(
     curl_path: str,
     url: str,
-    out_path: Path,
     netrc_path: Path,
-    max_full_attempts: int = 5,
-    retry_per_attempt: int = 3,
-) -> None:
-    """Resumable download via curl -C - (auto-resume), backed by a .partial
-    file. Falls back to a full restart if the server doesn't support Range
-    (confirmed exit code 33 on this host for news-docs.2015) instead of
-    retrying the same doomed resume request.
+    sorting_keys_path: Path,
+    max_attempts: int = 5,
+) -> list:
+    """Streams the archive via curl's stdout directly into
+    extraction.get_deduplicated_wmt_docs (which accepts a live file-like
+    object per its own Iterable[Union[str, BinaryIO]] type hint), retrying
+    the WHOLE download+decode from scratch on any failure -- a truncated
+    or interrupted stream surfaces as an EOFError/OSError from gzip
+    decompression partway through, which we can't resume from since
+    nothing partial persists on disk.
     """
-    if out_path.exists():
-        print(f"  already have {out_path.name}, skipping")
-        return
-
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    tmp_path = out_path.with_suffix(out_path.suffix + ".partial")
-
-    for attempt in range(1, max_full_attempts + 1):
-        resume_from = tmp_path.stat().st_size if tmp_path.exists() else 0
-        cmd = [
-            curl_path,
-            "--netrc-file", str(netrc_path),
-            "-C", "-",
-            "--retry", str(retry_per_attempt),
-            "--retry-delay", "5",
-            "--retry-all-errors",
-            "--fail",
-            "--show-error",
-            "-o", str(tmp_path),
-            url,
-        ]
-
-        if resume_from:
-            print(f"  downloading {out_path.name} via curl "
-                  f"(resuming from {resume_from:,} bytes, full-attempt {attempt}/{max_full_attempts})")
-        else:
-            print(f"  downloading {out_path.name} via curl "
-                  f"(full-attempt {attempt}/{max_full_attempts})")
-
-        result = subprocess.run(cmd)
-
-        if result.returncode == 0:
-            tmp_path.rename(out_path)
-            return
-
-        if result.returncode == 33:
-            print("  server doesn't support resuming this file -- discarding "
-                  f"partial ({resume_from:,} bytes) and restarting from 0")
-            tmp_path.unlink(missing_ok=True)
-            continue
-
-        print(f"  curl exited {result.returncode} after its internal retries; "
-              f"{tmp_path.stat().st_size if tmp_path.exists() else 0:,} bytes "
-              f"on disk, trying again (full-attempt {attempt + 1}/{max_full_attempts})")
-        time.sleep(5)
-
-    raise RuntimeError(
-        f"Failed to download {url} after {max_full_attempts} full attempts. "
-        f"Partial file kept at {tmp_path} -- rerun this script to keep trying."
-    )
+    for attempt in range(1, max_attempts + 1):
+        print(f"  streaming (curl piped directly into extraction, "
+              f"attempt {attempt}/{max_attempts})")
+        proc = _start_curl_stream(curl_path, url, netrc_path)
+        try:
+            docs = list(extraction.get_deduplicated_wmt_docs(
+                wmt_archive_files=[proc.stdout],
+                deduplicated_sorting_keys_file=str(sorting_keys_path),
+            ))
+            proc.stdout.close()
+            returncode = proc.wait()
+            if returncode != 0:
+                raise RuntimeError(f"curl exited {returncode} mid-stream")
+            return docs
+        except Exception as e:
+            print(f"  stream attempt {attempt} failed: {e!r}")
+            proc.kill()
+            proc.wait()
+            if attempt == max_attempts:
+                raise RuntimeError(
+                    f"Failed to stream {url} after {max_attempts} attempts."
+                ) from e
+            time.sleep(5)
 
 
 def download_sorting_keys(cfg: dict, raw_dir: Path) -> Path:
@@ -311,16 +320,9 @@ def process_year(
     src = cfg["evidence_source"]
     fname = src["filename_pattern"].format(year=year)
     url = src["base_url"] + fname
-    archive_path = raw_dir / "wmt" / fname
 
-    print(f"[{year}] downloading...")
-    _download_with_curl(curl_path, url, archive_path, netrc_path)
-
-    print(f"[{year}] deduplicating + extracting...")
-    wmt_docs = list(extraction.get_deduplicated_wmt_docs(
-        wmt_archive_files=[str(archive_path)],
-        deduplicated_sorting_keys_file=str(sorting_keys_path),
-    ))
+    print(f"[{year}] streaming + deduplicating (no raw archive written to disk)...")
+    wmt_docs = _stream_year_docs(curl_path, url, netrc_path, sorting_keys_path)
     sorting_key_to_ts = {doc.sorting_key: doc.publication_ts for doc in wmt_docs}
 
     passages = extraction.get_wmt_passages_from_docs(
@@ -353,11 +355,8 @@ def process_year(
     print(f"[{year}] kept {kept} passages within the retention margin "
           f"(shard: {shard_path.stat().st_size / 1e6:.1f} MB compressed)")
 
-    # The whole point of the year-by-year design: free the disk before the
-    # next (possibly 16GB, for 2017) year starts downloading.
-    archive_path.unlink()
-    print(f"[{year}] deleted raw archive, freed disk")
-
+    # No raw archive to delete anymore -- streaming meant it never touched
+    # disk as a whole file in the first place.
     return kept
 
 
