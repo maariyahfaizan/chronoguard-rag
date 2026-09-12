@@ -134,15 +134,21 @@ def build_pool_specs(cfg: dict, sample: list[dict], sorted_dts, sorted_doc_ids, 
     pool_size = cfg["candidate_pool"]["candidates_per_query"]
 
     specs = []
-    skipped = []
+    skipped = []  # (qa_id, evidence_id, evidence_ts) for diagnosis
     for q in sample:
         gold_id = q["evidence_id"]
         gold_date = doc_id_to_dt.get(gold_id)
         if gold_date is None:
-            # Gold evidence wasn't retained during extraction -- shouldn't
-            # happen since the retention margin is centered on gold dates
-            # themselves, but flag rather than silently drop.
-            skipped.append(q["question_id"])
+            # Gold evidence wasn't retained during extraction -- the code
+            # originally assumed this "shouldn't happen since the
+            # retention margin is centered on gold dates themselves," but
+            # it evidently does for at least one question. Recording
+            # evidence_ts alongside evidence_id here so we can tell
+            # whether this is an ID-format mismatch (gold date IS covered
+            # by some shard, but under a different doc_id scheme than WMT
+            # extraction produces) vs. a genuinely uncovered date (outside
+            # every shard's retention window).
+            skipped.append((q["qa_id"], gold_id, q.get("evidence_ts")))
             continue
 
         n_distractors = pool_size - 1
@@ -160,9 +166,33 @@ def build_pool_specs(cfg: dict, sample: list[dict], sorted_dts, sorted_doc_ids, 
 
     if skipped:
         print(f"WARNING: {len(skipped)} questions had no gold evidence in the "
-              f"relevant-passages shards, eval set is {len(specs)}/100: {skipped}")
+              f"relevant-passages shards, eval set is {len(specs)}/100.")
+        print("Diagnosing each skipped question (qa_id, evidence_id, "
+              "evidence_ts as ISO, whether that date falls inside the "
+              "retention margin around itself -- sanity check):")
+        for qa_id, evidence_id, evidence_ts in skipped:
+            ts_str = (
+                datetime.datetime.fromtimestamp(evidence_ts, tz=datetime.timezone.utc).isoformat()
+                if evidence_ts is not None else "MISSING evidence_ts"
+            )
+            print(f"  qa_id={qa_id!r} evidence_id={evidence_id!r} evidence_ts={ts_str}")
+            # A quick same-day lookup: does ANY doc_id in the index share
+            # this exact evidence_id string prefix/format at all, or is
+            # evidence_id simply not the same ID scheme as WMT doc_ids?
+            close_matches = [d for d in sorted_doc_ids if evidence_id in d or d in evidence_id]
+            if close_matches:
+                print(f"    NOTE: {len(close_matches)} doc_id(s) partially "
+                      f"match this evidence_id as a substring -- possible "
+                      f"ID-format mismatch rather than a truly missing date. "
+                      f"Example: {close_matches[0]!r}")
+            else:
+                print(f"    No doc_id in the index shares any substring "
+                      f"overlap with evidence_id={evidence_id!r} -- likely "
+                      f"a genuinely different ID scheme, not a formatting "
+                      f"quirk.")
 
     return specs
+
 
 
 def fetch_texts(raw_dir: Path, needed_ids: set) -> dict:
