@@ -16,11 +16,26 @@ over all 49M passages EVERY time it was called (once per question, up to
 of a 49M-element list, which would have been prohibitively slow even if
 memory hadn't been a problem first.
 
+NOTE ON THIS REVISION (gold-evidence ID mismatch fix):
+Diagnostic output showed ALL 100/100 questions were being skipped for
+"missing" gold evidence -- but every skip's evidence_id turned out to be
+an EXACT PREFIX of some real doc_id, always missing exactly the trailing
+"_0" suffix. Root cause: evidence_id in the sample is the article's
+sorting_key (document-level), not a specific WMTPassage's id
+(chunk-level, '{sorting_key}_{passage_idx}'). doc_id_to_dt was keyed by
+full passage id, so an exact-match lookup against a bare sorting_key could
+never hit. Fix: Pass 1 now ALSO builds sorting_key_to_gold, mapping each
+article's sorting_key to its FIRST passage (lowest passage_idx, i.e. the
+"_0" chunk) -- used as the canonical gold passage, since all of an
+article's passages share the same publication date and the eval format
+needs exactly one gold passage per question.
+
 Fix: two passes instead of one.
   Pass 1 (load_passage_index): reads all shards but keeps only
-    (timestamp, doc_id) pairs -- no text -- sorted by timestamp. Window
-    lookups now use bisect (O(log n) + slice) instead of scanning all 49M
-    entries per candidate.
+    (timestamp, doc_id) pairs -- no text -- sorted by timestamp, PLUS a
+    sorting_key -> (doc_id, dt) map to the first passage of each article
+    (for gold resolution, see above). Window lookups use bisect
+    (O(log n) + slice) instead of scanning all 49M entries per candidate.
   Pass 2 (fetch_texts): rereads the shards once more, but only keeps text
     for the small set of doc_ids actually selected across all 100
     questions (gold + distractors, typically ~2000 total) -- everything
@@ -41,12 +56,28 @@ import datetime
 import gzip
 import json
 import random
+import re
 from pathlib import Path
 
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = REPO_ROOT / "configs" / "streamingqa_config.yaml"
+
+_PASSAGE_ID_RE = re.compile(r'^(.*)_(\d+)$')
+
+
+def _split_passage_id(doc_id: str) -> tuple[str, int]:
+    """Splits a WMTPassage doc_id ('{sorting_key}_{passage_idx}') back into
+    its parent article's sorting_key and this chunk's passage_idx. Mirrors
+    the same regex used in fetch_wmt_archives.py's _extract_sorting_key --
+    splits on the trailing digits only, since sorting_key itself may
+    contain underscores.
+    """
+    match = _PASSAGE_ID_RE.match(doc_id)
+    if not match:
+        raise ValueError(f"Unexpected passage id format: {doc_id!r}")
+    return match.group(1), int(match.group(2))
 
 
 def load_config(path: Path = CONFIG_PATH) -> dict:
@@ -75,24 +106,34 @@ def load_passage_index(raw_dir: Path):
     """Pass 1: builds a lightweight (timestamp, doc_id) index across all
     shards WITHOUT holding passage text in memory -- the full-text version
     of this (49M dicts including text) is what appears to have exhausted
-    memory previously. Returns (sorted_dts, sorted_doc_ids, doc_id_to_dt),
-    all aligned/sorted ascending by timestamp so window queries can use
+    memory previously. Also builds sorting_key_to_gold, mapping each
+    article's sorting_key to its FIRST passage (lowest passage_idx) --
+    used to resolve gold evidence, since evidence_id in the sample is a
+    document-level sorting_key, not a specific passage id.
+
+    Returns (sorted_dts, sorted_doc_ids, sorting_key_to_gold), the first
+    two aligned/sorted ascending by timestamp so window queries can use
     bisect instead of an O(n) scan per candidate.
     """
     entries = []  # list of (datetime, doc_id)
-    doc_id_to_dt = {}
+    sorting_key_to_gold = {}  # sorting_key -> (passage_idx, doc_id, dt), kept at min passage_idx
     for shard_path in _shard_paths(raw_dir):
         with gzip.open(shard_path, "rt", encoding="utf-8") as f:
             for line in f:
                 p = json.loads(line)
+                doc_id = p["doc_id"]
                 dt = datetime.datetime.fromisoformat(p["timestamp"])
-                entries.append((dt, p["doc_id"]))
-                doc_id_to_dt[p["doc_id"]] = dt
+                entries.append((dt, doc_id))
+
+                sorting_key, passage_idx = _split_passage_id(doc_id)
+                existing = sorting_key_to_gold.get(sorting_key)
+                if existing is None or passage_idx < existing[0]:
+                    sorting_key_to_gold[sorting_key] = (passage_idx, doc_id, dt)
 
     entries.sort(key=lambda e: e[0])
     sorted_dts = [e[0] for e in entries]
     sorted_doc_ids = [e[1] for e in entries]
-    return sorted_dts, sorted_doc_ids, doc_id_to_dt
+    return sorted_dts, sorted_doc_ids, sorting_key_to_gold
 
 
 def _window_doc_ids(sorted_dts, sorted_doc_ids, lo, hi, exclude_doc_id) -> list:
@@ -127,7 +168,7 @@ def select_distractor_ids(
     return rng.sample(candidates, min(n_needed, len(candidates)))
 
 
-def build_pool_specs(cfg: dict, sample: list[dict], sorted_dts, sorted_doc_ids, doc_id_to_dt) -> list[dict]:
+def build_pool_specs(cfg: dict, sample: list[dict], sorted_dts, sorted_doc_ids, sorting_key_to_gold) -> list[dict]:
     """Selection only -- produces doc_ids per query, no text yet."""
     rng = random.Random(cfg["sample"]["seed"])
     window_days = cfg["candidate_pool"]["window_days"]
@@ -136,20 +177,20 @@ def build_pool_specs(cfg: dict, sample: list[dict], sorted_dts, sorted_doc_ids, 
     specs = []
     skipped = []  # (qa_id, evidence_id, evidence_ts) for diagnosis
     for q in sample:
-        gold_id = q["evidence_id"]
-        gold_date = doc_id_to_dt.get(gold_id)
-        if gold_date is None:
-            # Gold evidence wasn't retained during extraction -- the code
-            # originally assumed this "shouldn't happen since the
-            # retention margin is centered on gold dates themselves," but
-            # it evidently does for at least one question. Recording
-            # evidence_ts alongside evidence_id here so we can tell
-            # whether this is an ID-format mismatch (gold date IS covered
-            # by some shard, but under a different doc_id scheme than WMT
-            # extraction produces) vs. a genuinely uncovered date (outside
-            # every shard's retention window).
-            skipped.append((q["qa_id"], gold_id, q.get("evidence_ts")))
+        # evidence_id is the article's sorting_key (document-level), not a
+        # specific passage id -- resolved to that article's first passage
+        # (lowest passage_idx) as the canonical gold text. See module
+        # docstring for how this was diagnosed (100/100 questions were
+        # failing an exact doc_id match before this fix).
+        sorting_key = q["evidence_id"]
+        gold_entry = sorting_key_to_gold.get(sorting_key)
+        if gold_entry is None:
+            # This time a genuinely missing article, not an ID-format
+            # mismatch -- record for inspection, but don't expect many.
+            skipped.append((q["qa_id"], sorting_key, q.get("evidence_ts")))
             continue
+
+        _passage_idx, gold_id, gold_date = gold_entry
 
         n_distractors = pool_size - 1
         distractor_ids = select_distractor_ids(
@@ -165,31 +206,16 @@ def build_pool_specs(cfg: dict, sample: list[dict], sorted_dts, sorted_doc_ids, 
         })
 
     if skipped:
-        print(f"WARNING: {len(skipped)} questions had no gold evidence in the "
-              f"relevant-passages shards, eval set is {len(specs)}/100.")
-        print("Diagnosing each skipped question (qa_id, evidence_id, "
-              "evidence_ts as ISO, whether that date falls inside the "
-              "retention margin around itself -- sanity check):")
-        for qa_id, evidence_id, evidence_ts in skipped:
+        print(f"WARNING: {len(skipped)} questions had no gold article in the "
+              f"relevant-passages shards at all (sorting_key not found, "
+              f"not just an id-format mismatch), eval set is {len(specs)}/100:")
+        for qa_id, sorting_key, evidence_ts in skipped:
             ts_str = (
                 datetime.datetime.fromtimestamp(evidence_ts, tz=datetime.timezone.utc).isoformat()
                 if evidence_ts is not None else "MISSING evidence_ts"
             )
-            print(f"  qa_id={qa_id!r} evidence_id={evidence_id!r} evidence_ts={ts_str}")
-            # A quick same-day lookup: does ANY doc_id in the index share
-            # this exact evidence_id string prefix/format at all, or is
-            # evidence_id simply not the same ID scheme as WMT doc_ids?
-            close_matches = [d for d in sorted_doc_ids if evidence_id in d or d in evidence_id]
-            if close_matches:
-                print(f"    NOTE: {len(close_matches)} doc_id(s) partially "
-                      f"match this evidence_id as a substring -- possible "
-                      f"ID-format mismatch rather than a truly missing date. "
-                      f"Example: {close_matches[0]!r}")
-            else:
-                print(f"    No doc_id in the index shares any substring "
-                      f"overlap with evidence_id={evidence_id!r} -- likely "
-                      f"a genuinely different ID scheme, not a formatting "
-                      f"quirk.")
+            print(f"  qa_id={qa_id!r} evidence_id(sorting_key)={sorting_key!r} "
+                  f"evidence_ts={ts_str}")
 
     return specs
 
@@ -260,13 +286,13 @@ if __name__ == "__main__":
 
     print("Pass 1/2: indexing passage timestamps across all shards "
           "(no text held in memory)...")
-    sorted_dts, sorted_doc_ids, doc_id_to_dt = load_passage_index(raw_dir)
+    sorted_dts, sorted_doc_ids, sorting_key_to_gold = load_passage_index(raw_dir)
     print(f"Indexed {len(sorted_dts)} passages.")
 
     print("Selecting candidate pools "
           f"(+/-{cfg['candidate_pool']['window_days']}d window, "
           f"{cfg['candidate_pool']['candidates_per_query']} candidates/query)...")
-    pool_specs = build_pool_specs(cfg, sample, sorted_dts, sorted_doc_ids, doc_id_to_dt)
+    pool_specs = build_pool_specs(cfg, sample, sorted_dts, sorted_doc_ids, sorting_key_to_gold)
 
     needed_ids = set()
     for spec in pool_specs:
