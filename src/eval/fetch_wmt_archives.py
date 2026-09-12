@@ -51,9 +51,33 @@ prepend_date=True would ALSO stamp the date into passage text itself --
 duplicating it and leaking a temporal signal into content that a
 poisoning experiment shouldn't have baked in as free text.
 ---
+NOTE ON THIS REVISION (disk-exhaustion fix):
+The previous version wrote ALL years into one single, ever-growing,
+uncompressed streamingqa_relevant_passages.jsonl. On a 20GB Kaggle disk
+this ran out of space partway through 2014 (17GB already used by just
+2008-2013 -- ~2.5-3M kept passages/year, uncompressed). Two changes:
+
+  1. Output is now ONE GZIP-COMPRESSED SHARD PER YEAR, under
+     data/raw/streamingqa_relevant_passages/{year}.jsonl.gz, instead of
+     one flat file. JSON text compresses roughly 4-6x, and per-year
+     files bound how much any single run needs to hold.
+  2. The script is now RESUMABLE: if a year's shard file already exists,
+     that year's download+extraction is skipped entirely. Previously the
+     output file was opened with mode "w" at the top of __main__, which
+     silently TRUNCATED already-extracted years on every rerun -- if you
+     pull this revision in in place of the old one, delete the old flat
+     streamingqa_relevant_passages.jsonl first (it is now a stale format
+     that downstream scripts no longer read), which will also free the
+     disk space needed to keep going.
+
+build_streamingqa_pools.py's load_relevant_passages() must be updated to
+read this sharded/gzipped directory instead of a single flat file -- see
+the paired revision of that script.
+---
 """
 
 import datetime
+import gzip
 import json
 import os
 import re
@@ -270,12 +294,20 @@ def process_year(
     year: int,
     cfg: dict,
     raw_dir: Path,
+    shards_dir: Path,
     curl_path: str,
     netrc_path: Path,
     sorting_keys_path: Path,
     windows: list[tuple],
-    out_f,
 ) -> int:
+    shard_path = shards_dir / f"{year}.jsonl.gz"
+    if shard_path.exists():
+        # Resumable: don't re-download or re-extract a year we already have.
+        with gzip.open(shard_path, "rt", encoding="utf-8") as f:
+            kept = sum(1 for _ in f)
+        print(f"[{year}] shard already exists ({kept} passages), skipping")
+        return kept
+
     src = cfg["evidence_source"]
     fname = src["filename_pattern"].format(year=year)
     url = src["base_url"] + fname
@@ -301,21 +333,28 @@ def process_year(
                               # shouldn't have baked in as free text
     )
 
+    # Write to a .tmp path and rename on success, so a crash mid-year never
+    # leaves a shard that LOOKS complete (and would be wrongly skipped on
+    # the next resumed run) but actually has partial/truncated content.
+    tmp_shard_path = shard_path.with_suffix(shard_path.suffix + ".tmp")
     kept = 0
-    for p in passages:
-        dt = _passage_timestamp(p, sorting_key_to_ts)
-        if in_any_window(dt, windows):
-            out_f.write(json.dumps({
-                "doc_id": _passage_doc_id(p),
-                "text": _passage_text(p),
-                "timestamp": dt.isoformat(),
-            }) + "\n")
-            kept += 1
+    with gzip.open(tmp_shard_path, "wt", encoding="utf-8") as out_f:
+        for p in passages:
+            dt = _passage_timestamp(p, sorting_key_to_ts)
+            if in_any_window(dt, windows):
+                out_f.write(json.dumps({
+                    "doc_id": _passage_doc_id(p),
+                    "text": _passage_text(p),
+                    "timestamp": dt.isoformat(),
+                }) + "\n")
+                kept += 1
+    tmp_shard_path.rename(shard_path)
 
-    print(f"[{year}] kept {kept} passages within the retention margin")
+    print(f"[{year}] kept {kept} passages within the retention margin "
+          f"(shard: {shard_path.stat().st_size / 1e6:.1f} MB compressed)")
 
-    # The whole point of this rewrite: free the disk before the next
-    # (possibly 16GB, for 2017) year starts downloading.
+    # The whole point of the year-by-year design: free the disk before the
+    # next (possibly 16GB, for 2017) year starts downloading.
     archive_path.unlink()
     print(f"[{year}] deleted raw archive, freed disk")
 
@@ -346,19 +385,19 @@ if __name__ == "__main__":
 
     sorting_keys_path = download_sorting_keys(cfg, raw_dir)
 
-    relevant_path = raw_dir / "streamingqa_relevant_passages.jsonl"
-    relevant_path.parent.mkdir(parents=True, exist_ok=True)
+    shards_dir = raw_dir / "streamingqa_relevant_passages"
+    shards_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         total_kept = 0
-        with open(relevant_path, "w", encoding="utf-8") as out_f:
-            for year in cfg["evidence_source"]["years"]:
-                total_kept += process_year(
-                    year, cfg, raw_dir, curl_path, netrc_path,
-                    sorting_keys_path, windows, out_f,
-                )
+        for year in cfg["evidence_source"]["years"]:
+            total_kept += process_year(
+                year, cfg, raw_dir, shards_dir, curl_path, netrc_path,
+                sorting_keys_path, windows,
+            )
     finally:
         netrc_path.unlink(missing_ok=True)
 
-    print(f"Done. {total_kept} relevant passages written to {relevant_path}")
+    print(f"Done. {total_kept} relevant passages written across "
+          f"{len(cfg['evidence_source']['years'])} shard(s) in {shards_dir}")
     print("Next: run build_streamingqa_pools.py.")
