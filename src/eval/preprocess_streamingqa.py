@@ -1,8 +1,29 @@
 """
-Weeks 3-4 | StreamingQA Step 2c: emit the final {query, gold_answer,
-gold_aliases, candidates} records that src/retrieval/{bm25,dense,hybrid,
-reranker}.py and src/eval/evaluator.py already consume (same shape as the
-TriviaQA control pools) -- no changes to retrieval/eval code needed.
+Weeks 3-4 | StreamingQA Step 2c: emit the final records that
+src/retrieval/{bm25,dense,hybrid,reranker}.py and src/eval/evaluator.py
+consume.
+
+NOTE ON THIS REVISION (temporal metrics support):
+The original version emitted exactly {query, gold_answer, gold_aliases,
+candidates} -- the same shape as the TriviaQA control pools, on the
+assumption that no downstream code needed anything else. That's no longer
+true: the plan's Section 7 requires temporal-QA metrics (Time-Valid Answer
+Accuracy, correctness conditioned on query date) and retrieval metrics
+(valid-evidence Recall@k, fraction of top-k violating the query-time
+constraint) that can't be computed without a "query time" reference point
+to compare each candidate's timestamp against. That reference point is
+question_ts, which existed in the raw sample all along but was being
+silently dropped here. recent_or_past is also now kept, since Section 6's
+"Evaluation slices" explicitly calls for a Recent vs historical breakdown,
+and that field is the direct label for it.
+
+This means StreamingQA's processed shape is now intentionally WIDER than
+TriviaQA's (query, gold_answer, gold_aliases, candidates, question_ts,
+recent_or_past) -- retrieval code that only reads candidates/query/gold_*
+is unaffected either way, since it can just ignore the two extra keys; new
+temporal-metric functions consume question_ts/recent_or_past specifically
+for StreamingQA and won't find them on TriviaQA records (expected -- those
+metrics are only meaningful where a real query-time reference exists).
 
 Input:  data/raw/streamingqa_pools_raw.jsonl        (from build_streamingqa_pools.py)
 Output: data/processed/streamingqa_control_pools.jsonl
@@ -21,7 +42,7 @@ import yaml
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIG_PATH = REPO_ROOT / "configs" / "streamingqa_config.yaml"
 
-REQUIRED_KEYS = {"query", "gold_answer", "gold_aliases", "candidates"}
+REQUIRED_KEYS = {"query", "gold_answer", "gold_aliases", "candidates", "question_ts"}
 REQUIRED_CANDIDATE_KEYS = {"doc_id", "text", "timestamp"}
 
 
@@ -63,6 +84,12 @@ def emit_shared_shape(r: dict) -> dict:
         "gold_answer": r["gold_answer"],
         "gold_aliases": r["gold_aliases"],
         "candidates": r["candidates"],
+        "question_ts": r["question_ts"],
+        # recent_or_past is kept if present, but not required -- some
+        # sample records may predate this field being populated upstream,
+        # and losing the slice breakdown for a few records shouldn't block
+        # the whole run the way a missing question_ts would.
+        "recent_or_past": r.get("recent_or_past"),
     }
 
 

@@ -53,32 +53,30 @@ def f1_score(prediction: str, gold_answer: str, gold_aliases: list[str] = None) 
 
 def get_relevance_labels(candidates: list[str], gold_answer: str, gold_aliases: list[str] = None) -> list[int]:
     """
-    Weak-supervision relevance label per candidate: 1 if it contains the gold
-    answer or any alias as a WHOLE WORD/PHRASE, else 0.
+    Weak-supervision relevance label per candidate: 1 if the candidate's
+    normalized text contains ALL of at least one gold answer's tokens
+    (unordered), else 0.
 
-    Uses a word-boundary regex rather than plain substring containment.
-    Plain substring matching (`g in text`) would mark a passage relevant if
-    it merely contains the gold answer as a fragment of a longer, unrelated
-    word -- e.g. gold answer "Cook" would match "cookies," "Cookson," or
-    "cookware." Word-boundary matching requires the gold answer to appear as
-    its own token(s), not embedded inside a different word.
+    Previously required the full gold answer as one contiguous phrase via a
+    word-boundary regex. That works for short entity-style answers (TriviaQA)
+    but breaks down for StreamingQA, where many gold answers are full
+    sentences (e.g. "No, Ferne McCann did not spend Christmas with her new
+    boyfriend, Albie Gibbs, in December 2020.") -- no real passage will
+    contain that exact wording verbatim, so relevance silently comes back
+    all-zero and recall/ndcg get excluded from the aggregate denominator
+    rather than actually measured. Token-subset matching is looser but
+    remains meaningful: it still requires every substantive word of the
+    answer to be present, just not glued into one exact phrase.
     """
     gold_list = [gold_answer] + (gold_aliases or [])
-    gold_norms = [normalize_answer(g) for g in gold_list]
+    gold_token_sets = [set(normalize_answer(g).split()) for g in gold_list]
+    gold_token_sets = [g for g in gold_token_sets if g]  # drop empties
 
-    # Empty strings after normalization (e.g. gold_answer was punctuation-only)
-    # can't be meaningfully searched for -- skip them rather than let an empty
-    # pattern match everything.
-    gold_patterns = [
-        re.compile(r"\b" + re.escape(g) + r"\b")
-        for g in gold_norms
-        if g
-    ]
-
-    return [
-        int(any(pattern.search(normalize_answer(c)) for pattern in gold_patterns))
-        for c in candidates
-    ]
+    labels = []
+    for c in candidates:
+        cand_tokens = set(normalize_answer(c).split())
+        labels.append(int(any(g.issubset(cand_tokens) for g in gold_token_sets)))
+    return labels
 
 
 def recall_at_k(retrieved_indices: list[int], relevance_labels: list[int], k: int) -> float | None:

@@ -203,6 +203,8 @@ def build_pool_specs(cfg: dict, sample: list[dict], sorted_dts, sorted_doc_ids, 
             "gold_aliases": q["answers"],
             "gold_doc_id": gold_id,
             "candidate_ids": [gold_id] + distractor_ids,
+            "question_ts": q["question_ts"],
+            "recent_or_past": q.get("recent_or_past"),
         })
 
     if skipped:
@@ -273,6 +275,8 @@ def assemble_records(pool_specs: list[dict], texts: dict, seed: int) -> list[dic
             "gold_aliases": spec["gold_aliases"],
             "gold_doc_id": spec["gold_doc_id"],
             "candidates": candidates,
+            "question_ts": spec["question_ts"],
+            "recent_or_past": spec["recent_or_past"],
         })
     return records
 
