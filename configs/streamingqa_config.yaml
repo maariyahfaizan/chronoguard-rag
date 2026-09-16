@@ -1,33 +1,200 @@
-# StreamingQA clean-baseline configuration (Weeks 3-4)
-# Mirrors configs/baseline_config.yaml's role for TriviaQA: this is the single
-# frozen source of truth for how the StreamingQA candidate pool was built.
-# Do not hand-edit downstream of a run without re-running preprocessing.
+# ChronoGuard-RAG clean baseline experiment configuration
+# Weeks 3-4 | StreamingQA
+#
+# Same structure as configs/triviaqa_config.yaml (E1-E4, shared block +
+# per-experiment retriever/results). Pool construction (WMT sourcing, gold
+# resolution, candidate window) stays frozen separately in
+# configs/streamingqa_config.yaml -- this file covers evaluation only, same
+# division of concerns as the TriviaQA config doesn't need since TriviaQA's
+# pool isn't built from a raw time-stamped corpus.
 
-sample:
+shared:
+  dataset: StreamingQA
+  input_path: data/processed/streamingqa_control_pools.jsonl
+  pool_config: configs/streamingqa_config.yaml  # frozen source of truth for how this pool was built
+  num_examples: 100
   seed: 42
-  n: 100
-  split: eval
+  top_k: 5
 
-evidence_source:
-  # Both wmt19/en-doc/ and doc/en/ host overlapping years (2008-2018) but are
-  # DIFFERENT crawl vintages of the same year (doc/en/ is a later, larger
-  # re-crawl -- confirmed by differing file sizes, e.g. 2008: 610M vs 1.6G).
-  # Sourcing every year from a single directory avoids silently mixing two
-  # different corpora for the same calendar year.
-  base_url: "https://data.statmt.org/news-crawl/doc/en/"
-  filename_pattern: "news-docs.{year}.en.filtered.gz"
-  sorting_keys_url: "https://storage.googleapis.com/dm-streamingqa/wmt_sorting_key_ids.txt.gz"
-  years: [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020]
-  # credentials are NOT stored here -- data.statmt.org/news-crawl/doc/ is
-  # login-gated (user: newscrawl); export WMT_NEWSCRAWL_USER / WMT_NEWSCRAWL_PASS
-  # as environment variables before running the download step.
+  generator:
+    model: mistralai/Mistral-7B-Instruct-v0.2
+    quantization: 4-bit
+    decoding:
+      do_sample: false
+      max_new_tokens: 64
+    max_passage_chars: 1500  # truncate_passage() -- shared between build_prompt()
+                              # and relevance labeling in evaluate_query(). See
+                              # report_streamingqa_week3_4.md Sec. 4 for the
+                              # documented (not corrected) asymmetry vs. dense/
+                              # reranker truncation below.
 
-candidate_pool:
-  window_days: 30          # distractors drawn from within +/- this many days of evidence_ts
-  candidates_per_query: 20  # gold article + distractors, total
-  distractor_selection: window   # {window, same_year, stratified} -- window chosen; see progress notes
-  prepend_date: true        # passed through to extraction.py's get_wmt_passages_from_docs
+  evaluation:
+    metrics:
+      - exact_match
+      - f1
+      - recall_at_5
+      - ndcg_at_5
+      - fraction_top_5_violating      # StreamingQA-only: requires question_ts
+      - valid_evidence_recall_at_5    # StreamingQA-only
+      - time_valid_answer_accuracy    # StreamingQA-only
+    grouping_field: recent_or_past    # aggregate_metrics_by_group -- not used for TriviaQA
 
-output:
-  raw_dir: "data/raw"
-  processed_path: "data/processed/streamingqa_control_pools.jsonl"
+  attack_condition: clean
+  prompt: src/generation/generate.py::build_prompt
+
+experiments:
+
+  E1:
+    name: StreamingQA + BM25
+    dataset: StreamingQA
+    retriever:
+      type: lexical
+      method: BM25
+      implementation: rank_bm25.BM25Okapi
+      module: src/retrieval/bm25.py
+      function: retrieve_best
+      similarity: BM25
+
+    orchestrator: run_baseline_streamingqa.py
+    log_path: logs/streamingqa_baseline_run.jsonl
+
+    results:
+      average_em: 0.4100
+      average_f1: 0.5319
+      average_recall_at_5: 0.9257             # n=74 defined queries
+      average_ndcg_at_5: 0.9026               # n=74 defined queries
+      average_fraction_top_5_violating: 0.0740
+      average_valid_evidence_recall_at_5: 0.9452  # n=73 defined queries
+      average_time_valid_answer_accuracy: 0.30
+      by_recent_or_past:
+        past:   { n: 45, average_em: 0.4222, average_fraction_top_5_violating: 0.0133, average_time_valid_answer_accuracy: 0.4222 }
+        recent: { n: 55, average_em: 0.4000, average_fraction_top_5_violating: 0.1236, average_time_valid_answer_accuracy: 0.2000 }
+
+
+  E2:
+    name: StreamingQA + Dense Retrieval
+    dataset: StreamingQA
+    retriever:
+      type: dense_bi_encoder
+      model: facebook/contriever
+      implementation: transformers.AutoModel
+      pooling: mean_pooling_with_attention_mask
+      similarity: dot_product
+      module: src/retrieval/dense.py
+      function: retrieve_best
+      # encode_texts() truncates at tokenizer model_max_length (512 tokens,
+      # ~2000-2300 chars) with no explicit override -- independent of and
+      # inconsistent with shared.generator.max_passage_chars above.
+      embedding_truncation_tokens: 512
+
+    orchestrator: run_dense_streamingqa.py
+    log_path: logs/streamingqa_dense_run.jsonl
+
+    results:
+      average_em: 0.4500
+      average_f1: 0.5638
+      average_recall_at_5: 0.9662             # n=74 defined queries
+      average_ndcg_at_5: 0.9517               # n=74 defined queries
+      average_fraction_top_5_violating: 0.0980
+      average_valid_evidence_recall_at_5: 0.9863  # n=73 defined queries
+      average_time_valid_answer_accuracy: 0.32
+
+
+  E3:
+    name: StreamingQA + BM25 + Contriever + RRF
+    dataset: StreamingQA
+    retriever:
+      type: hybrid
+
+      bm25:
+        type: lexical
+        method: BM25
+        implementation: rank_bm25.BM25Okapi
+        module: src/retrieval/bm25.py
+        function: retrieve_best
+
+      contriever:
+        type: dense_bi_encoder
+        model: facebook/contriever
+        implementation: transformers.AutoModel
+        pooling: mean_pooling_with_attention_mask
+        similarity: dot_product
+        module: src/retrieval/dense.py
+        function: retrieve_best
+
+      fusion:
+        method: reciprocal_rank_fusion
+        rrf_k: 60
+
+      candidate_top_k: 20
+      final_top_k: 5
+
+    orchestrator: run_hybrid_streamingqa.py
+    log_path: logs/streamingqa_hybrid_run.jsonl
+
+    results:
+      average_em: 0.4400
+      average_f1: 0.5565
+      average_recall_at_5: 0.9257             # n=74 defined queries -- byte-identical
+                                                # to E1's; RRF reorders top-5 without
+                                                # changing membership. See report Sec. 5.
+      average_ndcg_at_5: 0.9092               # n=74 defined queries
+      average_fraction_top_5_violating: 0.1000
+      average_valid_evidence_recall_at_5: 0.9452  # n=73 defined queries
+      average_time_valid_answer_accuracy: 0.33
+
+
+  E4:
+    name: StreamingQA + Hybrid RRF + BGE Reranker
+    dataset: StreamingQA
+
+    retriever:
+      type: hybrid
+
+      bm25:
+        type: lexical
+        method: BM25
+        implementation: rank_bm25.BM25Okapi
+        module: src/retrieval/bm25.py
+        function: retrieve_best
+        similarity: BM25
+
+      contriever:
+        type: dense_bi_encoder
+        model: facebook/contriever
+        implementation: transformers.AutoModel
+        pooling: mean_pooling_with_attention_mask
+        similarity: dot_product
+        module: src/retrieval/dense.py
+        function: retrieve_best
+
+      fusion:
+        method: reciprocal_rank_fusion
+        rrf_k: 60
+
+      candidate_top_k: 20
+      fused_top_k: 20
+
+    reranker:
+      type: cross_encoder
+      model: BAAI/bge-reranker-base
+      implementation: sentence_transformers.CrossEncoder
+      input: query_document_pairs
+      # CrossEncoder.predict() truncates the [query, passage] pair jointly at
+      # 512 tokens, no explicit override -- passage gets less than 512 tokens
+      # alone. Independent of both the dense-encoding and generation cutoffs.
+      truncation_tokens: 512
+
+    final_top_k: 5
+
+    orchestrator: run_hybrid_reranker_streamingqa.py
+    log_path: logs/streamingqa_hybrid_reranker_run.jsonl
+
+    results:
+      average_em: 0.4500
+      average_f1: 0.5657
+      average_recall_at_5: 0.9527             # n=74 defined queries
+      average_ndcg_at_5: 0.9445               # n=74 defined queries
+      average_fraction_top_5_violating: 0.1100
+      average_valid_evidence_recall_at_5: 0.9726  # n=73 defined queries
+      average_time_valid_answer_accuracy: 0.33
