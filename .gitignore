@@ -23,5 +23,7 @@ huggingface_cache/
 
 # Raw dataset dump -- regenerable deterministically via
 # src/eval/save_snapshot.py (seed=42), no need to version-control it
-data/raw/
+data/raw/*
+!data/raw/freshqa_clean.csv
+!data/raw/freshqa_evidence_snapshot.jsonl
 data/processed/freshqa_control_pools.jsonl
