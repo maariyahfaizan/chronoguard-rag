@@ -135,8 +135,14 @@ def _parse_judge_response(raw_response):
     }
 
 
-JUDGE_MAX_NEW_TOKENS = 200  # rubric + JSON rationale needs more room than
-                            # generate_answer's 64-token QA-answer budget
+JUDGE_MAX_NEW_TOKENS = 80  # rubric verdict + short rationale; correct comes
+                           # first in the JSON so a truncated response
+                           # should still parse correctly via the regex
+                           # fallback in _parse_judge_response(). Was 200 --
+                           # dropped to cut judge-call latency across all
+                           # runs (E1 being rerun under this value too, so
+                           # every config stays comparable, per the plan's
+                           # "identical ... constraints where possible").
 
 
 def _call_judge_model(prompt, judge_model):
