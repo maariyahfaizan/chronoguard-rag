@@ -292,31 +292,81 @@ def make_positive_candidate_text(doc, source_urls_for_doc, stats):
     return make_candidate_text(doc)
 
 
-def compute_question_ts(selected_docs):
+def parse_effective_year(effective_year_raw):
     """
-    ASSUMPTION -- confirm against fetch_freshqa_sources.py: each evidence
-    doc is expected to carry a `snapshot_retrieved_at` field, set when that
-    URL was fetched. Per the query-time-reference decision (freshqa_report.md
-    2d: use snapshot_retrieved_at), this returns the MAX
-    snapshot_retrieved_at across all of this question's SELECTED candidate
-    documents (positives + distractors, i.e. the full pool the retriever
-    actually sees) -- the latest point by which the whole shown evidence
-    pool is known to have existed. Returns None if no selected document
-    carries the field, in which case is_time_valid() and the four temporal
-    metrics correctly return None for this question (undefined, not a
-    fabricated 0.0), matching metrics.py's None-vs-zero convention.
+    Extract a 4-digit year from FreshQA's effective_year field, which is
+    free-text (observed forms include a bare year like "2023" and
+    qualified forms like "before 2022"). Takes the LAST 4-digit
+    19xx/20xx-looking number found in the string -- for "before 2022" that
+    correctly picks 2022, not some other embedded number. Returns None if
+    no such number is found (empty field, or an unrecognized format).
+    """
+    if not effective_year_raw:
+        return None
 
-    If fetch_freshqa_sources.py instead stores one global snapshot
-    timestamp (a single run-level fetch time, not per-document), that's
-    simpler and this function should be replaced with just reading that
-    one value -- can't confirm which without seeing that script.
+    matches = re.findall(r"(19|20)\d{2}", str(effective_year_raw))
+    if not matches:
+        return None
+
+    # re.findall with a capturing group returns only the captured group,
+    # not the full match -- re-search for the full 4-digit numbers instead.
+    full_matches = re.findall(r"(?:19|20)\d{2}", str(effective_year_raw))
+    return int(full_matches[-1])
+
+
+def effective_year_to_ts(year):
     """
+    Converts a bare year into a query-time-reference timestamp: Dec 31,
+    23:59:59 UTC of that year. This is a DELIBERATE, CONSERVATIVE choice
+    (not the only valid one): it treats "effective_year: 2022" as "this
+    answer was known to be correct at some point during 2022," and takes
+    the most permissive reading of that (end of year), so any evidence
+    dated anywhere within that year or earlier counts as time-valid. A
+    stricter choice (e.g. Jan 1 of that year) would flag more mid-year
+    evidence as "from the future" relative to the question -- worth
+    reconsidering if early results look over-permissive.
+    """
+    return f"{year}-12-31T23:59:59+00:00"
+
+
+def compute_question_ts(question, selected_docs):
+    """
+    Query-time reference for the four temporal metrics. Tries, in order:
+
+      1. effective_year (parsed via parse_effective_year(), converted via
+         effective_year_to_ts()) -- FreshQA's OWN per-question metadata
+         for when the gold answer is anchored, per the 2d option-3 retry
+         decision. This is coarse (year granularity, and a judgment call
+         about which point in the year to anchor to -- see
+         effective_year_to_ts()'s docstring) but dataset-native, unlike
+         snapshot_retrieved_at.
+      2. Falls back to snapshot_retrieved_at (max over selected_docs, the
+         original 2d choice) if effective_year is missing/unparseable for
+         this question.
+      3. Returns (None, "none") if neither is available.
+
+    Returns (question_ts, source) where source is one of "effective_year",
+    "snapshot_retrieved_at", or "none" -- recorded per-pool in
+    pool_config/question_ts_source so actual coverage of each source is
+    auditable after the fact, rather than assumed. NOTE: this does NOT
+    address per-candidate source_date sparsity (a separate, and per the
+    real run's results, the actually binding constraint on
+    time_valid_answer_accuracy specifically) -- it only changes where the
+    QUESTION's reference point comes from.
+    """
+    year = parse_effective_year(question.get("effective_year"))
+    if year is not None:
+        return effective_year_to_ts(year), "effective_year"
+
     timestamps = [
         doc.get("snapshot_retrieved_at")
         for doc in selected_docs
         if doc.get("snapshot_retrieved_at")
     ]
-    return max(timestamps) if timestamps else None
+    if timestamps:
+        return max(timestamps), "snapshot_retrieved_at"
+
+    return None, "none"
 
 
 def build_pools(
@@ -352,6 +402,7 @@ def build_pools(
         "no_fragment": 0,
     }
     no_question_ts_count = 0
+    question_ts_source_counts = {"effective_year": 0, "snapshot_retrieved_at": 0, "none": 0}
 
     for question in questions:
 
@@ -454,9 +505,10 @@ def build_pools(
                 }
             )
 
-        question_ts = compute_question_ts(selected)
+        question_ts, question_ts_source = compute_question_ts(question, selected)
         if question_ts is None:
             no_question_ts_count += 1
+        question_ts_source_counts[question_ts_source] += 1
 
         pool = {
             "query_id": question[
@@ -507,6 +559,7 @@ def build_pools(
             "source_urls": source_urls,
 
             "question_ts": question_ts,
+            "question_ts_source": question_ts_source,
 
             "candidates": candidates,
 
@@ -514,7 +567,7 @@ def build_pools(
                 "candidates_per_query":
                     candidates_per_query,
                 "seed": seed,
-                "query_time_reference": "snapshot_retrieved_at (max over selected docs)",
+                "query_time_reference": "effective_year, falling back to snapshot_retrieved_at",
                 "evidence_granularity": "cited_fragment_with_whole_page_fallback",
             },
         }
@@ -544,6 +597,11 @@ def build_pools(
     print(
         f"No question_ts:      {no_question_ts_count}  "
         f"(temporal metrics will be None for these)"
+    )
+    print(
+        f"question_ts source:  effective_year={question_ts_source_counts['effective_year']}, "
+        f"snapshot_retrieved_at={question_ts_source_counts['snapshot_retrieved_at']}, "
+        f"none={question_ts_source_counts['none']}"
     )
     print(
         f"Fragment extracted:  {fragment_stats['fragment_extracted']}"
