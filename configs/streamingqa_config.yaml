@@ -8,6 +8,69 @@
 # division of concerns as the TriviaQA config doesn't need since TriviaQA's
 # pool isn't built from a raw time-stamped corpus.
 
+# ChronoGuard-RAG -- StreamingQA pool-construction config
+# Weeks 3-4 | Gate A
+#
+# Read by: fetch_wmt_archives.py, build_streamingqa_pools.py,
+# preprocess_streamingqa.py. This is the pool-construction config
+# (WMT sourcing, gold resolution, candidate window) -- distinct from
+# configs/streamingqa_eval_config.yaml, which covers E1-E4 evaluation
+# settings and results and does NOT need any of the keys below.
+#
+
+output:
+  raw_dir: data/raw
+  processed_path: data/processed/streamingqa_control_pools.jsonl
+
+sample:
+  seed: 42
+
+candidate_pool:
+  candidates_per_query: 20
+  # Matches the convention used project-wide (FreshQA explicitly uses 20;
+  # TriviaQA's pool sizes are consistent with it too), and matches the
+  # eval config's candidate_top_k: 20 for E3/E4 -- a pool this size is
+  # what makes "retrieve top-20, fuse, rerank to top-5" a sensible
+  # pipeline. Reasonably confident, not certain -- no explicit prior
+  # statement of this number for StreamingQA specifically was ever found.
+
+  window_days: 7
+  
+
+evidence_source:
+  base_url: https://data.statmt.org/news-crawl/doc/en/
+  filename_pattern: "news-docs.{year}.en.filtered.gz"
+  # Both confirmed: base_url's host+path from fetch_wmt_archives.py's own
+  # auth setup (host="data.statmt.org", "doc/en/ is login-gated"),
+  # filename_pattern is a direct quote from save_snapshot_streamingqa.py's
+  # own docstring.
+
+  sorting_keys_url: "https://storage.googleapis.com/dm-streamingqa/wmt_sorting_key_ids.txt.gz"
+  # *** CONFIRM BEFORE RUNNING THE FULL FETCH -- but cheap to check ***
+  # Same GCS bucket as save_snapshot_streamingqa.py's confirmed EVAL_URL
+  # (.../dm-streamingqa/streaminqa_eval.jsonl.gz), with a filename
+  # inferred from download_sorting_keys()'s own local output path
+  # ("wmt_sorting_key_ids.txt.gz") -- plausible, not verified. Unlike
+  # window_days, this is cheap to test standalone before the real run:
+  # see the verification snippet below.
+
+  years:
+    - 2008
+    - 2009
+    - 2010
+    - 2011
+    - 2012
+    - 2013
+    - 2014
+    - 2015
+    - 2016
+    - 2017
+    - 2018
+    - 2019
+    - 2020
+  # Confirmed directly from the real streamingqa_control_sample.jsonl's
+  # own evidence_ts values -- 13 years, matching the "13 years" mentioned
+  # throughout fetch_wmt_archives.py's own bug-fix docstrings.
 shared:
   dataset: StreamingQA
   input_path: data/processed/streamingqa_control_pools.jsonl
