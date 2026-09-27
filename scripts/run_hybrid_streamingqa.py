@@ -14,7 +14,7 @@ from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metr
 # run_baseline_streamingqa.py's header comment for the rationale, and for
 # the Gate A-1 true_relevance_labels wiring note.
 
-INPUT_PATH = "data/processed/streamingqa_control_pools.jsonl"
+INPUT_PATH = "data/processed/streamingqa_control_pools_chunked.jsonl"
 LOG_PATH = "logs/streamingqa_hybrid_run.jsonl"
 
 CANDIDATE_TOP_K = 20

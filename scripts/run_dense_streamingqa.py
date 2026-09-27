@@ -15,7 +15,7 @@ from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metr
 # true_relevance_labels wiring note -- same fix, same rationale, applied
 # here too.
 
-INPUT_PATH = "data/processed/streamingqa_control_pools.jsonl"
+INPUT_PATH = "data/processed/streamingqa_control_pools_chunked.jsonl"
 LOG_PATH = "logs/streamingqa_dense_run.jsonl"
 TOP_K = 5
 

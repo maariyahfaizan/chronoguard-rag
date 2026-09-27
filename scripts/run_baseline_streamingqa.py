@@ -31,7 +31,7 @@ from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metr
 # Recall@5/nDCG@5/valid_evidence_recall_at_5, which would defeat the
 # entire point of the fix.
 
-INPUT_PATH = "data/processed/streamingqa_control_pools.jsonl"
+INPUT_PATH = "data/processed/streamingqa_control_pools_chunked.jsonl"
 LOG_PATH = "logs/streamingqa_baseline_run.jsonl"
 TOP_K = 5  # same retrieval depth as the TriviaQA E1 run, per plan Section 6
            # ("identical retrieval depth ... where possible")
