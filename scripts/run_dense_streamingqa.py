@@ -11,7 +11,9 @@ from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metr
 
 # StreamingQA-specific driver for E2 (dense/Contriever). See
 # run_baseline_streamingqa.py's header comment for why this is a separate
-# file rather than a branch in run_dense.py.
+# file rather than a branch in run_dense.py, and for the Gate A-1
+# true_relevance_labels wiring note -- same fix, same rationale, applied
+# here too.
 
 INPUT_PATH = "data/processed/streamingqa_control_pools.jsonl"
 LOG_PATH = "logs/streamingqa_dense_run.jsonl"
@@ -49,20 +51,23 @@ def run_dense_streamingqa(
             gold_aliases = row.get("gold_aliases", [])
             question_ts = row["question_ts"]
             recent_or_past = row.get("recent_or_past")
+            gold_validated = row.get("gold_validated")
 
             raw_candidates = row["candidates"]
             candidate_texts = [c["text"] for c in raw_candidates]
             candidate_doc_ids = [c["doc_id"] for c in raw_candidates]
             candidate_timestamps = [c["timestamp"] for c in raw_candidates]
+            candidate_is_source = [
+                int(bool(c.get("is_source_document"))) for c in raw_candidates
+            ]
 
             # Dense retrieval (Contriever). NOTE: encode_texts() truncates at
             # the tokenizer's model_max_length (512 tokens for Contriever, ~
             # BERT-base), with no explicit max_length override -- roughly the
             # same ballpark as StreamingQA's longest passages (max 2253 chars).
             # This truncation point is independent of, and inconsistent with,
-            # generate.py's 1500-char DEFAULT_MAX_PASSAGE_CHARS -- worth noting
-            # in the methodology writeup rather than silently assuming the two
-            # line up.
+            # generate.py's 1500-char DEFAULT_MAX_PASSAGE_CHARS -- Gate A-2
+            # is the tracked fix for this, not yet applied here.
             retrieved = retrieve_best(
                 query, candidate_texts, retriever_model, retriever_tokenizer,
                 retriever_device, top_k=top_k
@@ -89,6 +94,7 @@ def run_dense_streamingqa(
                 k=top_k,
                 question_ts=question_ts,
                 candidate_timestamps=candidate_timestamps,
+                true_relevance_labels=candidate_is_source,
             )
 
             record = {
@@ -98,6 +104,7 @@ def run_dense_streamingqa(
                 "gold_aliases": gold_aliases,
                 "question_ts": question_ts,
                 "recent_or_past": recent_or_past,
+                "gold_validated": gold_validated,
                 "retriever": "facebook/contriever",
                 "retrieval_method": "dense_dot_product",
                 "top_k": top_k,
@@ -127,13 +134,17 @@ def run_dense_streamingqa(
     summary = aggregate_metrics(results, k=top_k)
     by_group = aggregate_metrics_by_group(results, groups, k=top_k)
 
+    n_gold_validated = sum(1 for r in results if r.get("gold_validated"))
+
     print("\n=== StreamingQA Dense Retrieval Results ===")
     print(f"Examples: {summary['n_examples']}")
+    print(f"Gold-validated (Gate A-1): {n_gold_validated}/{summary['n_examples']}")
     print(f"Retriever: facebook/contriever")
     print(f"Top-K: {top_k}")
     print(f"Average EM: {summary['average_em']:.4f}")
     print(f"Average F1: {summary['average_f1']:.4f}")
-    print(f"Average Recall@{top_k}: {summary[f'average_recall_at_{top_k}']}")
+    print(f"Average Recall@{top_k}: {summary[f'average_recall_at_{top_k}']}  "
+          f"(n_defined={summary['n_recall_defined']}/{summary['n_examples']})")
     print(f"Average nDCG@{top_k}: {summary[f'average_ndcg_at_{top_k}']}")
     if f"average_fraction_top_{top_k}_violating" in summary:
         print(f"Average fraction top-{top_k} violating: {summary[f'average_fraction_top_{top_k}_violating']}")

@@ -11,7 +11,8 @@ from src.generation.generate import load_model, generate_answer, build_prompt
 from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metrics_by_group
 
 # StreamingQA-specific driver for E3 (hybrid RRF, no reranker). See
-# run_baseline_streamingqa.py's header comment for the rationale.
+# run_baseline_streamingqa.py's header comment for the rationale, and for
+# the Gate A-1 true_relevance_labels wiring note.
 
 INPUT_PATH = "data/processed/streamingqa_control_pools.jsonl"
 LOG_PATH = "logs/streamingqa_hybrid_run.jsonl"
@@ -54,11 +55,15 @@ def run_hybrid_streamingqa(
             gold_aliases = row.get("gold_aliases", [])
             question_ts = row["question_ts"]
             recent_or_past = row.get("recent_or_past")
+            gold_validated = row.get("gold_validated")
 
             raw_candidates = row["candidates"]
             candidate_texts = [c["text"] for c in raw_candidates]
             candidate_doc_ids = [c["doc_id"] for c in raw_candidates]
             candidate_timestamps = [c["timestamp"] for c in raw_candidates]
+            candidate_is_source = [
+                int(bool(c.get("is_source_document"))) for c in raw_candidates
+            ]
 
             bm25_results, dense_results, fused_results = retrieve_hybrid(
                 query=query,
@@ -93,6 +98,7 @@ def run_hybrid_streamingqa(
                 k=final_top_k,
                 question_ts=question_ts,
                 candidate_timestamps=candidate_timestamps,
+                true_relevance_labels=candidate_is_source,
             )
 
             record = {
@@ -102,6 +108,7 @@ def run_hybrid_streamingqa(
                 "gold_aliases": gold_aliases,
                 "question_ts": question_ts,
                 "recent_or_past": recent_or_past,
+                "gold_validated": gold_validated,
                 "retriever": ["BM25", "facebook/contriever"],
                 "retrieval_method": "hybrid_rrf",
                 "candidate_top_k": candidate_top_k,
@@ -133,15 +140,19 @@ def run_hybrid_streamingqa(
     summary = aggregate_metrics(results, k=final_top_k)
     by_group = aggregate_metrics_by_group(results, groups, k=final_top_k)
 
+    n_gold_validated = sum(1 for r in results if r.get("gold_validated"))
+
     print("\n=== StreamingQA Hybrid RRF Results ===")
     print(f"Examples: {summary['n_examples']}")
+    print(f"Gold-validated (Gate A-1): {n_gold_validated}/{summary['n_examples']}")
     print("Retrievers: BM25 + facebook/contriever")
     print(f"Candidate Top-K: {candidate_top_k}")
     print(f"Final Top-K: {final_top_k}")
     print(f"RRF K: {rrf_k}")
     print(f"Average EM: {summary['average_em']:.4f}")
     print(f"Average F1: {summary['average_f1']:.4f}")
-    print(f"Average Recall@{final_top_k}: {summary[f'average_recall_at_{final_top_k}']}")
+    print(f"Average Recall@{final_top_k}: {summary[f'average_recall_at_{final_top_k}']}  "
+          f"(n_defined={summary['n_recall_defined']}/{summary['n_examples']})")
     print(f"Average nDCG@{final_top_k}: {summary[f'average_ndcg_at_{final_top_k}']}")
     if f"average_fraction_top_{final_top_k}_violating" in summary:
         print(f"Average fraction top-{final_top_k} violating: {summary[f'average_fraction_top_{final_top_k}_violating']}")

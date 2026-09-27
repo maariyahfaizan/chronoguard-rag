@@ -15,9 +15,21 @@ from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metr
 # remain reproducible against unmodified code, per instruction.
 #
 # The only structural difference from run_baseline.py: StreamingQA's
-# candidates are list[{doc_id, text, timestamp}], not list[str], so they
-# must be unpacked into parallel lists before being handed to any
-# retrieval/eval function -- none of those functions read dicts.
+# candidates are list[{doc_id, text, timestamp, is_source_document}], not
+# list[str], so they must be unpacked into parallel lists before being
+# handed to any retrieval/eval function -- none of those functions read
+# dicts.
+#
+# NOTE ON THIS REVISION (Gate A-1 wiring): candidate_is_source is now
+# unpacked and passed to evaluate_query() as true_relevance_labels, the
+# same way FreshQA's is_source_document was wired in. Before this,
+# evaluate_query() fell back to get_relevance_labels()'s weak token-
+# overlap heuristic even after Gate A-1 produced real, lexically-
+# validated gold labels in the pool data -- meaning the pool fix existed
+# but evaluation never actually used it. Without true_relevance_labels,
+# Gate A-1's corrected pools would silently make no difference to
+# Recall@5/nDCG@5/valid_evidence_recall_at_5, which would defeat the
+# entire point of the fix.
 
 INPUT_PATH = "data/processed/streamingqa_control_pools.jsonl"
 LOG_PATH = "logs/streamingqa_baseline_run.jsonl"
@@ -44,15 +56,20 @@ def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, 
             gold_aliases = row.get("gold_aliases", [])
             question_ts = row["question_ts"]
             recent_or_past = row.get("recent_or_past")
+            gold_validated = row.get("gold_validated")  # Gate A-1 -- logged for audit
 
-            # Unpack {doc_id, text, timestamp} dicts into parallel lists.
-            # retrieve_best/evaluate_query both require plain text -- passing
-            # the raw dicts through would fail inside BM25Okapi's tokenization
-            # (c.split(" ")) or normalize_answer(), not at this boundary.
+            # Unpack {doc_id, text, timestamp, is_source_document} dicts
+            # into parallel lists. retrieve_best/evaluate_query both
+            # require plain text -- passing the raw dicts through would
+            # fail inside BM25Okapi's tokenization (c.split(" ")) or
+            # normalize_answer(), not at this boundary.
             raw_candidates = row["candidates"]
             candidate_texts = [c["text"] for c in raw_candidates]
             candidate_doc_ids = [c["doc_id"] for c in raw_candidates]
             candidate_timestamps = [c["timestamp"] for c in raw_candidates]
+            candidate_is_source = [
+                int(bool(c.get("is_source_document"))) for c in raw_candidates
+            ]
 
             # Retrieve
             retrieved = retrieve_best(query, candidate_texts, top_k=top_k)
@@ -74,12 +91,10 @@ def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, 
             input_token_count = len(tokenizer(prompt)["input_ids"])
             output_token_count = len(tokenizer(answer)["input_ids"])
 
-            # Score -- pass question_ts/candidate_timestamps so the four
-            # temporal metrics get computed; used_candidate_timestamps is left
-            # to evaluate_query's default (candidate_timestamps at
-            # retrieved_indices[:k]), which matches this loop's flow exactly:
-            # retrieve_best already returns exactly top_k, unchanged before
-            # generation.
+            # Score -- true_relevance_labels uses Gate A-1's validated
+            # is_source_document flags instead of the word-overlap
+            # fallback; question_ts/candidate_timestamps still passed so
+            # the four temporal metrics get computed same as before.
             metrics = evaluate_query(
                 answer=answer,
                 gold_answer=gold_answer,
@@ -89,6 +104,7 @@ def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, 
                 k=top_k,
                 question_ts=question_ts,
                 candidate_timestamps=candidate_timestamps,
+                true_relevance_labels=candidate_is_source,
             )
 
             record = {
@@ -98,6 +114,7 @@ def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, 
                 "gold_aliases": gold_aliases,
                 "question_ts": question_ts,
                 "recent_or_past": recent_or_past,
+                "gold_validated": gold_validated,
                 "retriever": "BM25",
                 "retrieval_method": "bm25",
                 "retrieved_passage_indices": retrieved_indices,
@@ -126,11 +143,16 @@ def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, 
     summary = aggregate_metrics(results, k=top_k)
     by_group = aggregate_metrics_by_group(results, groups, k=top_k)
 
+    n_gold_validated = sum(1 for r in results if r.get("gold_validated"))
+
     print("\n=== StreamingQA BM25 Baseline Results ===")
     print(f"Examples: {summary['n_examples']}")
+    print(f"Gold-validated (Gate A-1): {n_gold_validated}/{summary['n_examples']}")
     print(f"Average EM: {summary['average_em']:.4f}")
     print(f"Average F1: {summary['average_f1']:.4f}")
-    print(f"Average Recall@{top_k}: {summary[f'average_recall_at_{top_k}']}")
+    print(f"Average Recall@{top_k}: {summary[f'average_recall_at_{top_k}']}  "
+          f"(n_defined={summary['n_recall_defined']}/{summary['n_examples']} -- "
+          f"THIS is the Gate A-1 before/after comparison number, was 74/100 pre-fix)")
     print(f"Average nDCG@{top_k}: {summary[f'average_ndcg_at_{top_k}']}")
     if f"average_fraction_top_{top_k}_violating" in summary:
         print(f"Average fraction top-{top_k} violating: {summary[f'average_fraction_top_{top_k}_violating']}")

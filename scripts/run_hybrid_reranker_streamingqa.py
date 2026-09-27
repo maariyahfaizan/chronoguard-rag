@@ -15,7 +15,8 @@ from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metr
 
 # StreamingQA-specific driver for E4 (hybrid RRF + BGE cross-encoder
 # reranker). See run_baseline_streamingqa.py's header comment for the
-# rationale for a separate file.
+# rationale for a separate file, and for the Gate A-1
+# true_relevance_labels wiring note.
 
 INPUT_PATH = "data/processed/streamingqa_control_pools.jsonl"
 LOG_PATH = "logs/streamingqa_hybrid_reranker_run.jsonl"
@@ -66,11 +67,15 @@ def run_hybrid_cross_encoder_streamingqa(
             gold_aliases = row.get("gold_aliases", [])
             question_ts = row["question_ts"]
             recent_or_past = row.get("recent_or_past")
+            gold_validated = row.get("gold_validated")
 
             raw_candidates = row["candidates"]
             candidate_texts = [c["text"] for c in raw_candidates]
             candidate_doc_ids = [c["doc_id"] for c in raw_candidates]
             candidate_timestamps = [c["timestamp"] for c in raw_candidates]
+            candidate_is_source = [
+                int(bool(c.get("is_source_document"))) for c in raw_candidates
+            ]
 
             # 1. BM25 top-candidate_top_k
             bm25_results = bm25_retrieve(query, candidate_texts, top_k=candidate_top_k)
@@ -90,9 +95,8 @@ def run_hybrid_cross_encoder_streamingqa(
             # NOTE: reranker.py loads CrossEncoder with no explicit max_length
             # override, so it truncates at bge-reranker-base's 512-token
             # limit, shared jointly between query + passage (not 512 tokens
-            # of passage alone). For StreamingQA's longest passages this is a
-            # real, silent truncation point distinct from dense.py's and
-            # generate.py's -- worth documenting, not assumed away.
+            # of passage alone). Gate A-2 is the tracked fix for this, not
+            # yet applied here.
             reranked_results = rerank(
                 query=query, candidates=fused_results, model=reranker_model,
                 top_k=final_top_k, batch_size=8
@@ -120,6 +124,7 @@ def run_hybrid_cross_encoder_streamingqa(
                 k=final_top_k,
                 question_ts=question_ts,
                 candidate_timestamps=candidate_timestamps,
+                true_relevance_labels=candidate_is_source,
             )
 
             record = {
@@ -129,6 +134,7 @@ def run_hybrid_cross_encoder_streamingqa(
                 "gold_aliases": gold_aliases,
                 "question_ts": question_ts,
                 "recent_or_past": recent_or_past,
+                "gold_validated": gold_validated,
                 "retriever": ["BM25", "facebook/contriever"],
                 "retrieval_method": "hybrid_rrf_cross_encoder",
                 "candidate_top_k": candidate_top_k,
@@ -170,7 +176,11 @@ def run_hybrid_cross_encoder_streamingqa(
     summary = aggregate_metrics(results, k=final_top_k)
     by_group = aggregate_metrics_by_group(results, groups, k=final_top_k)
 
-    print(f"Recall@{final_top_k}: {summary[f'average_recall_at_{final_top_k}']}")
+    n_gold_validated = sum(1 for r in results if r.get("gold_validated"))
+
+    print(f"Gold-validated (Gate A-1): {n_gold_validated}/{summary['n_examples']}")
+    print(f"Recall@{final_top_k}: {summary[f'average_recall_at_{final_top_k}']}  "
+          f"(n_defined={summary['n_recall_defined']}/{summary['n_examples']})")
     print(f"nDCG@{final_top_k}: {summary[f'average_ndcg_at_{final_top_k}']}")
     print(f"Average EM: {summary['average_em']:.4f}")
     print(f"Average F1: {summary['average_f1']:.4f}")
