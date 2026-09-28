@@ -1,0 +1,268 @@
+# ChronoGuard-RAG clean baseline experiment configuration
+# Weeks 3-4 | StreamingQA | Gate A (A1 + A2 combined rerun, i.e. A3)
+#
+# Same structure as configs/triviaqa_config.yaml (E1-E4, shared block +
+# per-experiment retriever/results). Pool construction (WMT sourcing, gold
+# resolution, candidate window, chunking) stays frozen separately in
+# configs/streamingqa_config.yaml -- this file covers evaluation only.
+#
+# RESULTS BELOW are the post-Gate-A numbers: gold-evidence mapping fixed
+# (A1) AND passages rechunked to a uniform <=320-token window (A2).
+# The earlier pre-fix numbers are kept under `pre_gate_a_results` per
+# experiment so the before/after comparison stays auditable.
+
+shared:
+  dataset: StreamingQA
+  input_path: data/processed/streamingqa_control_pools_chunked.jsonl  # A2 output
+  unchunked_input_path: data/processed/streamingqa_control_pools.jsonl  # A1-only pool, kept for reference
+  pool_config: configs/streamingqa_config.yaml  # frozen source of truth for how this pool was built
+  num_examples: 100
+  gold_validated: 97   # Gate A-1: queries with a lexically-confirmed answer-bearing chunk (was 74 defined pre-fix)
+  seed: 42
+  top_k: 5
+
+  generator:
+    model: mistralai/Mistral-7B-Instruct-v0.2
+    quantization: 4-bit
+    decoding:
+      do_sample: false
+      max_new_tokens: 64
+    max_passage_chars: 1500  # truncate_passage() -- shared between build_prompt()
+                              # and relevance labeling in evaluate_query().
+                              # Unchanged (shared module untouched). Chunks are
+                              # sized in tokens (<=320 reranker tokens), so this
+                              # char cap is expected to rarely bind, but that
+                              # was NOT separately verified against chunk text
+                              # lengths.
+
+  chunking:
+    step: src/eval/chunk_streamingqa_pools.py
+    tokenizer: BAAI/bge-reranker-base
+    target_chunk_tokens: 320
+    overlap_tokens: 64
+    candidates_per_query_pre_chunk: 20.0
+    candidates_per_query_post_chunk: 20.7
+    avg_chunk_tokens: 171.6
+    max_chunk_tokens: 320
+    verification_script: verify_chunking_a3.py  # checks retrieved doc_ids carry #chunkN and chunk sizes <= 320
+
+  evaluation:
+    metrics:
+      - exact_match
+      - f1
+      - recall_at_5
+      - ndcg_at_5
+      - fraction_top_5_violating      # StreamingQA-only: requires question_ts
+      - valid_evidence_recall_at_5    # StreamingQA-only
+      - time_valid_answer_accuracy    # StreamingQA-only
+    grouping_field: recent_or_past    # aggregate_metrics_by_group -- not used for TriviaQA
+    n_recall_defined: 97              # None (undefined) is never coerced to 0
+
+  attack_condition: clean
+  prompt: src/generation/generate.py::build_prompt
+
+experiments:
+
+  E1:
+    name: StreamingQA + BM25
+    dataset: StreamingQA
+    retriever:
+      type: lexical
+      method: BM25
+      implementation: rank_bm25.BM25Okapi
+      module: src/retrieval/bm25.py
+      function: retrieve_best
+      similarity: BM25
+
+    orchestrator: run_baseline_streamingqa.py
+    log_path: logs/streamingqa_baseline_run_chunked.jsonl
+
+    results:
+      average_em: 0.6200
+      average_f1: 0.7809
+      average_recall_at_5: 0.9304             # n=97 defined queries
+      average_ndcg_at_5: 0.9259               # n=97 defined queries
+      average_fraction_top_5_violating: 0.0260
+      average_valid_evidence_recall_at_5: 0.9304  # n=97 defined queries
+      average_time_valid_answer_accuracy: 0.55
+      by_recent_or_past:
+        past:   { n: 45, average_em: 0.6444, average_fraction_top_5_violating: 0.0, average_time_valid_answer_accuracy: 0.6444 }
+        recent: { n: 55, average_em: 0.6000, average_fraction_top_5_violating: 0.0473, average_time_valid_answer_accuracy: 0.4727 }
+
+    pre_gate_a_results:   # original run, before A1/A2
+      average_em: 0.4100
+      average_f1: 0.5319
+      average_recall_at_5: 0.9257             # n=74 defined queries
+      average_ndcg_at_5: 0.9026               # n=74 defined queries
+      average_fraction_top_5_violating: 0.0740
+      average_valid_evidence_recall_at_5: 0.9452  # n=73 defined queries
+      average_time_valid_answer_accuracy: 0.30
+      by_recent_or_past:
+        past:   { n: 45, average_em: 0.4222, average_fraction_top_5_violating: 0.0133, average_time_valid_answer_accuracy: 0.4222 }
+        recent: { n: 55, average_em: 0.4000, average_fraction_top_5_violating: 0.1236, average_time_valid_answer_accuracy: 0.2000 }
+
+
+  E2:
+    name: StreamingQA + Dense Retrieval
+    dataset: StreamingQA
+    retriever:
+      type: dense_bi_encoder
+      model: facebook/contriever
+      implementation: transformers.AutoModel
+      pooling: mean_pooling_with_attention_mask
+      similarity: dot_product
+      module: src/retrieval/dense.py
+      function: retrieve_best
+      # encode_texts() truncates at tokenizer model_max_length (512 tokens)
+      # with no explicit override. Unchanged (shared module untouched);
+      # chunks are <=320 reranker-tokens, so truncation is not expected to
+      # bind on StreamingQA any more.
+      embedding_truncation_tokens: 512
+
+    orchestrator: run_dense_streamingqa.py
+    log_path: logs/streamingqa_dense_run_chunked.jsonl
+
+    results:
+      average_em: 0.6100
+      average_f1: 0.7815
+      average_recall_at_5: 0.9820             # n=97 defined queries
+      average_ndcg_at_5: 0.9916               # n=97 defined queries
+      average_fraction_top_5_violating: 0.0360
+      average_valid_evidence_recall_at_5: 0.9820  # n=97 defined queries
+      average_time_valid_answer_accuracy: 0.53
+      by_recent_or_past:
+        past:   { n: 45, average_em: 0.6444, average_fraction_top_5_violating: 0.0, average_time_valid_answer_accuracy: 0.6444 }
+        recent: { n: 55, average_em: 0.5818, average_fraction_top_5_violating: 0.0655, average_time_valid_answer_accuracy: 0.4364 }
+
+    pre_gate_a_results:
+      average_em: 0.4500
+      average_f1: 0.5638
+      average_recall_at_5: 0.9662             # n=74 defined queries
+      average_ndcg_at_5: 0.9517               # n=74 defined queries
+      average_fraction_top_5_violating: 0.0980
+      average_valid_evidence_recall_at_5: 0.9863  # n=73 defined queries
+      average_time_valid_answer_accuracy: 0.32
+
+
+  E3:
+    name: StreamingQA + BM25 + Contriever + RRF
+    dataset: StreamingQA
+    retriever:
+      type: hybrid
+
+      bm25:
+        type: lexical
+        method: BM25
+        implementation: rank_bm25.BM25Okapi
+        module: src/retrieval/bm25.py
+        function: retrieve_best
+
+      contriever:
+        type: dense_bi_encoder
+        model: facebook/contriever
+        implementation: transformers.AutoModel
+        pooling: mean_pooling_with_attention_mask
+        similarity: dot_product
+        module: src/retrieval/dense.py
+        function: retrieve_best
+
+      fusion:
+        method: reciprocal_rank_fusion
+        rrf_k: 60
+
+      candidate_top_k: 20
+      final_top_k: 5
+
+    orchestrator: run_hybrid_streamingqa.py
+    log_path: logs/streamingqa_hybrid_run_chunked.jsonl
+
+    results:
+      average_em: 0.5900
+      average_f1: 0.7703
+      average_recall_at_5: 0.9459             # n=97 defined queries
+      average_ndcg_at_5: 0.9524               # n=97 defined queries
+      average_fraction_top_5_violating: 0.0320
+      average_valid_evidence_recall_at_5: 0.9459  # n=97 defined queries
+      average_time_valid_answer_accuracy: 0.51
+      by_recent_or_past:
+        past:   { n: 45, average_em: 0.6222, average_fraction_top_5_violating: 0.0, average_time_valid_answer_accuracy: 0.6222 }
+        recent: { n: 55, average_em: 0.5636, average_fraction_top_5_violating: 0.0582, average_time_valid_answer_accuracy: 0.4182 }
+
+    pre_gate_a_results:
+      average_em: 0.4400
+      average_f1: 0.5565
+      average_recall_at_5: 0.9257             # n=74 defined queries (was byte-identical to E1's pre-fix;
+                                                # no longer the case after A1+A2)
+      average_ndcg_at_5: 0.9092               # n=74 defined queries
+      average_fraction_top_5_violating: 0.1000
+      average_valid_evidence_recall_at_5: 0.9452  # n=73 defined queries
+      average_time_valid_answer_accuracy: 0.33
+
+
+  E4:
+    name: StreamingQA + Hybrid RRF + BGE Reranker
+    dataset: StreamingQA
+
+    retriever:
+      type: hybrid
+
+      bm25:
+        type: lexical
+        method: BM25
+        implementation: rank_bm25.BM25Okapi
+        module: src/retrieval/bm25.py
+        function: retrieve_best
+        similarity: BM25
+
+      contriever:
+        type: dense_bi_encoder
+        model: facebook/contriever
+        implementation: transformers.AutoModel
+        pooling: mean_pooling_with_attention_mask
+        similarity: dot_product
+        module: src/retrieval/dense.py
+        function: retrieve_best
+
+      fusion:
+        method: reciprocal_rank_fusion
+        rrf_k: 60
+
+      candidate_top_k: 20
+      fused_top_k: 20
+
+    reranker:
+      type: cross_encoder
+      model: BAAI/bge-reranker-base
+      implementation: sentence_transformers.CrossEncoder
+      input: query_document_pairs
+      # CrossEncoder.predict() truncates the [query, passage] pair jointly at
+      # 512 tokens, no explicit override. Unchanged (shared module untouched);
+      # <=320-token chunks leave room for the query, so truncation is not
+      # expected to bind on StreamingQA any more.
+      truncation_tokens: 512
+
+    final_top_k: 5
+
+    orchestrator: run_hybrid_reranker_streamingqa.py
+    log_path: logs/streamingqa_hybrid_reranker_run_chunked.jsonl
+
+    results:
+      average_em: 0.5900
+      average_f1: 0.7755
+      average_recall_at_5: 0.9820             # n=97 defined queries
+      average_ndcg_at_5: 0.9775               # n=97 defined queries
+      average_fraction_top_5_violating: 0.0240
+      average_valid_evidence_recall_at_5: 0.9820  # n=97 defined queries
+      average_time_valid_answer_accuracy: 0.53
+      by_recent_or_past:
+        past:   { n: 45, average_em: 0.6222, average_fraction_top_5_violating: 0.0, average_time_valid_answer_accuracy: 0.6222 }
+        recent: { n: 55, average_em: 0.5636, average_fraction_top_5_violating: 0.0436, average_time_valid_answer_accuracy: 0.4545 }
+
+    pre_gate_a_results:
+      average_em: 0.4500
+      average_f1: 0.5657
+      average_recall_at_5: 0.9527             # n=74 defined queries
+      average_ndcg_at_5: 0.9445               # n=74 defined queries
+      average_fraction_top_5_violating: 0.1100
+      average_valid_evidence_recall_at_5: 0.9726  # n=73 defined queries
+      average_time_valid_answer_accuracy: 0.33
