@@ -30,10 +30,14 @@ shared:
     max_passage_chars: 1500  # truncate_passage() -- shared between build_prompt()
                               # and relevance labeling in evaluate_query().
                               # Unchanged (shared module untouched). Chunks are
-                              # sized in tokens (<=320 reranker tokens), so this
-                              # char cap is expected to rarely bind, but that
-                              # was NOT separately verified against chunk text
-                              # lengths.
+                              # sized in tokens (<=320 reranker tokens), not
+                              # characters. Verified (verify_chunking_a3.py):
+                              # 5/2051 chunks exceed 1500 chars (max 1717, not
+                              # retrieved). Retrieved chunks over the cap:
+                              # E1 2/500 (1520, 1504 chars), E2/E3/E4 1/500
+                              # each (the same 1520-char chunk) -- so at most
+                              # 20 chars were cut from at most 2 retrieved
+                              # chunks per run. Documented limitation, not fixed.
 
   chunking:
     step: src/eval/chunk_streamingqa_pools.py
@@ -44,7 +48,14 @@ shared:
     candidates_per_query_post_chunk: 20.7
     avg_chunk_tokens: 171.6
     max_chunk_tokens: 320
-    verification_script: verify_chunking_a3.py  # checks retrieved doc_ids carry #chunkN and chunk sizes <= 320
+    verification_script: verify_chunking_a3.py  # checks retrieved doc_ids carry #chunkN, chunk tokens <= 320, chunk chars <= 1500
+    verification_results:
+      unique_chunk_doc_ids_indexed: 2051
+      retrieved_doc_ids_checked_per_run: 500            # all four runs
+      retrieved_with_chunk_suffix: all                  # every run consumed the chunked pool
+      chunks_over_320_tokens: 0
+      chunks_over_1500_chars: 5                         # of 2051 (0.24%); max 1717 chars
+      retrieved_chunks_over_1500_chars: { E1: 2, E2: 1, E3: 1, E4: 1 }  # of 500 per run; max overshoot 20 chars
 
   evaluation:
     metrics:

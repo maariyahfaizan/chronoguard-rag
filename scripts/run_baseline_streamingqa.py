@@ -8,6 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from src.retrieval.bm25 import retrieve_best
 from src.generation.generate import load_model, generate_answer, build_prompt
 from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metrics_by_group
+from src.eval.config_loader import experiment_params
 
 # StreamingQA-specific driver for E1 (BM25). Deliberately a separate file
 # from run_baseline.py rather than a branch inside it -- run_baseline.py
@@ -30,16 +31,28 @@ from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metr
 # Gate A-1's corrected pools would silently make no difference to
 # Recall@5/nDCG@5/valid_evidence_recall_at_5, which would defeat the
 # entire point of the fix.
+#
+# NOTE ON THIS REVISION (Gate A-5 wiring): INPUT_PATH, LOG_PATH, TOP_K and
+# the generator model name were previously hardcoded here, duplicating
+# (and able to silently drift from) what configs/streamingqa_eval_config.yaml
+# already documented. They now come from experiment_params("E1"), which
+# reads that YAML directly -- the YAML is the one place these values are
+# set, not two. See src/eval/config_loader.py for the fail-loud behavior
+# if a key is missing.
 
-INPUT_PATH = "data/processed/streamingqa_control_pools_chunked.jsonl"
-LOG_PATH = "logs/streamingqa_baseline_run.jsonl"
-TOP_K = 5  # same retrieval depth as the TriviaQA E1 run, per plan Section 6
-           # ("identical retrieval depth ... where possible")
+_CFG = experiment_params("E1")
+INPUT_PATH = _CFG["input_path"]
+LOG_PATH = _CFG["log_path"]
+TOP_K = _CFG["top_k"]
+GENERATOR_MODEL = _CFG["generator_model"]
 
 
 def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, log_path=LOG_PATH, top_k=TOP_K):
     if model is None or tokenizer is None:
-        model, tokenizer = load_model()
+        # Model name now comes from the YAML (GENERATOR_MODEL) rather than
+        # generate.py's own hardcoded default -- load_model() already
+        # accepted this as an argument, it just wasn't being passed before.
+        model, tokenizer = load_model(GENERATOR_MODEL)
 
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
@@ -151,8 +164,7 @@ def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, 
     print(f"Average EM: {summary['average_em']:.4f}")
     print(f"Average F1: {summary['average_f1']:.4f}")
     print(f"Average Recall@{top_k}: {summary[f'average_recall_at_{top_k}']}  "
-          f"(n_defined={summary['n_recall_defined']}/{summary['n_examples']} -- "
-          f"THIS is the Gate A-1 before/after comparison number, was 74/100 pre-fix)")
+          f"(n_defined={summary['n_recall_defined']}/{summary['n_examples']})")
     print(f"Average nDCG@{top_k}: {summary[f'average_ndcg_at_{top_k}']}")
     if f"average_fraction_top_{top_k}_violating" in summary:
         print(f"Average fraction top-{top_k} violating: {summary[f'average_fraction_top_{top_k}_violating']}")
