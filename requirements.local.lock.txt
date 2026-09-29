@@ -1,0 +1,6 @@
+numpy==2.4.6
+pandas==3.0.5
+scipy==1.18.0
+PyYAML==6.0.3
+tqdm==4.68.3
+pytest==9.1.1

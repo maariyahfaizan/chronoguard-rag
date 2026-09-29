@@ -1,0 +1,249 @@
+# ChronoGuard-RAG clean baseline experiment configuration
+# Weeks 3-4 | FreshQA
+#
+# FreshQA uses the full official TEST split rather than a seeded n=100
+# subsample. Final baseline configuration: 477/500 questions.
+#
+# E1-E4 share:
+#   - Mistral-7B-Instruct-v0.2 generator
+#   - 4-bit quantization
+#   - greedy decoding (do_sample=False)
+#   - shared build_prompt() implementation
+#   - shared evaluator.py evaluation path
+#   - clean / non-attack condition
+#
+# FreshQA-specific:
+#   - FreshEval LLM judge is the headline correctness metric
+#   - EM/F1 are diagnostic only
+#   - true relevance labels come from is_source_document
+#   - temporal metrics have partial/undefined coverage because
+#     candidate source timestamps are sparse
+
+shared:
+  dataset: FreshQA
+  input_path: data/processed/freshqa_control_pools.jsonl
+  num_examples: 477
+  seed: 42
+  top_k: 5
+
+  generator:
+    model: mistralai/Mistral-7B-Instruct-v0.2
+    quantization: 4-bit
+    decoding:
+      do_sample: false
+      max_new_tokens: 64
+
+  evaluation:
+    headline_metric:
+      name: fresheval_accuracy
+      description: FreshEval rubric judged by an LLM
+      judge_model: mistralai/Mistral-7B-Instruct-v0.2
+      judge_token_budget: 80
+
+    metrics:
+      - fresheval_accuracy
+      - exact_match
+      - f1
+      - recall_at_5
+      - ndcg_at_5
+      - fraction_top_5_violating
+      - valid_evidence_recall_at_5
+      - time_valid_answer_accuracy
+
+    relevance_labels:
+      source: is_source_document
+      field: true_relevance_labels
+
+    temporal_reference:
+      primary: effective_year
+      fallback: snapshot_retrieved_at
+
+  attack_condition: clean
+  prompt: src/generation/generate.py::build_prompt
+
+experiments:
+
+  E1:
+    name: FreshQA + BM25
+    dataset: FreshQA
+
+    retriever:
+      type: lexical
+      method: BM25
+      implementation: rank_bm25.BM25Okapi
+      module: src/retrieval/bm25.py
+      function: retrieve_best
+      similarity: BM25
+
+    top_k: 5
+
+    log_path: logs/freshqa_baseline_run.jsonl
+
+    results:
+      fresheval_accuracy: 0.5304
+      average_em: 0.1258
+      average_f1: 0.2955
+      average_recall_at_5: 0.7977
+      average_ndcg_at_5: 0.7290
+
+      fraction_top_5_violating:
+        value: 0.345
+        n_defined: 42
+
+      valid_evidence_recall_at_5:
+        value: 1.000
+        n_defined: 15
+
+      time_valid_answer_accuracy:
+        value: null
+        n_defined: 0
+
+
+  E2:
+    name: FreshQA + Dense Retrieval
+    dataset: FreshQA
+
+    retriever:
+      type: dense_bi_encoder
+      model: facebook/contriever
+      implementation: transformers.AutoModel
+      pooling: mean_pooling_with_attention_mask
+      similarity: dot_product
+      module: src/retrieval/dense.py
+      function: retrieve_best
+
+    top_k: 5
+
+    log_path: logs/freshqa_dense_run.jsonl
+
+    results:
+      fresheval_accuracy: 0.5807
+      average_em: 0.1551
+      average_f1: 0.3438
+      average_recall_at_5: 0.9990
+      average_ndcg_at_5: 0.9766
+
+      fraction_top_5_violating:
+        value: 0.359
+        n_defined: 85
+
+      valid_evidence_recall_at_5:
+        value: 1.000
+        n_defined: 15
+
+      time_valid_answer_accuracy:
+        value: null
+        n_defined: 0
+
+
+  E3:
+    name: FreshQA + BM25 + Contriever + RRF
+    dataset: FreshQA
+
+    retriever:
+      type: hybrid
+
+      bm25:
+        type: lexical
+        method: BM25
+        implementation: rank_bm25.BM25Okapi
+        module: src/retrieval/bm25.py
+        function: retrieve_best
+
+      contriever:
+        type: dense_bi_encoder
+        model: facebook/contriever
+        implementation: transformers.AutoModel
+        pooling: mean_pooling_with_attention_mask
+        similarity: dot_product
+        module: src/retrieval/dense.py
+        function: retrieve_best
+
+      fusion:
+        method: reciprocal_rank_fusion
+        rrf_k: 60
+
+      candidate_top_k: 20
+      final_top_k: 5
+
+    log_path: logs/freshqa_hybrid_run.jsonl
+
+    results:
+      fresheval_accuracy: 0.5597
+      average_em: 0.1488
+      average_f1: 0.3311
+      average_recall_at_5: 0.8843
+      average_ndcg_at_5: 0.8249
+
+      fraction_top_5_violating:
+        value: 0.339
+        n_defined: 59
+
+      valid_evidence_recall_at_5:
+        value: 1.000
+        n_defined: 15
+
+      time_valid_answer_accuracy:
+        value: null
+        n_defined: 0
+
+
+  E4:
+    name: FreshQA + Hybrid RRF + BGE Reranker
+    dataset: FreshQA
+
+    retriever:
+      type: hybrid
+
+      bm25:
+        type: lexical
+        method: BM25
+        implementation: rank_bm25.BM25Okapi
+        module: src/retrieval/bm25.py
+        function: retrieve_best
+        similarity: BM25
+
+      contriever:
+        type: dense_bi_encoder
+        model: facebook/contriever
+        implementation: transformers.AutoModel
+        pooling: mean_pooling_with_attention_mask
+        similarity: dot_product
+        module: src/retrieval/dense.py
+        function: retrieve_best
+
+      fusion:
+        method: reciprocal_rank_fusion
+        rrf_k: 60
+
+      candidate_top_k: 20
+      fused_top_k: 20
+
+    reranker:
+      type: cross_encoder
+      model: BAAI/bge-reranker-base
+      implementation: sentence_transformers.CrossEncoder
+      input: query_document_pairs
+
+    final_top_k: 5
+
+    log_path: logs/freshqa_hybrid_reranker_run.jsonl
+
+    results:
+      fresheval_accuracy: 0.5660
+      average_em: 0.1656
+      average_f1: 0.3510
+      average_recall_at_5: 0.9822
+      average_ndcg_at_5: 0.9516
+
+      fraction_top_5_violating:
+        value: 0.227
+        n_defined: 88
+
+      valid_evidence_recall_at_5:
+        value: 1.000
+        n_defined: 15
+
+      time_valid_answer_accuracy:
+        value: null
+        n_defined: 0
