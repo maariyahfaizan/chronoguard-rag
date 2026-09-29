@@ -8,16 +8,24 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from src.retrieval.dense import load_dense_model, retrieve_best
 from src.generation.generate import load_model, generate_answer, build_prompt
 from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metrics_by_group
+from src.eval.config_loader import experiment_params
 
 # StreamingQA-specific driver for E2 (dense/Contriever). See
 # run_baseline_streamingqa.py's header comment for why this is a separate
 # file rather than a branch in run_dense.py, and for the Gate A-1
 # true_relevance_labels wiring note -- same fix, same rationale, applied
 # here too.
+#
+# NOTE ON THIS REVISION (Gate A-5 wiring): see run_baseline_streamingqa.py's
+# header comment -- same change, same rationale. INPUT_PATH/LOG_PATH/TOP_K/
+# generator model now come from configs/streamingqa_eval_config.yaml via
+# experiment_params("E2"), not hardcoded here.
 
-INPUT_PATH = "data/processed/streamingqa_control_pools_chunked.jsonl"
-LOG_PATH = "logs/streamingqa_dense_run.jsonl"
-TOP_K = 5
+_CFG = experiment_params("E2")
+INPUT_PATH = _CFG["input_path"]
+LOG_PATH = _CFG["log_path"]
+TOP_K = _CFG["top_k"]
+GENERATOR_MODEL = _CFG["generator_model"]
 
 
 def run_dense_streamingqa(
@@ -31,7 +39,7 @@ def run_dense_streamingqa(
     top_k=TOP_K,
 ):
     if model is None or tokenizer is None:
-        model, tokenizer = load_model()
+        model, tokenizer = load_model(GENERATOR_MODEL)
 
     if retriever_model is None or retriever_tokenizer is None or retriever_device is None:
         retriever_model, retriever_tokenizer, retriever_device = load_dense_model()
@@ -63,11 +71,9 @@ def run_dense_streamingqa(
 
             # Dense retrieval (Contriever). NOTE: encode_texts() truncates at
             # the tokenizer's model_max_length (512 tokens for Contriever, ~
-            # BERT-base), with no explicit max_length override -- roughly the
-            # same ballpark as StreamingQA's longest passages (max 2253 chars).
-            # This truncation point is independent of, and inconsistent with,
-            # generate.py's 1500-char DEFAULT_MAX_PASSAGE_CHARS -- Gate A-2
-            # is the tracked fix for this, not yet applied here.
+            # BERT-base), with no explicit max_length override. Chunks are
+            # <=320 reranker-tokens as of Gate A-2, so this is not expected
+            # to bind on StreamingQA any more -- see verify_chunking_a3.py.
             retrieved = retrieve_best(
                 query, candidate_texts, retriever_model, retriever_tokenizer,
                 retriever_device, top_k=top_k

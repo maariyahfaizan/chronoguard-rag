@@ -9,17 +9,24 @@ from src.retrieval.dense import load_dense_model
 from src.retrieval.hybrid import retrieve_hybrid
 from src.generation.generate import load_model, generate_answer, build_prompt
 from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metrics_by_group
+from src.eval.config_loader import experiment_params
 
 # StreamingQA-specific driver for E3 (hybrid RRF, no reranker). See
 # run_baseline_streamingqa.py's header comment for the rationale, and for
 # the Gate A-1 true_relevance_labels wiring note.
+#
+# NOTE ON THIS REVISION (Gate A-5 wiring): see run_baseline_streamingqa.py's
+# header comment -- same change, same rationale. INPUT_PATH/LOG_PATH/TOP_K/
+# CANDIDATE_TOP_K/FINAL_TOP_K/RRF_K/generator model now come from
+# configs/streamingqa_eval_config.yaml via experiment_params("E3").
 
-INPUT_PATH = "data/processed/streamingqa_control_pools_chunked.jsonl"
-LOG_PATH = "logs/streamingqa_hybrid_run.jsonl"
-
-CANDIDATE_TOP_K = 20
-FINAL_TOP_K = 5
-RRF_K = 60
+_CFG = experiment_params("E3")
+INPUT_PATH = _CFG["input_path"]
+LOG_PATH = _CFG["log_path"]
+GENERATOR_MODEL = _CFG["generator_model"]
+CANDIDATE_TOP_K = _CFG["candidate_top_k"]
+FINAL_TOP_K = _CFG["final_top_k"]
+RRF_K = _CFG["rrf_k"]
 
 
 def run_hybrid_streamingqa(
@@ -35,7 +42,7 @@ def run_hybrid_streamingqa(
     rrf_k=RRF_K,
 ):
     if model is None or tokenizer is None:
-        model, tokenizer = load_model()
+        model, tokenizer = load_model(GENERATOR_MODEL)
 
     if retriever_model is None or retriever_tokenizer is None or retriever_device is None:
         retriever_model, retriever_tokenizer, retriever_device = load_dense_model()

@@ -12,21 +12,28 @@ from src.retrieval.dense import retrieve_best as dense_retrieve
 from src.retrieval.reranker import load_reranker, rerank
 from src.generation.generate import load_model, generate_answer, build_prompt
 from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metrics_by_group
+from src.eval.config_loader import experiment_params
 
 # StreamingQA-specific driver for E4 (hybrid RRF + BGE cross-encoder
 # reranker). See run_baseline_streamingqa.py's header comment for the
 # rationale for a separate file, and for the Gate A-1
 # true_relevance_labels wiring note.
+#
+# NOTE ON THIS REVISION (Gate A-5 wiring): see run_baseline_streamingqa.py's
+# header comment -- same change, same rationale. INPUT_PATH/LOG_PATH/
+# CANDIDATE_TOP_K/FUSED_TOP_K/FINAL_TOP_K/RRF_K/RERANKER_MODEL/generator
+# model now come from configs/streamingqa_eval_config.yaml via
+# experiment_params("E4"), not hardcoded here.
 
-INPUT_PATH = "data/processed/streamingqa_control_pools_chunked.jsonl"
-LOG_PATH = "logs/streamingqa_hybrid_reranker_run.jsonl"
-
-CANDIDATE_TOP_K = 20
-FUSED_TOP_K = 20
-FINAL_TOP_K = 5
-RRF_K = 60
-
-RERANKER_MODEL = "BAAI/bge-reranker-base"
+_CFG = experiment_params("E4")
+INPUT_PATH = _CFG["input_path"]
+LOG_PATH = _CFG["log_path"]
+GENERATOR_MODEL = _CFG["generator_model"]
+CANDIDATE_TOP_K = _CFG["candidate_top_k"]
+FUSED_TOP_K = _CFG["fused_top_k"]
+FINAL_TOP_K = _CFG["final_top_k"]
+RRF_K = _CFG["rrf_k"]
+RERANKER_MODEL = _CFG["reranker_model"]
 
 
 def run_hybrid_cross_encoder_streamingqa(
@@ -44,7 +51,7 @@ def run_hybrid_cross_encoder_streamingqa(
     rrf_k=RRF_K,
 ):
     if model is None or tokenizer is None:
-        model, tokenizer = load_model()
+        model, tokenizer = load_model(GENERATOR_MODEL)
 
     if retriever_model is None or retriever_tokenizer is None or retriever_device is None:
         retriever_model, retriever_tokenizer, retriever_device = load_dense_model()
@@ -94,9 +101,9 @@ def run_hybrid_cross_encoder_streamingqa(
             # 4. BGE cross-encoder reranker -> top-final_top_k
             # NOTE: reranker.py loads CrossEncoder with no explicit max_length
             # override, so it truncates at bge-reranker-base's 512-token
-            # limit, shared jointly between query + passage (not 512 tokens
-            # of passage alone). Gate A-2 is the tracked fix for this, not
-            # yet applied here.
+            # limit, shared jointly between query + passage. Chunks are
+            # <=320 reranker-tokens as of Gate A-2, leaving room for the
+            # query -- see verify_chunking_a3.py.
             reranked_results = rerank(
                 query=query, candidates=fused_results, model=reranker_model,
                 top_k=final_top_k, batch_size=8
