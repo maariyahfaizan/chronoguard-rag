@@ -27,3 +27,5 @@ data/raw/*
 !data/raw/freshqa_clean.csv
 !data/raw/freshqa_evidence_snapshot.jsonl
 data/processed/freshqa_control_pools.jsonl
+data/processed/freshqa_control_pools.jsonl__pycache__/
+*.pyc
