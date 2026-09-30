@@ -189,13 +189,97 @@ Known limitation: the generator caps each passage at 1500 characters, while Stre
 ## 9. Repository layout
 
 ```
-configs/    YAML configs; streamingqa_eval_config.yaml drives the StreamingQA runners
-data/       raw snapshots and processed pools (large generated pools are not tracked)
-logs/       per-query audit logs (E1-E4) and statistics_results_*.json
-results/    summary.csv (generated; paper tables should come from here)
-scripts/    run_* drivers, statistics, summary generation
-src/        retrieval/, eval/ (chunking, evaluator, metrics, config_loader)
-tests/      regression tests (duplicate passage identity, RRF duplicates, truncation, undefined metrics)
+PROJECT_ROOT/
+│
+├── configs/
+│   ├── baseline_config.yaml
+│   ├── freshqa_config.yaml
+│   ├── streamingqa_config.yaml
+│   └── streamingqa_eval_config.yaml
+│
+├── data/
+│   ├── processed/
+│   │   ├── freshqa_control_pools.jsonl
+│   │   ├── freshqa_questions.jsonl
+│   │   ├── streamingqa_control_pools.jsonl
+│   │   ├── streamingqa_control_pools_chunked.jsonl
+│   │   └── triviaqa_control_clean.jsonl
+│   │
+│   └── raw/
+│       ├── freshqa.csv
+│       ├── freshqa_clean.csv
+│       ├── freshqa_evidence_snapshot.jsonl
+│       ├── streamingqa_control_sample.jsonl
+│       ├── streamingqa_eval.jsonl.gz
+│       ├── streamingqa_pools_raw.jsonl
+│       ├── triviaqa_control_sample.jsonl
+│       ├── wmt_sorting_key_ids.txt.gz
+│       └── wmt/
+│
+├── logs/
+│   ├── baseline_run.jsonl
+│   ├── dense_run.jsonl
+│   ├── hybrid_run.jsonl
+│   ├── hybrid_reranker_run.jsonl
+│   ├── freshqa_*.jsonl
+│   ├── streamingqa_*.jsonl
+│   └── statistics_results*.json
+│
+├── notebooks/
+│
+├── scripts/
+│   ├── run_baseline.py
+│   ├── run_baseline_freshqa.py
+│   ├── run_baseline_streamingqa.py
+│   ├── run_dense.py
+│   ├── run_dense_freshqa.py
+│   ├── run_dense_streamingqa.py
+│   ├── run_hybrid.py
+│   ├── run_hybrid_freshqa.py
+│   ├── run_hybrid_reranker.py
+│   ├── run_hybrid_reranker_freshqa.py
+│   ├── run_hybrid_reranker_streamingqa.py
+│   ├── run_hybrid_streamingqa.py
+│   ├── run_statistics.py
+│   └── run_statistics_streamingqa.py
+│
+├── src/
+│   ├── attacks/
+│   ├── chronoguard/
+│   │
+│   ├── eval/
+│   │   ├── build_freshqa_pools.py
+│   │   ├── build_streamingqa_pools.py
+│   │   ├── chunk_streamingqa_pools.py
+│   │   ├── config_loader.py
+│   │   ├── evaluator.py
+│   │   ├── fetch_freshqa_sources.py
+│   │   ├── fetch_wmt_archives.py
+│   │   ├── freshqa_judge.py
+│   │   ├── inspect_data.py
+│   │   ├── metrics.py
+│   │   ├── preprocess.py
+│   │   ├── preprocess_freshqa.py
+│   │   ├── preprocess_streamingqa.py
+│   │   ├── resumable_log.py
+│   │   ├── save_snapshot.py
+│   │   ├── save_snapshot_streamingqa.py
+│   │   └── statistics.py
+│   │
+│   ├── generation/
+│   │   └── generate.py
+│   │
+│   └── retrieval/
+│       ├── bm25.py
+│       ├── dense.py
+│       ├── hybrid.py
+│       └── reranker.py
+│
+└── tests/
+    ├── conftest.py
+    ├── test_evaluator.py
+    ├── test_metrics.py
+    └── test_retrieval.py
 ```
 
 ## 10. Next: Week 5
