@@ -64,6 +64,10 @@ def load_judge_module():
 def make_hf_judge(model_name, judge_mod):
     """Load an open model in 4-bit and reuse the repo's own _call_judge_model()."""
     import torch
+    try:
+        import bitsandbytes  # noqa: F401
+    except ImportError:
+        sys.exit('bitsandbytes is not installed in this session. Run: pip install -U "bitsandbytes>=0.46.1"')
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
     if not torch.cuda.is_available():
         sys.exit("No GPU found. Run the hf backend on Kaggle with the GPU accelerator turned on.")
@@ -223,7 +227,7 @@ def main():
 
     if args.dry_run:
         judge_fn, revision, label = (lambda p: '{"correct": true, "rationale": "dry run"}'), None, "dry-run"
-        print("DRY RUN: verdicts are fake and must not be used")
+        print("DRY RUN: verdicts are fake, and no files will be written")
     elif args.backend == "api":
         api_key = os.environ.get("ANTHROPIC_API_KEY", "")
         if not api_key:
@@ -233,19 +237,32 @@ def main():
         judge_fn, revision = make_hf_judge(model_name, judge_mod)
         label = model_name
 
+    dry = args.dry_run
+
+    def open_store(path):
+        """Dry runs touch no files. Real runs reuse only verdicts made by the SAME model."""
+        if dry:
+            return {}, Path(os.devnull)
+        all_entries = load_store(path)
+        store = {k: v for k, v in all_entries.items() if v.get("model") == label}
+        if len(store) != len(all_entries):
+            print(f"note: ignoring {len(all_entries) - len(store)} stored verdicts made by a different model")
+        return store, path
+
     if args.all:
-        store_path = D / "judge2_all.jsonl"
-        store = load_store(store_path)
+        store, store_path = open_store(D / "judge2_all.jsonl")
         run(sorted(logs.keys()), logs, store, store_path, judge_mod, judge_fn, label, revision)
         summarize_all(logs, store)
     else:
         key_rows = list(csv.DictReader(open(D / "key.csv", encoding="utf-8-sig")))
         items = [(r["system"], str(r["query_id"])) for r in key_rows]
-        store_path = D / "judge2_raw.jsonl"
-        store = load_store(store_path)
+        store, store_path = open_store(D / "judge2_raw.jsonl")
         run(items, logs, store, store_path, judge_mod, judge_fn, label, revision)
-        write_key(store)
-        print("Next: python scripts/judge_validation_agreement.py")
+        if dry:
+            print("dry run: key.csv and the result files were NOT touched")
+        else:
+            write_key(store)
+            print("Next: python scripts/judge_validation_agreement.py")
 
 
 if __name__ == "__main__":
