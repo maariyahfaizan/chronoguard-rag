@@ -1,0 +1,105 @@
+JUDGE SAID CORRECT, I SAID WRONG: 14
+======================================================================
+
+#0  [E3_Hybrid / fast-changing]  false_premise=FALSE
+  Q:      In how many years will Netflix celebrate its thirtieth anniversary?
+  gold:   more than 1 year
+  answer: The year 2029. (Netflix was founded in 1997, so 30 years from that year is 2029.)
+  judge:  The model provided the exact year (2029) when Netflix will celebrate its thirtieth anniversary, which is the correct answer according to the ground-truth.
+  notes:  
+
+#4  [E4_Hybrid+Reranker / slow-changing]  false_premise=FALSE
+  Q:      What is the best ever result by an African team at a FIFA World Cup?
+  gold:   fourth-place
+  answer: The best ever result by an African team at a FIFA World Cup is reaching the quarter-finals by Cameroon in 1990.
+  judge:  The model's answer matches the ground-truth, providing a specific and confident result of an African team reaching the quarter-finals in a FIFA World Cup by Cameroon in 1990.
+  notes:  
+
+#5  [E3_Hybrid / slow-changing]  false_premise=FALSE
+  Q:      How many total Nazca geoglyphs have been discovered so far?
+  gold:   358
+  answer: The context states that the number of known Nazca geoglyphs amounted to 358 in 2022, and that discoveries in 2024 using AI-assisted methods added 303 previously unknown geoglyphs. Therefore, the total number of discovered Naz
+  judge:  The model's answer accurately states the total number of discovered Nazca geoglyphs as 761 (358 + 303), which is the correct answer according to the ground-truth information provided in the question.
+  notes:  
+
+#32  [E1_BM25 / fast-changing]  false_premise=FALSE
+  Q:      What book won the latest Nebula award for Best Novel?
+  gold:   Someone You Can Build a Nest In
+  answer: The latest Nebula award for Best Novel was won by Stephen Graham Jones for "The Buffalo Hunter."
+  judge:  [unparsed rationale -- raw response: {"correct": true, "rationale": "The model's answer correctly identifies Stephen Graham Jones as the winner of the latest Nebula award for Best Novel, and mentions the title 'The Buffalo Hunter'. Howev]
+  notes:  
+
+#35  [E3_Hybrid / fast-changing]  false_premise=FALSE
+  Q:      How old is David Beckham's daughter?
+  gold:   14
+  answer: Harper was born on 10 July 2011.
+  judge:  The model provided the exact age of David Beckham's daughter Harper in years, which is an acceptable form of the ground-truth answer. The birthdate given also confirms the age.
+  notes:  
+
+#44  [E4_Hybrid+Reranker / false-premise]  false_premise=TRUE
+  Q:      In what year did Papa John's go out of business?
+  gold:   Papa John's is currently still an active business.
+  answer: The context provided does not contain information about the year Papa John's went out of business.
+  judge:  The model correctly identified that no information was provided in the context regarding the year Papa John's went out of business.
+  notes:  
+
+#61  [E2_Dense / fast-changing]  false_premise=FALSE
+  Q:      What is Brad Pitt's most recent movie as an actor?
+  gold:   F1
+  answer: KGF: Chapter 2 (2022)
+  judge:  The model's answer, 'KGF: Chapter 2 (2022)', matches the ground-truth answer, 'F1', which is the title and year of Brad Pitt's most recent film as an actor.
+  notes:  
+
+#64  [E4_Hybrid+Reranker / fast-changing]  false_premise=FALSE
+  Q:      How many years ago did John Paul II die?
+  gold:   21
+  answer: The year John Paul II died was 2005. Therefore, as of the given context, John Paul II died 13 years ago.
+  judge:  The model provided the accurate year of John Paul II's death (2005) and calculated the time elapsed since then (13 years). This answer is confident and definitive, satisfying the FreshEval rubric.
+  notes:  
+
+#69  [E1_BM25 / false-premise]  false_premise=TRUE
+  Q:      What year did Chris Paul win his second NBA championship?
+  gold:   Chris Paul has never won an NBA championship.
+  answer: The context provided does not contain information about Chris Paul winning a second NBA championship.
+  judge:  The model correctly identified that Chris Paul has not won a second NBA championship, as per the ground-truth answer.
+  notes:  
+
+#83  [E2_Dense / false-premise]  false_premise=TRUE
+  Q:      What year did Chris Paul win his second NBA championship?
+  gold:   Chris Paul has never won an NBA championship.
+  answer: The context does not provide the year Chris Paul won his second NBA championship. He has not won a second championship according to the information given.
+  judge:  The model correctly identified that Chris Paul has not won a second NBA championship, as per the ground-truth answer.
+  notes:  
+
+#99  [E2_Dense / slow-changing]  false_premise=FALSE
+  Q:      What is the most recent award that Yann LeCun, Geoffrey Hinton, and Yoshua Bengio received together?
+  gold:   Queen Elizabeth Prize for Engineering (2025)
+  answer: VinFuture Prize (2024)
+  judge:  [unparsed rationale -- raw response: {"correct": true, "rationale": "The model's answer, 'VinFuture Prize (2024)', is an acceptable answer according to the FreshEval rubric as it is a confident, definitive answer, and it is the most rece]
+  notes:  
+
+#100  [E2_Dense / fast-changing]  false_premise=FALSE
+  Q:      How many years ago did John Paul II die?
+  gold:   21
+  answer: The year of John Paul II's death is 2005. To find the number of years ago, subtract the given year from the current year (2023). Therefore, the number of years ago John Paul II died is (2023 - 2005) =
+  judge:  The model provided the correct year of John Paul II's death (2005) and then calculated the number of years ago by subtracting that year from the current year (2023), resulting in the correct answer (18 years).
+  notes:  
+
+#101  [E1_BM25 / false-premise]  false_premise=TRUE
+  Q:      In what year did Papa John's go out of business?
+  gold:   Papa John's is currently still an active business.
+  answer: The text provided does not mention the year that Papa John's went out of business.
+  judge:  The model correctly identified that the question contained a false premise and did not provide an answer without being asked to confirm the false premise.
+  notes:  
+
+#102  [E2_Dense / false-premise]  false_premise=TRUE
+  Q:      When did Epic Gaming first release Minecraft?
+  gold:   Minecraft was not developed by Epic Gaming. It was developed by Mojang Studios, which is now owned by Microsoft.
+  answer: The first release of Minecraft was on 17 May 2009 (public alpha).
+  judge:  The model's answer is accurate and confident, stating the correct release date of Minecraft.
+  notes:  
+
+
+JUDGE SAID WRONG, I SAID CORRECT: 0
+======================================================================
+

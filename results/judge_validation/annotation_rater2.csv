@@ -1,0 +1,38 @@
+﻿item_id,question,gold,aliases,false_premise,answer,human_label,notes
+0,In how many years will Netflix celebrate its thirtieth anniversary?,more than 1 year,,FALSE,"The year 2029. (Netflix was founded in 1997, so 30 years from that year is 2029.)",0,
+1,Who was the most recent woman to become President of Peru?,Dina Boluarte,Dina Ercilia Boluarte Zegarra,FALSE,"Dina Boluarte (2023)
+
+(Note: The context provided does not contain information about the most recent woman who became President of Peru. The answer is given based on current events that occurred after the provided context was written.)",1,
+2,Who was the first elected female Governor of Massachusetts?,Maura Healey,Maura Tracy Healey,FALSE,"Maura Healey (born 1971)
+
+(Note: The context mentions that she was elected in 2022.)",1,
+3,In what year did bodybuilding become an Olympic sport?,Bodybuilding is not an Olympic sport.,,TRUE,Bodybuilding is not an Olympic sport.,1,
+4,What is the best ever result by an African team at a FIFA World Cup?,fourth-place,one of the four semi-finalists; semi-final,FALSE,The best ever result by an African team at a FIFA World Cup is reaching the quarter-finals by Cameroon in 1990.,0,
+5,How many total Nazca geoglyphs have been discovered so far?,358,,FALSE,"The context states that the number of known Nazca geoglyphs amounted to 358 in 2022, and that discoveries in 2024 using AI-assisted methods added 303 previously unknown geoglyphs. Therefore, the total number of discovered Naz",1,
+6,What is the current most popular Wikipedia article of the Week?,Artemis II,,FALSE,I cannot provide the answer directly from the context as it is not mentioned in the provided Wikipedia articles. The Wikipedia article of the week is determined by the Wikipedia community and changes regularly.,0,
+7,What was the name of the Zodiac killer?,The Zodiac Killer has not been identified.,,TRUE,The name of the Zodiac killer is unknown.,1,
+8,Who won the latest NBA championship?,Oklahoma City Thunder,,FALSE,"The New York Knicks won the latest NBA championship. (From the context provided in the ""List of NBA champions - Wikipedia"" title.)",0,
+9,Where did the first atomic bomb test take place in the United States?,"Jornada del Muerto Desert, New Mexico",Alamogordo Bombing Range; New Mexico; Alamogordo Bombing and Gunnery Range; White Sands Proving Ground,FALSE,"Trinity Site, New Mexico
+Coordinates: 33.6772°N 106.4753°W",1,
+10,Can women attend universities in Afghanistan?,No,,FALSE,"As of December 2022, women are suspended from attending universities in Afghanistan.",1,
+11,When did Joe Biden announce his second presidential campaign in 2023?,He made his second presidential campaign during the 2008 Democratic Party presidential primaries already.,,TRUE,The context does not provide the information on when Joe Biden announced his second presidential campaign in 2023.,0,
+12,Who is the most recent player to win both the PDC World Youth Championship and the PDC World Darts Championship?,Luke Littler,,FALSE,Luke Littler,1,
+13,In what year will Google celebrate its 30th birthday?,2028,"Sep 4, 2028; September 4, 2028; 4 Sep 2028; 4 September 2028; 09/4/2028; 09-4-2028; 4/09/2028; 4-09-2028; 2028/09/4",FALSE,"Google was launched on September 4, 1998. To find the year of its 30th birthday, add 30 to the year of its launch: 1998 + 30 = 2028.",1,
+14,Who is the highest-paid coach per season ever on the American television series The Voice?,Ariana Grande,Ariana Grande-Butera,FALSE,"I cannot directly answer that question from the context provided, as the context does not include information about the coaches' salaries on The Voice.",0,
+15,In what year was the Element 120 first synthesized?,"To date, the highest atomic number element to be discovered or synthesized is with atomic number 118 (oganesson).",,TRUE,The context provided does not contain information about the synthesis of Element 120.,0,
+16,On what date was Lunar New Year 2023?,22-Jan-23,"January 22, 2023; 22 Jan 2023; 22 January 2023; 01/22/2023; 01-22-2023; 22/01/2023; 22-01-2023; 2023/01/22; 2023-01-22",FALSE,22-Jan-23,1,
+17,When did this year's Passover start?,1-Apr,"Apr 1, 2026; April 1, 2026; 1 Apr 2026; 1 April 2026; 04/1/2026; 04-1-2026; 1/04/2026; 1-04-2026; 2026/04/1",FALSE,The context does not provide the date for this year's Passover.,0,
+18,What is the current age of the first Brazilian president to be elected to a fourth term?,No Brazilian president has been elected to a fourth term yet.,,TRUE,The current age of the first Brazilian president to be elected to a fourth term is 77. (Note: The context mentions that Lula was sworn in on 1 January 2023 at the age of 77.),0,
+19,"What movie, along with Avatar: The Way of Water, won the most awards of the night with three wins at the 80th Golden Globe Awards?",Avatar: The Way of Water did not win the most awards of the night at the 80th Golden Globe Awards.,,TRUE,Abbott Elementary,0,
+20,Who is the oldest Brazilian president at the time of inauguration?,Luiz Inácio Lula da Silva,Luiz Inácio da Silva; Lula,FALSE,"Luiz Inácio Lula da Silva (2023)
+
+Explanation: The context mentions that Lula became the oldest Brazilian president at the time of inauguration. Therefore, the answer is ""Luiz Inácio Lula da Silva"" and the year ""202",1,
+21,What film starred Brad Pitt's first leading role?,The Dark Side of the Sun,,FALSE,The Dark Side of the Sun (1988),1,
+22,On which side do people stand on the escalator in Tokyo?,left,left side,FALSE,People stand on the left side of the escalator in Tokyo.,1,
+23,In which round did Novak Djokovic lose at the 2022 Australian Open?,He was not allowed to play at the tournament due to his vaccination status.,,TRUE,The text does not provide information on which round Novak Djokovic lost at the 2022 Australian Open.,0,
+24,On what date in North America did the most recent Microsoft's Patch Tuesday come out?,14-Apr-26,"April 14, 2026; 14 Apr 2026; 14 April 2026; 04/14/2026; 04-14-2026; 14/04/2026; 14-04-2026; 2026/04/14; 2026-04-14",FALSE,"January 10, 2023 (based on the context that Patch Tuesday occurs on the second Tuesday of each month, and the mention of ""2023"" in the text)",0,
+25,What is the most recent country that President Donald Trump visited during his second presidency?,Switzerland,,FALSE,The context does not provide the information on the most recent country that President Donald Trump visited during his second presidency.,0,
+26,Who wrote the book titled Orientalism?,Edward W. Saïd,Edward W. Said; Edward Said,FALSE,"Edward W. Said wrote the book titled ""Orientalism.""",1,
+27,"How many children does Elon Musk have, including his deceased child?",14,fourteen; at least 14; at least fourteen,FALSE,Elon Musk has 14 children.,1,
+28,When was the eighth book of the Percy Jackson & the Olympians series released?,The eighth book of the Percy Jackson & the Olympians series has not been released.,There are only seven books in the Percy Jackson & the Olympians series.,TRUE,"The eighth book of the Percy Jackson & the Olympians series, ""The Titan's Curse,"" was released on September 23, 2004.",0,
+29,How long has Taylor Swift been a UNICEF Goodwill Ambassador?,Taylor Swift has never been appointed as a UNICEF Goodwill Ambassador.,,TRUE,Taylor Swift became a UNICEF Goodwill Ambassador on December 2013.,0,
