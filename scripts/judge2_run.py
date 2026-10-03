@@ -61,7 +61,7 @@ def load_judge_module():
 
 
 # ----------------------------- backends -----------------------------------
-def make_hf_judge(model_name, judge_mod):
+def make_hf_judge(model_name, judge_mod, device_map_mode="single"):
     """Load an open model in 4-bit and reuse the repo's own _call_judge_model()."""
     import torch
     try:
@@ -75,9 +75,15 @@ def make_hf_judge(model_name, judge_mod):
                              bnb_4bit_compute_dtype=torch.float16)   # T4 has no bfloat16
     print(f"loading {model_name} in 4-bit (the first run downloads the weights)...")
     tok = AutoTokenizer.from_pretrained(model_name)
+    # "single" keeps the whole 4-bit model on GPU 0 (about 10 GB for a 14B model). "auto" splits it
+    # across GPUs, which ran out of memory on Kaggle's 2 x T4. fp16 is explicit because a T4 has no
+    # bfloat16 and the non-quantized layers would otherwise load in the checkpoint's bf16.
+    device_map = "auto" if device_map_mode == "auto" else {"": 0}
     model = AutoModelForCausalLM.from_pretrained(model_name, quantization_config=bnb,
-                                                 device_map="auto")
+                                                 device_map=device_map, dtype=torch.float16)
     model.eval()
+    for i in range(torch.cuda.device_count()):
+        print(f"GPU {i}: {torch.cuda.memory_allocated(i) / 1e9:.1f} GB allocated after loading")
     judge_mod.JUDGE_MAX_NEW_TOKENS = MAX_TOKENS     # read at call time inside _call_judge_model
     revision = getattr(model.config, "_commit_hash", None)
     print("model revision:", revision)
@@ -217,6 +223,8 @@ def main():
     ap.add_argument("--model", default=None, help="model id (hf repo id, or API model name)")
     ap.add_argument("--all", action="store_true", help="judge every item in all four logs")
     ap.add_argument("--dry-run", action="store_true", help="no model, no API; tests the plumbing")
+    ap.add_argument("--device-map", choices=["single", "auto"], default="single",
+                    help="hf backend: single = whole model on GPU 0 (default), auto = split across GPUs")
     args = ap.parse_args()
 
     default_model = HF_MODEL_DEFAULT if args.backend == "hf" else API_MODEL_DEFAULT
@@ -234,7 +242,8 @@ def main():
             sys.exit('ANTHROPIC_API_KEY is not set. PowerShell: $env:ANTHROPIC_API_KEY = "<your key>"')
         judge_fn, revision, label = (lambda p: call_api(p, api_key, model_name)), None, model_name
     else:
-        judge_fn, revision = make_hf_judge(model_name, judge_mod)
+        os.environ.setdefault("PYTORCH_ALLOC_CONF", "expandable_segments:True")  # before torch starts CUDA
+        judge_fn, revision = make_hf_judge(model_name, judge_mod, args.device_map)
         label = model_name
 
     dry = args.dry_run
