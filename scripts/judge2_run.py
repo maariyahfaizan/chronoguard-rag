@@ -253,9 +253,15 @@ def main():
         if dry:
             return {}, Path(os.devnull)
         all_entries = load_store(path)
-        store = {k: v for k, v in all_entries.items() if v.get("model") == label}
-        if len(store) != len(all_entries):
-            print(f"note: ignoring {len(all_entries) - len(store)} stored verdicts made by a different model")
+        other = sum(1 for v in all_entries.values() if v.get("model") != label)
+        retry = sum(1 for v in all_entries.values()
+                    if v.get("model") == label and v.get("correct") is None)
+        store = {k: v for k, v in all_entries.items()
+                 if v.get("model") == label and v.get("correct") is not None}
+        if other:
+            print(f"note: ignoring {other} stored verdicts made by a different model")
+        if retry:
+            print(f"note: retrying {retry} items whose earlier verdict could not be parsed")
         return store, path
 
     if args.all:
