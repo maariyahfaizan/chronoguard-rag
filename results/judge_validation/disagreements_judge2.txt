@@ -1,0 +1,77 @@
+JUDGE2 SAID CORRECT, I SAID WRONG: 4
+======================================================================
+
+#0  [E3_Hybrid / fast-changing]  false_premise=FALSE
+  Q:      In how many years will Netflix celebrate its thirtieth anniversary?
+  gold:   more than 1 year
+  answer: The year 2029. (Netflix was founded in 1997, so 30 years from that year is 2029.)
+  judge2:  The model provided a confident, definitive answer that aligns with the ground truth, stating the year 2029 which indicates more than one year from now since the current year is 2023.
+  notes:  
+
+#69  [E1_BM25 / false-premise]  false_premise=TRUE
+  Q:      What year did Chris Paul win his second NBA championship?
+  gold:   Chris Paul has never won an NBA championship.
+  answer: The context provided does not contain information about Chris Paul winning a second NBA championship.
+  judge2:  The response correctly identifies that the premise of the question is false, as Chris Paul has never won an NBA championship.
+  notes:  
+
+#83  [E2_Dense / false-premise]  false_premise=TRUE
+  Q:      What year did Chris Paul win his second NBA championship?
+  gold:   Chris Paul has never won an NBA championship.
+  answer: The context does not provide the year Chris Paul won his second NBA championship. He has not won a second championship according to the information given.
+  judge2:  The model correctly identifies that the premise is false by stating Chris Paul has not won a second NBA championship, adhering to the False Premise Handling rule.
+  notes:  
+
+#100  [E2_Dense / fast-changing]  false_premise=FALSE
+  Q:      How many years ago did John Paul II die?
+  gold:   21
+  answer: The year of John Paul II's death is 2005. To find the number of years ago, subtract the given year from the current year (2023). Therefore, the number of years ago John Paul II died is (2023 - 2005) =
+  judge2:  The model provided a confident, definitive calculation leading to the accurate answer of 18 years, which aligns with the relaxed criteria for accuracy.
+  notes:  
+
+
+JUDGE2 SAID WRONG, I SAID CORRECT: 6
+======================================================================
+
+#21  [E1_BM25 / never-changing]  false_premise=FALSE
+  Q:      What film starred Brad Pitt's first leading role?
+  gold:   The Dark Side of the Sun
+  answer: The Dark Side of the Sun (1988)
+  judge2:  The model provided a confident answer but the ground truth indicates that Brad Pitt's first leading role was not in 'The Dark Side of the Sun' (1988), which seems to be an incorrect year or title according to the actual information available.
+  notes:  
+
+#45  [E2_Dense / slow-changing]  false_premise=FALSE
+  Q:      Who is the vice-chancellor of the largest university by enrollment in the world?
+  gold:   Uma Kanjilal
+  answer: Uma Kanjilal, Indira Gandhi National Open University.
+  judge2:  The model's answer lacks the term 'Acting Vice Chancellor', which is part of the complete name or a commonly recognized form of the entity mentioned in the ground-truth answer.
+  notes:  
+
+#60  [E4_Hybrid+Reranker / never-changing]  false_premise=FALSE
+  Q:      Who was the first player to win more than one FIFA World Cup Golden Ball?
+  gold:   Lionel Messi
+  answer: Lionel Messi (2006 and 2022)
+  judge2:  The model provided an approximate answer by mentioning years instead of confidently stating that Lionel Messi won the award in 2006 and 2022 without ambiguity.
+  notes:  
+
+#63  [E2_Dense / slow-changing]  false_premise=FALSE
+  Q:      Who is the President of the United States?
+  gold:   Donald Trump
+  answer: Donald Trump (January 20, 2025)
+  judge2:  The model provided a future date that does not align with the current ground-truth, indicating a speculative or incorrect answer.
+  notes:  
+
+#79  [E3_Hybrid / never-changing]  false_premise=FALSE
+  Q:      Who was the first African American woman to appear on a quarter in the United States?
+  gold:   Maya Angelou
+  answer: Maya Angelou
+  judge2:  The ground-truth answer is incorrect; it was not Maya Angelou but Harriet Tubman who was the first African American woman to appear on a U.S. quarter.
+  notes:  
+
+#82  [E4_Hybrid+Reranker / slow-changing]  false_premise=FALSE
+  Q:      Who is the President of the United States?
+  gold:   Donald Trump
+  answer: The President of the United States is Donald Trump, as stated in the context from Wikipedia. The specific fact requested is the name of the incumbent President.
+  judge2:  The model's answer contains a factual error since Donald Trump is not currently the President of the United States as of the knowledge cut-off date.
+  notes:  
+
