@@ -549,7 +549,7 @@ def main():
                 for doc in wmt_docs
             }
 
-            passages = (
+            passages = list(
                 extraction.get_wmt_passages_from_docs(
                     wmt_docs,
                     prepend_date=False,
