@@ -2,7 +2,7 @@
 
 Clean RAG baselines for a study of **freshness poisoning** in retrieval-augmented generation: how stale, fabricated-"newer", or timestamp-shifted evidence can override correct evidence, and how a recency-aware verification layer (ChronoGuard-RAG) can defend against it.
 
-**Current phase:** Weeks 3-4 (clean baselines) are in their closure cycle. Gate A is complete. Gate B is in progress. No attack conditions and no ChronoGuard defense have been implemented yet. Week 5 (attack construction) starts once Week 4 is signed off.
+**Current phase:** Weeks 3-4 (clean baselines) are in their closure cycle. Gate A is complete apart from one manual-review item. Gate B items 6-9 are done; item 10 (the frozen summary) is generated last, after the final commit. No attack conditions and no ChronoGuard defense have been implemented yet. Week 5 (attack construction) starts once Week 4 is signed off.
 
 **Frozen baseline commit:** `<FILL IN LAST: git rev-parse HEAD after final commit; tag week4-frozen>`
 
@@ -56,14 +56,16 @@ TVAA = time-valid answer accuracy. The pre-Gate-A run used a different gold mapp
 
 | Metric | E1 | E2 | E3 | E4 |
 |---|---:|---:|---:|---:|
-| FreshEval accuracy (headline) | 0.5304 | **0.5807** | 0.5597 | 0.5660 |
+| FreshEval accuracy, Qwen2.5-14B judge (headline) | 0.3312 | 0.4004 | 0.3920 | **0.4088** |
+| FreshEval accuracy, Mistral-7B self-judge (development only) | 0.5304 | **0.5807** | 0.5597 | 0.5660 |
 | EM (diagnostic) | 0.1258 | 0.1551 | 0.1488 | **0.1656** |
 | F1 (diagnostic) | 0.2955 | 0.3438 | 0.3311 | **0.3510** |
 | Recall@5 | 0.7977 | **0.9990** | 0.8843 | 0.9822 |
 | nDCG@5 | 0.7290 | **0.9766** | 0.8249 | 0.9516 |
 
 **Caveats.**
-- FreshEval accuracy is judged by the same Mistral-7B that generates the answers. It is a development metric. It is **not comparable to published GPT-4-judged FreshQA numbers**, and judge validation is pending (Gate B item 9).
+- The headline judged accuracy comes from Qwen2.5-14B-Instruct, chosen after validating both judges against human labels (section 3.4). The Mistral-7B self-judge is lenient (it overstated accuracy on the validation sample) and is shown for development only. Neither is **comparable to published GPT-4-judged FreshQA numbers**.
+- The ordering of E2, E3 and E4 depends on the judge, and the three are within about 2 points of each other under both. Only E1 (BM25) being lowest holds under both judges. Do not rank E2-E4 by judged accuracy alone; paired tests have not yet been run on FreshQA.
 - Time-valid answer accuracy is undefined for all 477 questions. Fraction-violating (42-88 questions) and valid-evidence Recall@5 (15 questions) are defined for only a small subset, because per-passage `source_date` coverage is sparse. Any FreshQA temporal average must be read with its `n_defined`. StreamingQA carries the temporal analysis.
 - E2 outperforms E4 on Recall@5/nDCG@5. This is unexplained and not yet investigated.
 
@@ -79,6 +81,21 @@ TVAA = time-valid answer accuracy. The pre-Gate-A run used a different gold mapp
 Retrieval metrics are averaged over 85/100 queries with at least one relevant candidate. No pairwise EM/F1 difference is significant (all p >= 0.15). E2 and E4 significantly beat E1 and E3 on Recall@5/nDCG@5, and E2 beats E3.
 
 An earlier version of this project reported identical, saturated Recall@5/nDCG@5 across all systems. That was mostly caused by a substring-matching bug in relevance labelling, which is now fixed with word-boundary matching. TriviaQA's answer-first construction still raises absolute retrieval levels.
+
+### 3.4 FreshQA judge validation
+
+The Mistral-7B judge also generates the answers, so it was validated against human labels and compared with a second judge. 112 clean answers were sampled (seed 42), stratified over E1-E4 and four question types (never-changing, slow-changing, fast-changing, false-premise), 28 per system and per type. They were labelled blind to every judge verdict, using the judge's own rubric. A second person labelled a 30-item subset (agreement 96.7%, kappa 0.93). Human accuracy on the sample is 0.500.
+
+| | Agreement with human | Kappa (95% CI) | Accuracy on the sample | Lenient / strict errors | Sign-test p |
+|---|---:|---:|---:|---:|---:|
+| Mistral-7B (development judge) | 0.875 | 0.750 (0.63-0.87) | 0.625 | 14 / 0 | 0.0001 |
+| Qwen2.5-14B-Instruct (headline judge) | 0.911 | 0.821 (0.71-0.91) | 0.482 | 4 / 6 | 0.75 |
+
+- Mistral is systematically lenient. Qwen shows no detectable bias, but its higher agreement is not statistically distinguishable from Mistral's at n=112 (errors only Mistral makes: 10, only Qwen makes: 6, p = 0.45). The supported claim is about calibration, not agreement.
+- Qwen's 10 disagreements with the human labels were reviewed: nine are judge errors and one is a borderline label. In four it overrides the gold answer with its own beliefs, and in three it reasons from the wrong current year. Its knowledge appears to end around 2023, so it can penalise correct, fresh answers. This is a validity threat and is stated as one.
+- The 112-item sample was easier than average, so the human accuracy on it is not an estimate of true accuracy. The judge comparison is paired and is not affected.
+- Qwen setup: `Qwen/Qwen2.5-14B-Instruct`, revision `cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8`, 4-bit NF4 with fp16 compute, greedy decoding, 300 new tokens (Mistral's limit was 80), the same FreshEval prompt and code path. All 1,908 verdicts parsed.
+- Raw files are in `results/judge_validation/` (`annotation.csv`, `key.csv`, `judge2_raw.jsonl`, `judge2_all.jsonl`).
 
 ## 4. What Gate A fixed (StreamingQA)
 
@@ -98,12 +115,12 @@ Chunking applies to StreamingQA only. The shared retrieval/generation modules (`
 |---|---|
 | Week 3 | Complete |
 | Week 4 Gate A (items 1-5) | Complete |
-| A1: manual inspection of the 3 unvalidated queries | Open (2020 shards being re-fetched) |
-| B-6 README | This document; update after final numbers are committed |
-| B-7 pin environment | In progress (see Section 6) |
-| B-8 tracked artifacts / filenames | In progress: untrack `__pycache__`/`.pyc`, standardise FreshQA reranker log name |
-| B-9 FreshQA judge validation | Not started (100+ blind human judgments and/or a second judge) |
-| B-10 frozen summary artifact | Partial: `results/summary.csv` covers StreamingQA only |
+| A1: manual inspection of the 3 unvalidated queries | 2 of 3 answer-bearing on manual reading (Ferne McCann, Germany); Colm O'Rourke pending. Whether manual labels enter the metrics is a supervisor question |
+| B-6 README | Done (freeze hash filled in last) |
+| B-7 pin environment | Done (see Section 6) |
+| B-8 tracked artifacts / filenames | Done |
+| B-9 FreshQA judge validation | Done: 112 blind human labels, second judge on the sample and on all 1,908 verdicts (section 3.4) |
+| B-10 frozen summary artifact | Script written (`scripts/make_summary.py`, all three datasets); run last, after the final commit |
 | StreamingQA E2-E4 config-driven smoke tests | Open |
 | Scale TriviaQA/StreamingQA beyond n=100 | Planned before paper-level evaluation |
 | Failure analysis (50-100 errors) | Partial |
@@ -117,7 +134,7 @@ Two environments produced the frozen results. Reproduce each stage in the enviro
 | Retrieval, generation, E1-E4 runs | Kaggle, Python 3.12.13, torch 2.10.0 (CUDA 12.8), Tesla T4 | `requirements.txt`, `requirements.lock.txt` |
 | Paired statistics, summary generation, tests | Local Windows machine, Python `<3.13.x: FILL IN>`, numpy 2.4.6, pandas 3.0.5, scipy 1.18.0 | `requirements.local.txt`, `requirements.local.lock.txt` |
 
-Kaggle versions were recorded on `<DATE>` from the Kaggle image and may differ slightly from the image at the time of the earliest runs.
+Kaggle versions were recorded on `<DATE>` from the Kaggle image and may differ slightly from the image at the time of the earliest runs. The second FreshQA judge (Qwen2.5-14B-Instruct) ran in the same Kaggle environment on a single T4; `bitsandbytes` had to be reinstalled in that session (`pip install -U "bitsandbytes>=0.46.1"`).
 
 Model revisions (commit SHAs) are recorded in the config files under `revision:` for the generator, Contriever and the reranker. `<TODO: fill in>`
 
@@ -173,13 +190,24 @@ python build_freshqa_pools.py            # regenerate pools; not tracked (about 
 # <TODO: list exact preprocessing and E1-E4 script names>
 ```
 
+Reproducing the FreshQA judge validation (after the FreshQA E1-E4 logs exist):
+
+```bash
+python scripts/judge_validation_sample.py       # seeded, stratified sample + blind annotation sheet
+# label results/judge_validation/annotation.csv by hand (1 = correct, 0 = incorrect); do not open key.csv
+python scripts/judge2_run.py                    # second judge on the 112 items (Kaggle GPU)
+python scripts/judge_validation_agreement.py    # agreement, kappa, sign tests, breakdowns
+python scripts/show_disagreements.py --judge 2  # disagreements, for the error analysis
+python scripts/judge2_run.py --all              # second judge on all 1,908 verdicts (Kaggle GPU)
+```
+
 Long Kaggle runs use `resumable_log.py` (skips already-completed `query_id`s on restart) and `git_checkpoint.py` (periodic commit and push), because a full 477-question FreshQA run was once lost to an unsaved session.
 
 ## 8. Evaluation
 
 One code path serves all datasets: `src/eval/evaluator.py` (`evaluate_query`, `aggregate_metrics`, `aggregate_metrics_by_group`) and `src/eval/metrics.py`.
 
-- **QA:** EM, F1 (SQuAD-style normalisation). FreshQA also uses a FreshEval-style LLM judge.
+- **QA:** EM, F1 (SQuAD-style normalisation). FreshQA also uses a FreshEval-style LLM judge: Qwen2.5-14B-Instruct is the headline judge and Mistral-7B a development judge (section 3.4).
 - **Retrieval:** Recall@5, nDCG@5, valid-evidence Recall@5. Undefined values (no relevant candidate) are excluded from averages and never coerced to 0. `n_defined` is reported alongside.
 - **Temporal (need `question_ts`, return `None` otherwise):** fraction of top-k violating the query-time constraint, valid-evidence Recall@k, time-valid answer accuracy.
 - **Statistics:** 95% bootstrap CIs, paired bootstrap, exact McNemar for binary metrics, Wilcoxon as a secondary check, Holm-Bonferroni across comparisons.
@@ -189,8 +217,7 @@ Known limitation: the generator caps each passage at 1500 characters, while Stre
 ## 9. Repository layout
 
 ```
-PROJECT_ROOT/
-│
+chronoguard-rag/
 ├── configs/
 │   ├── baseline_config.yaml
 │   ├── freshqa_config.yaml
@@ -215,6 +242,10 @@ PROJECT_ROOT/
 │       ├── triviaqa_control_sample.jsonl
 │       ├── wmt_sorting_key_ids.txt.gz
 │       └── wmt/
+│           ├── news-docs.2008.en.filtered.gz
+│           ├── news-docs.2009.en.filtered.gz
+│           ├── ...
+│           └── news-docs.2015.en.filtered.gz.partial
 │
 ├── logs/
 │   ├── baseline_run.jsonl
@@ -223,11 +254,29 @@ PROJECT_ROOT/
 │   ├── hybrid_reranker_run.jsonl
 │   ├── freshqa_*.jsonl
 │   ├── streamingqa_*.jsonl
-│   └── statistics_results*.json
+│   ├── statistics_results.json
+│   └── statistics_results_streamingqa.json
 │
 ├── notebooks/
 │
+├── results/
+│   └── judge_validation/
+│       ├── annotation.csv
+│       ├── annotation_rater2.csv
+│       ├── disagreements.txt
+│       ├── disagreements_judge2.txt
+│       ├── judge2_all.jsonl
+│       ├── judge2_raw.jsonl
+│       └── key.csv
+│
 ├── scripts/
+│   ├── inspect_attack_eligibility.py
+│   ├── inspect_stale_sources.py
+│   ├── inspect_temporal_coverage.py
+│   ├── judge2_run.py
+│   ├── judge_validation_agreement.py
+│   ├── judge_validation_sample.py
+│   ├── make_summary.py
 │   ├── run_baseline.py
 │   ├── run_baseline_freshqa.py
 │   ├── run_baseline_streamingqa.py
@@ -241,10 +290,16 @@ PROJECT_ROOT/
 │   ├── run_hybrid_reranker_streamingqa.py
 │   ├── run_hybrid_streamingqa.py
 │   ├── run_statistics.py
-│   └── run_statistics_streamingqa.py
+│   ├── run_statistics_streamingqa.py
+│   ├── show_disagreements.py
+│   └── test_attack_pool.py
 │
 ├── src/
 │   ├── attacks/
+│   │   ├── attack_pool.py
+│   │   ├── attack_specs.py
+│   │   └── __init__.py
+│   │
 │   ├── chronoguard/
 │   │
 │   ├── eval/
@@ -280,6 +335,26 @@ PROJECT_ROOT/
     ├── test_evaluator.py
     ├── test_metrics.py
     └── test_retrieval.py
+```
+
+### Directory overview
+
+| Directory          | Purpose                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------- |
+| `configs/`         | Experiment and dataset configuration files.                                                 |
+| `data/processed/`  | Processed question pools and evaluation-ready datasets.                                     |
+| `data/raw/`        | Frozen dataset snapshots and source evidence, including WMT News Crawl data.                |
+| `logs/`            | Retrieval, evaluation, and statistical experiment logs.                                     |
+| `notebooks/`       | Exploratory and experiment notebooks.                                                       |
+| `results/`         | Human/judge validation outputs and agreement analysis.                                      |
+| `scripts/`         | Experiment runners, inspection utilities, validation scripts, and summary generation.       |
+| `src/attacks/`     | Attack-pool construction and attack specifications.                                         |
+| `src/chronoguard/` | Core ChronoGuard components.                                                                |
+| `src/eval/`        | Dataset preparation, evidence fetching, preprocessing, evaluation, metrics, and statistics. |
+| `src/generation/`  | Answer-generation components.                                                               |
+| `src/retrieval/`   | BM25, dense, hybrid, and reranker retrieval implementations.                                |
+| `tests/`           | Automated tests for evaluation, metrics, and retrieval.                                     |
+    regression tests (duplicate passage identity, RRF duplicates, truncation, undefined metrics)
 ```
 
 ## 10. Next: Week 5
