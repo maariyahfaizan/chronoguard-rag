@@ -1,4 +1,5 @@
 """Deterministic construction of Week-5 poisoned StreamingQA pools.
+
 This module operates on the frozen chunked StreamingQA schema.
 
 Design principles:
@@ -37,7 +38,6 @@ REQUIRED_RECORD_FIELDS = {
     "gold_chunk_ids",
     "gold_validated",
 }
-
 
 REQUIRED_CANDIDATE_FIELDS = {
     "doc_id",
@@ -182,7 +182,6 @@ def _select_stale_candidate(
         return None
 
     gold_ids = _gold_ids(record)
-
     eligible = []
 
     for candidate in record["candidates"]:
@@ -267,7 +266,6 @@ def _replace_candidate(
 ) -> None:
     """Replace one non-gold candidate while preserving candidate count."""
     original = record["candidates"][target_index]
-
     replacement = copy.deepcopy(poison_candidate)
 
     # Keep the target's slot identity unique and traceable.
@@ -297,10 +295,7 @@ def _make_future_timestamp(
         question_dt,
     )
 
-    shifted = shifted.replace(
-        microsecond=0,
-    )
-
+    shifted = shifted.replace(microsecond=0)
     shifted = shifted + timedelta(days=days_after)
 
     return _format_timestamp(shifted)
@@ -333,7 +328,6 @@ def _apply_future_date(
         return None
 
     original_timestamp = target["timestamp"]
-
     target["timestamp"] = shifted_timestamp
 
     return {
@@ -431,7 +425,6 @@ def _apply_duplicate_fresh(
         return None
 
     gold_ids = _gold_ids(record)
-
     eligible = []
 
     for index, candidate in enumerate(record["candidates"]):
@@ -479,7 +472,6 @@ def _apply_duplicate_fresh(
     # Preserve the candidate slot ID so candidate count and
     # slot accounting remain stable.
     duplicate["doc_id"] = record["candidates"][target_index]["doc_id"]
-
     duplicate["is_source_document"] = False
 
     record["candidates"][target_index] = duplicate
@@ -516,7 +508,6 @@ def _apply_stale_evidence(
         return None
 
     poison = copy.deepcopy(source)
-
     original_target = record["candidates"][target_index]
 
     poison["doc_id"] = original_target["doc_id"]
@@ -596,11 +587,9 @@ def apply_attack(
     ``eligible=False``.
     """
     _validate_record(record)
-
     get_attack_spec(attack_type)
 
     attacked = copy.deepcopy(dict(record))
-
     rng = random.Random(seed)
 
     before_count = len(attacked["candidates"])
@@ -751,7 +740,6 @@ def generate_attacked_records(
         )
 
         attacked["attack_record_index"] = index
-
         output.append(attacked)
 
     return output
@@ -760,7 +748,6 @@ def generate_attacked_records(
 def load_jsonl(path: str | Path) -> List[Record]:
     """Load records from JSONL."""
     path = Path(path)
-
     records: List[Record] = []
 
     with path.open("r", encoding="utf-8") as handle:
@@ -778,7 +765,6 @@ def load_jsonl(path: str | Path) -> List[Record]:
                 ) from exc
 
             _validate_record(record)
-
             records.append(record)
 
     return records
@@ -806,4 +792,3 @@ def write_jsonl(
                 )
                 + "\n"
             )
-```
