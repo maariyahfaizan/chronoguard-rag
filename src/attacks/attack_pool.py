@@ -1,3 +1,4 @@
+```python
 """Deterministic construction of Week-5 poisoned StreamingQA pools.
 
 This module operates on the frozen chunked StreamingQA schema.
@@ -18,7 +19,7 @@ import copy
 import hashlib
 import json
 import random
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional
 
@@ -38,6 +39,7 @@ REQUIRED_RECORD_FIELDS = {
     "gold_chunk_ids",
     "gold_validated",
 }
+
 
 REQUIRED_CANDIDATE_FIELDS = {
     "doc_id",
@@ -63,6 +65,7 @@ def _parse_timestamp(value: Any) -> Optional[datetime]:
         dt = value
     else:
         text = str(value).strip()
+
         if not text:
             return None
 
@@ -88,6 +91,7 @@ def _format_timestamp(dt: datetime) -> str:
 def _validate_record(record: Mapping[str, Any]) -> None:
     """Validate the frozen chunked-pool schema."""
     missing = REQUIRED_RECORD_FIELDS - set(record)
+
     if missing:
         raise ValueError(
             f"Record is missing required fields: {sorted(missing)}"
@@ -101,6 +105,7 @@ def _validate_record(record: Mapping[str, Any]) -> None:
 
     for candidate in record["candidates"]:
         missing_candidate = REQUIRED_CANDIDATE_FIELDS - set(candidate)
+
         if missing_candidate:
             raise ValueError(
                 "Candidate is missing required fields: "
@@ -129,22 +134,28 @@ def _is_gold(candidate: Candidate, gold_ids: set[str]) -> bool:
 def _query_tokens(query: str) -> set[str]:
     """Simple deterministic tokenization for attack eligibility only."""
     tokens = []
+
     for token in query.lower().split():
         cleaned = "".join(ch for ch in token if ch.isalnum())
+
         if len(cleaned) >= 3:
             tokens.append(cleaned)
+
     return set(tokens)
 
 
 def _text_overlap(query: str, text: str) -> float:
     """Compute simple token overlap used only for selecting attack sources."""
     query_tokens = _query_tokens(query)
+
     if not query_tokens:
         return 0.0
 
     text_tokens = set()
+
     for token in text.lower().split():
         cleaned = "".join(ch for ch in token if ch.isalnum())
+
         if len(cleaned) >= 3:
             text_tokens.add(cleaned)
 
@@ -167,31 +178,46 @@ def _select_stale_candidate(
 
     A candidate is not called 'stale' merely because it is old.
     """
-
     question_dt = _parse_timestamp(record["question_ts"])
+
     if question_dt is None:
         return None
 
     gold_ids = _gold_ids(record)
 
     eligible = []
+
     for candidate in record["candidates"]:
         if _is_gold(candidate, gold_ids):
             continue
 
         candidate_dt = _parse_timestamp(candidate["timestamp"])
+
         if candidate_dt is None:
             continue
 
-        age_days = (question_dt - candidate_dt).total_seconds() / 86400.0
+        age_days = (
+            question_dt - candidate_dt
+        ).total_seconds() / 86400.0
+
         if age_days < min_age_days:
             continue
 
-        overlap = _text_overlap(record["query"], candidate["text"])
+        overlap = _text_overlap(
+            record["query"],
+            candidate["text"],
+        )
+
         if overlap <= 0:
             continue
 
-        eligible.append((overlap, age_days, candidate))
+        eligible.append(
+            (
+                overlap,
+                age_days,
+                candidate,
+            )
+        )
 
     if not eligible:
         return None
@@ -202,11 +228,13 @@ def _select_stale_candidate(
         reverse=True,
     )
 
-    # Keep deterministic but avoid always selecting the exact same record
-    # when several candidates are effectively equivalent.
+    # Keep deterministic but avoid always selecting the exact same
+    # record when several candidates are effectively equivalent.
     best_overlap = eligible[0][0]
+
     top = [
-        item for item in eligible
+        item
+        for item in eligible
         if item[0] >= max(0.01, best_overlap - 0.05)
     ]
 
@@ -275,8 +303,6 @@ def _make_future_timestamp(
         microsecond=0,
     )
 
-    from datetime import timedelta
-
     shifted = shifted + timedelta(days=days_after)
 
     return _format_timestamp(shifted)
@@ -289,7 +315,11 @@ def _apply_future_date(
     days_after: int = 7,
 ) -> Optional[Dict[str, Any]]:
     """Apply a metadata timestamp shift to one non-gold candidate."""
-    target_index = _select_replaceable_candidate(record, rng=rng)
+    target_index = _select_replaceable_candidate(
+        record,
+        rng=rng,
+    )
+
     if target_index is None:
         return None
 
@@ -305,12 +335,85 @@ def _apply_future_date(
         return None
 
     original_timestamp = target["timestamp"]
+
     target["timestamp"] = shifted_timestamp
 
     return {
         "target_index": target_index,
         "original_timestamp": original_timestamp,
         "shifted_timestamp": shifted_timestamp,
+    }
+
+
+def _apply_correct_content_wrong_date(
+    record: Record,
+    *,
+    rng: random.Random,
+    wrong_date_days: int = 30,
+) -> Optional[Dict[str, Any]]:
+    """Insert correct content with an intentionally incorrect timestamp.
+
+    The content is copied from validated gold evidence, while the
+    timestamp is deliberately shifted backward.
+
+    The original gold candidate is never modified.
+    """
+    gold_ids = _gold_ids(record)
+
+    gold_candidates = [
+        (index, candidate)
+        for index, candidate in enumerate(record["candidates"])
+        if _is_gold(candidate, gold_ids)
+    ]
+
+    if not gold_candidates:
+        return None
+
+    target_index = _select_replaceable_candidate(
+        record,
+        rng=rng,
+    )
+
+    if target_index is None:
+        return None
+
+    source_index, source = rng.choice(gold_candidates)
+
+    source_timestamp = _parse_timestamp(
+        source["timestamp"]
+    )
+
+    if source_timestamp is None:
+        return None
+
+    # Deliberately assign an incorrect historical timestamp.
+    wrong_timestamp = source_timestamp - timedelta(
+        days=wrong_date_days
+    )
+
+    poison = copy.deepcopy(source)
+
+    # Put the correct-content copy into a non-gold slot.
+    poison["doc_id"] = record["candidates"][target_index]["doc_id"]
+
+    # It is not validated/source evidence.
+    poison["is_source_document"] = False
+
+    # Content remains unchanged.
+    # Only the timestamp is deliberately altered.
+    poison["timestamp"] = _format_timestamp(
+        wrong_timestamp
+    )
+
+    record["candidates"][target_index] = poison
+
+    return {
+        "source_index": source_index,
+        "source_doc_id": source["doc_id"],
+        "target_index": target_index,
+        "original_timestamp": source["timestamp"],
+        "wrong_timestamp": poison["timestamp"],
+        "wrong_date_days": wrong_date_days,
     }
 
 
@@ -325,6 +428,7 @@ def _apply_duplicate_fresh(
     increases the influence of an existing fresh-looking passage.
     """
     question_dt = _parse_timestamp(record["question_ts"])
+
     if question_dt is None:
         return None
 
@@ -337,6 +441,7 @@ def _apply_duplicate_fresh(
             continue
 
         candidate_dt = _parse_timestamp(candidate["timestamp"])
+
         if candidate_dt is None:
             continue
 
@@ -344,16 +449,27 @@ def _apply_duplicate_fresh(
             question_dt - candidate_dt
         ).total_seconds() / 86400.0
 
-        # Candidate must be no more than 30 days old relative to query time.
+        # Candidate must be no more than 30 days old relative
+        # to query time.
         if 0 <= age_days <= 30:
-            eligible.append((index, candidate, age_days))
+            eligible.append(
+                (
+                    index,
+                    candidate,
+                    age_days,
+                )
+            )
 
     if not eligible:
         return None
 
     source_index, source, _ = rng.choice(eligible)
 
-    target_index = _select_replaceable_candidate(record, rng=rng)
+    target_index = _select_replaceable_candidate(
+        record,
+        rng=rng,
+    )
+
     if target_index is None:
         return None
 
@@ -362,9 +478,10 @@ def _apply_duplicate_fresh(
 
     duplicate = copy.deepcopy(source)
 
-    # Preserve the candidate slot ID so the candidate count and slot
-    # accounting remain stable.
+    # Preserve the candidate slot ID so candidate count and
+    # slot accounting remain stable.
     duplicate["doc_id"] = record["candidates"][target_index]["doc_id"]
+
     duplicate["is_source_document"] = False
 
     record["candidates"][target_index] = duplicate
@@ -392,7 +509,11 @@ def _apply_stale_evidence(
     if source is None:
         return None
 
-    target_index = _select_replaceable_candidate(record, rng=rng)
+    target_index = _select_replaceable_candidate(
+        record,
+        rng=rng,
+    )
+
     if target_index is None:
         return None
 
@@ -433,7 +554,11 @@ def _apply_fabricated_fresh(
             "fabricated_fresh payload requires an explicit 'timestamp' field"
         )
 
-    target_index = _select_replaceable_candidate(record, rng=rng)
+    target_index = _select_replaceable_candidate(
+        record,
+        rng=rng,
+    )
+
     if target_index is None:
         return None
 
@@ -461,6 +586,7 @@ def apply_attack(
     poison_payload: Optional[Mapping[str, Any]] = None,
     min_stale_age_days: int = 30,
     future_days: int = 7,
+    wrong_date_days: int = 30,
 ) -> tuple[Record, Dict[str, Any]]:
     """Apply one attack condition to one clean record.
 
@@ -476,6 +602,7 @@ def apply_attack(
     get_attack_spec(attack_type)
 
     attacked = copy.deepcopy(dict(record))
+
     rng = random.Random(seed)
 
     before_count = len(attacked["candidates"])
@@ -519,8 +646,17 @@ def apply_attack(
             rng=rng,
         )
 
+    elif attack_type == "correct_content_wrong_date":
+        details = _apply_correct_content_wrong_date(
+            attacked,
+            rng=rng,
+            wrong_date_days=wrong_date_days,
+        )
+
     else:
-        raise ValueError(f"Unsupported attack type: {attack_type}")
+        raise ValueError(
+            f"Unsupported attack type: {attack_type}"
+        )
 
     if details is None:
         metadata["reason"] = "no_eligible_target"
@@ -529,7 +665,7 @@ def apply_attack(
         attacked["attack_metadata"] = metadata
 
         return attacked, metadata
-    
+
     after_count = len(attacked["candidates"])
 
     if after_count != before_count:
@@ -538,8 +674,7 @@ def apply_attack(
             f"{before_count} -> {after_count}"
         )
 
-    # Ground truth must remain byte-for-byte equivalent at the logical
-    # field level.
+    # Ground truth must remain unchanged at the logical field level.
     for field in (
         "query",
         "gold_answer",
@@ -557,9 +692,13 @@ def apply_attack(
     gold_ids = _gold_ids(record)
 
     for candidate in attacked["candidates"]:
-        if candidate["doc_id"] in gold_ids and not candidate["is_source_document"]:
+        if (
+            candidate["doc_id"] in gold_ids
+            and not candidate["is_source_document"]
+        ):
             raise AssertionError(
-                f"Gold chunk lost source status: {candidate['doc_id']}"
+                "Gold chunk lost source status: "
+                f"{candidate['doc_id']}"
             )
 
     metadata.update(
@@ -586,6 +725,7 @@ def generate_attacked_records(
     poison_payloads: Optional[Mapping[str, Mapping[str, Any]]] = None,
     min_stale_age_days: int = 30,
     future_days: int = 7,
+    wrong_date_days: int = 30,
 ) -> List[Record]:
     """Generate an attacked copy of every supplied record."""
     output: List[Record] = []
@@ -598,6 +738,7 @@ def generate_attacked_records(
         )
 
         payload = None
+
         if poison_payloads is not None:
             payload = poison_payloads.get(str(index))
 
@@ -608,9 +749,11 @@ def generate_attacked_records(
             poison_payload=payload,
             min_stale_age_days=min_stale_age_days,
             future_days=future_days,
+            wrong_date_days=wrong_date_days,
         )
 
         attacked["attack_record_index"] = index
+
         output.append(attacked)
 
     return output
@@ -637,6 +780,7 @@ def load_jsonl(path: str | Path) -> List[Record]:
                 ) from exc
 
             _validate_record(record)
+
             records.append(record)
 
     return records
@@ -648,7 +792,11 @@ def write_jsonl(
 ) -> None:
     """Write attacked records to JSONL."""
     path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
+
+    path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
     with path.open("w", encoding="utf-8") as handle:
         for record in records:
@@ -660,3 +808,4 @@ def write_jsonl(
                 )
                 + "\n"
             )
+```
