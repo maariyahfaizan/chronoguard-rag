@@ -13,6 +13,7 @@ AttackType = Literal[
     "fabricated_fresh",
     "future_date",
     "duplicate_fresh",
+    "correct_content_wrong_date",
 ]
 
 
@@ -67,6 +68,17 @@ ATTACK_SPECS = {
         requires_replacement_text=True,
         requires_timestamp_shift=False,
         requires_duplicate=True,
+    ),
+    "correct_content_wrong_date": AttackSpec(
+        name="correct_content_wrong_date",
+        description=(
+            "Keep the evidence content correct while deliberately assigning "
+            "an incorrect timestamp, isolating timestamp sensitivity from "
+            "content falsification."
+        ),
+        requires_replacement_text=False,
+        requires_timestamp_shift=True,
+        requires_duplicate=False,
     ),
 }
 
