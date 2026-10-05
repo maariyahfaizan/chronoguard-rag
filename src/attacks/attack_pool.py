@@ -1,6 +1,4 @@
-```python
 """Deterministic construction of Week-5 poisoned StreamingQA pools.
-
 This module operates on the frozen chunked StreamingQA schema.
 
 Design principles:
