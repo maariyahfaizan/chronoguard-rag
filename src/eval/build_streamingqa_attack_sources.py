@@ -1,662 +1,873 @@
 """
-ChronoGuard-RAG -- Week-5 stale-source extractor.
+ChronoGuard-RAG -- StreamingQA stale-source extractor
 
-Purpose
--------
-Build a separate pool of older, topically relevant WMT passages that can
-later be injected into the frozen StreamingQA control pools as a
-stale-evidence attack.
+Week 5 attack benchmark:
+Find genuinely relevant older WMT passages that can be used as
+stale-evidence attack sources.
 
-IMPORTANT
----------
-This script does NOT modify:
-    data/processed/streamingqa_control_pools.jsonl
-    data/processed/streamingqa_control_pools_chunked.jsonl
+Design:
+    Question
+        ↓
+    Clean evidence / gold evidence as relevance anchor
+        ↓
+    Search older WMT passages
+        ↓
+    Require timestamp >= stale_days older than question
+        ↓
+    Require relevance to the question/evidence
+        ↓
+    Keep best N candidates per query
 
-It also does not create fabricated evidence.
-
-Pilot behavior:
-    - first 10 questions only
-    - stale threshold: >= 30 days before question_ts
-    - maximum 5 stale candidates per question
-    - lexical filtering only
-    - provenance is preserved
+The script is:
+- memory-safe
+- year-by-year
+- resumable
+- checkpointed
 """
 
-import datetime
+from __future__ import annotations
+
 import gzip
 import json
+import os
 import re
-import subprocess
+import shutil
 import sys
-import tempfile
 import time
-import urllib.request
+from collections import Counter
 from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Tuple
 
-import yaml
-
-
-# ---------------------------------------------------------------------------
-# Repository / existing StreamingQA extraction code
-# ---------------------------------------------------------------------------
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-CONFIG_PATH = REPO_ROOT / "configs" / "streamingqa_config.yaml"
-
-sys.path.insert(0, str(REPO_ROOT / "third_party" / "streamingqa"))
-import extraction  # noqa: E402
+import requests
 
 
-# ---------------------------------------------------------------------------
-# Pilot settings
-# ---------------------------------------------------------------------------
+# ============================================================
+# PATHS
+# ============================================================
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+RAW_DIR = PROJECT_ROOT / "data" / "raw"
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+ATTACK_DIR = PROCESSED_DIR / "attack_sources"
+
+QUESTIONS_PATH = RAW_DIR / "streamingqa_control_sample.jsonl"
+
+OUTPUT_PATH = (
+    ATTACK_DIR / "streamingqa_stale_sources_pilot.jsonl"
+)
+
+CHECKPOINT_PATH = (
+    ATTACK_DIR / "streamingqa_stale_sources_pilot.checkpoint.json"
+)
+
+
+# ============================================================
+# PILOT SETTINGS
+# ============================================================
 
 PILOT_QUERY_COUNT = 10
+
 STALE_DAYS = 30
+
 MAX_CANDIDATES_PER_QUERY = 5
 
-# Require at least this many meaningful question tokens to occur in the
-# passage. This is deliberately only a cheap first-pass relevance filter.
+# Minimum number of shared meaningful tokens.
 MIN_QUERY_TOKEN_OVERLAP = 2
 
-# Keep the extractor conservative about extremely short tokens.
-MIN_TOKEN_LENGTH = 3
+# We additionally compare against the clean evidence/topic.
+MIN_EVIDENCE_TOKEN_OVERLAP = 2
+
+# Keep only candidates with a reasonable relevance score.
+MIN_RELEVANCE_SCORE = 2
 
 
-# ---------------------------------------------------------------------------
-# Config / authentication helpers
-# ---------------------------------------------------------------------------
+# ============================================================
+# WMT
+# ============================================================
 
-def load_config(path: Path = CONFIG_PATH) -> dict:
-    with open(path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+WMT_BASE_URL = (
+    "https://data.statmt.org/news-crawl/doc/en/"
+)
 
-
-def _require_curl() -> str:
-    from shutil import which
-
-    curl_path = which("curl")
-    if curl_path is None:
-        raise RuntimeError(
-            "curl was not found on PATH. Install/enable curl before running "
-            "the WMT attack-source extractor."
-        )
-    return curl_path
+SORTING_KEY_URL = (
+    "https://data.statmt.org/news-crawl/"
+    "doc/en/news-docs.2011.en.filtered.gz"
+)
 
 
-def _make_netrc(cfg: dict) -> Path:
+# ============================================================
+# STOPWORDS
+# ============================================================
+
+STOPWORDS = {
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "but",
+    "if",
+    "then",
+    "than",
+    "that",
+    "this",
+    "these",
+    "those",
+    "was",
+    "were",
+    "is",
+    "are",
+    "be",
+    "been",
+    "being",
+    "to",
+    "of",
+    "in",
+    "on",
+    "for",
+    "from",
+    "with",
+    "by",
+    "at",
+    "as",
+    "into",
+    "about",
+    "after",
+    "before",
+    "during",
+    "over",
+    "under",
+    "between",
+    "through",
+    "which",
+    "who",
+    "whom",
+    "whose",
+    "what",
+    "when",
+    "where",
+    "why",
+    "how",
+    "did",
+    "does",
+    "do",
+    "has",
+    "have",
+    "had",
+    "will",
+    "would",
+    "could",
+    "should",
+    "can",
+    "may",
+    "might",
+    "their",
+    "there",
+    "they",
+    "them",
+    "he",
+    "she",
+    "his",
+    "her",
+    "its",
+    "it",
+    "we",
+    "our",
+    "you",
+    "your",
+    "i",
+    "me",
+    "my",
+    "not",
+    "no",
+    "yes",
+    "also",
+    "just",
+    "more",
+    "most",
+    "some",
+    "any",
+    "all",
+    "one",
+    "two",
+    "three",
+}
+
+
+# ============================================================
+# TEXT HELPERS
+# ============================================================
+
+def normalize_text(text: str) -> str:
     """
-    Create a temporary netrc file using the same environment variables
-    required by the existing WMT fetcher.
-
-    The file is temporary and is never written into the repository.
+    Lowercase and keep simple alphanumeric tokens.
     """
-    username = cfg["evidence_source"].get("username_env", "WMT_NEWSCRAWL_USER")
-    password = cfg["evidence_source"].get("password_env", "WMT_NEWSCRAWL_PASS")
+    text = str(text or "").lower()
 
-    user = __import__("os").environ.get(username)
-    password_value = __import__("os").environ.get(password)
+    text = re.sub(r"[^a-z0-9\s]", " ", text)
 
-    if not user or not password_value:
-        raise RuntimeError(
-            f"Missing WMT credentials. Set {username} and {password} "
-            "in the environment before running this script."
-        )
+    text = re.sub(r"\s+", " ", text)
 
-    fd, path = tempfile.mkstemp(prefix="chronoguard_wmt_", text=True)
-
-    netrc_path = Path(path)
-
-    # WMT News Crawl host used by the existing fetch configuration.
-    host = cfg["evidence_source"].get(
-        "netrc_machine",
-        "data.statmt.org",
-    )
-
-    netrc_path.write_text(
-        f"machine {host}\n"
-        f"login {user}\n"
-        f"password {password_value}\n",
-        encoding="utf-8",
-    )
-
-    return netrc_path
+    return text.strip()
 
 
-def _start_curl_stream(
-    curl_path: str,
-    url: str,
-    netrc_path: Path,
-):
-    cmd = [
-        curl_path,
-        "--netrc-file",
-        str(netrc_path),
-        "--fail",
-        "--show-error",
-        "--silent",
-        url,
-    ]
-
-    return subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-    )
-
-
-def _stream_year_docs(
-    curl_path: str,
-    url: str,
-    netrc_path: Path,
-    sorting_keys_path: Path,
-    max_attempts: int = 5,
-) -> list:
+def meaningful_tokens(text: str) -> set[str]:
     """
-    Reuse the same streaming approach as fetch_wmt_archives.py.
-
-    No complete WMT archive is written to disk.
+    Extract meaningful tokens from text.
     """
-    for attempt in range(1, max_attempts + 1):
-        print(
-            f"  streaming {url} "
-            f"(attempt {attempt}/{max_attempts})"
-        )
-
-        proc = _start_curl_stream(
-            curl_path,
-            url,
-            netrc_path,
-        )
-
-        try:
-            docs = list(
-                extraction.get_deduplicated_wmt_docs(
-                    wmt_archive_files=[proc.stdout],
-                    deduplicated_sorting_keys_file=str(
-                        sorting_keys_path
-                    ),
-                )
-            )
-
-            proc.stdout.close()
-
-            returncode = proc.wait()
-
-            if returncode != 0:
-                raise RuntimeError(
-                    f"curl exited {returncode} mid-stream"
-                )
-
-            return docs
-
-        except Exception as exc:
-            print(
-                f"  stream attempt {attempt} failed: {exc!r}"
-            )
-
-            try:
-                proc.kill()
-            except Exception:
-                pass
-
-            proc.wait()
-
-            if attempt == max_attempts:
-                raise RuntimeError(
-                    f"Failed to stream {url} after "
-                    f"{max_attempts} attempts."
-                ) from exc
-
-            time.sleep(5)
-
-
-# ---------------------------------------------------------------------------
-# WMT passage timestamp helpers
-# ---------------------------------------------------------------------------
-
-def _extract_sorting_key(passage_id: str) -> str:
-    """
-    Recover the parent WMTDoc sorting_key from:
-
-        {sorting_key}_{passage_idx}
-
-    We split only on the final numeric suffix because sorting_key itself
-    may contain underscores.
-    """
-    match = re.match(r"^(.*)_(\d+)$", passage_id)
-
-    if not match:
-        raise ValueError(
-            f"Unexpected passage id format: {passage_id!r}"
-        )
-
-    return match.group(1)
-
-
-def _passage_timestamp(
-    passage,
-    sorting_key_to_ts: dict,
-) -> datetime.datetime:
-    sorting_key = _extract_sorting_key(passage.id)
-
-    ts = sorting_key_to_ts[sorting_key]
-
-    return datetime.datetime.fromtimestamp(
-        ts,
-        tz=datetime.timezone.utc,
-    )
-
-
-def _passage_text(passage) -> str:
-    text = (
-        passage["text"]
-        if isinstance(passage, dict)
-        else passage.text
-    )
-
-    if isinstance(text, bytes):
-        return text.decode(
-            "utf-8",
-            errors="replace",
-        )
-
-    return text
-
-
-def _passage_doc_id(passage) -> str:
-    return (
-        passage["doc_id"]
-        if isinstance(passage, dict)
-        else passage.id
-    )
-
-
-# ---------------------------------------------------------------------------
-# Question loading
-# ---------------------------------------------------------------------------
-
-def load_sample(raw_dir: Path) -> list[dict]:
-    sample_path = raw_dir / "streamingqa_control_sample.jsonl"
-
-    if not sample_path.exists():
-        raise FileNotFoundError(
-            f"{sample_path} not found.\n"
-            "Restore the frozen StreamingQA control sample before "
-            "running the attack-source extractor."
-        )
-
-    with open(sample_path, "r", encoding="utf-8") as f:
-        return [
-            json.loads(line)
-            for line in f
-            if line.strip()
-        ]
-
-
-# ---------------------------------------------------------------------------
-# Lexical relevance filter
-# ---------------------------------------------------------------------------
-
-def normalize_tokens(text: str) -> set[str]:
-    """
-    Cheap lexical normalization.
-
-    This is NOT a semantic relevance judgment.
-    It is only used to reduce the number of candidate passages that
-    require manual inspection.
-    """
-    tokens = re.findall(
-        r"[A-Za-z0-9]+",
-        text.lower(),
-    )
+    tokens = normalize_text(text).split()
 
     return {
         token
         for token in tokens
-        if len(token) >= MIN_TOKEN_LENGTH
+        if len(token) >= 3
+        and token not in STOPWORDS
     }
 
 
-def lexical_overlap_score(
-    question_tokens: set[str],
-    passage_text: str,
+def token_overlap(
+    left_tokens: set[str],
+    right_tokens: set[str],
 ) -> int:
-    passage_tokens = normalize_tokens(passage_text)
-
-    return len(question_tokens & passage_tokens)
-
-
-# ---------------------------------------------------------------------------
-# Per-query stale candidate selection
-# ---------------------------------------------------------------------------
-
-def build_query_metadata(question: dict) -> dict:
-    question_ts = question["question_ts"]
-
-    question_dt = datetime.datetime.fromtimestamp(
-        question_ts,
-        tz=datetime.timezone.utc,
-    )
-
-    cutoff_dt = (
-        question_dt
-        - datetime.timedelta(days=STALE_DAYS)
-    )
-
-    return {
-        "qa_id": question["qa_id"],
-        "question": question["question"],
-        "question_ts": question_ts,
-        "question_datetime": question_dt.isoformat(),
-        "stale_cutoff_datetime": cutoff_dt.isoformat(),
-        "stale_days": STALE_DAYS,
-    }
-
-
-def select_stale_candidates(
-    question: dict,
-    passages: list,
-) -> list[dict]:
     """
-    Select older passages for one question.
-
-    Conditions:
-        1. passage timestamp must be >= 30 days older than question_ts
-        2. passage must have lexical overlap with the question
-        3. maximum 5 candidates
-        4. candidates are ranked by lexical overlap, then recency
-
-    No gold labels are changed here.
+    Number of shared meaningful tokens.
     """
-    question_dt = datetime.datetime.fromtimestamp(
-        question["question_ts"],
-        tz=datetime.timezone.utc,
-    )
+    return len(left_tokens & right_tokens)
 
-    cutoff_dt = (
-        question_dt
-        - datetime.timedelta(days=STALE_DAYS)
-    )
 
-    question_tokens = normalize_tokens(
-        question["question"]
-    )
+# ============================================================
+# DATE HELPERS
+# ============================================================
 
-    candidates = []
+def parse_timestamp(value) -> Optional[float]:
+    """
+    Convert common timestamp formats to Unix timestamp.
+    """
+    if value is None:
+        return None
 
-    for passage in passages:
+    value = str(value).strip()
+
+    if not value:
+        return None
+
+    # Already numeric.
+    try:
+        return float(value)
+    except ValueError:
+        pass
+
+    # Common ISO/date formats.
+    from datetime import datetime, timezone
+
+    formats = [
+        "%Y-%m-%d",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%dT%H:%M:%SZ",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y/%m/%d",
+    ]
+
+    for fmt in formats:
         try:
-            passage_dt = _passage_timestamp(
-                passage,
-                passage._sorting_key_to_ts
-                if hasattr(passage, "_sorting_key_to_ts")
-                else {},
-            )
-        except Exception:
-            # Timestamp recovery is handled by the caller because
-            # WMTPassage does not itself contain publication_ts.
+            dt = datetime.strptime(value, fmt)
+
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+
+            return dt.timestamp()
+
+        except ValueError:
             continue
 
-        if passage_dt > cutoff_dt:
-            continue
+    return None
 
-        text = _passage_text(passage)
 
-        overlap = lexical_overlap_score(
-            question_tokens,
-            text,
+def days_difference(
+    newer_timestamp: float,
+    older_timestamp: float,
+) -> float:
+    """
+    Return how many days older the second timestamp is.
+    """
+    return (newer_timestamp - older_timestamp) / 86400.0
+
+
+# ============================================================
+# QUESTION / EVIDENCE EXTRACTION
+# ============================================================
+
+def first_value(record: dict, keys: List[str]):
+    """
+    Return first non-empty value among candidate keys.
+    """
+    for key in keys:
+        value = record.get(key)
+
+        if value is not None and value != "":
+            return value
+
+    return None
+
+
+def get_question_text(record: dict) -> str:
+    return str(
+        first_value(
+            record,
+            [
+                "question",
+                "query",
+                "question_text",
+                "query_text",
+            ],
         )
+        or ""
+    )
 
-        if overlap < MIN_QUERY_TOKEN_OVERLAP:
-            continue
 
-        candidates.append(
-            {
-                "doc_id": _passage_doc_id(passage),
-                "text": text,
-                "timestamp": passage_dt.isoformat(),
-                "timestamp_unix": int(
-                    passage_dt.timestamp()
-                ),
-                "question_ts": question["question_ts"],
-                "question_datetime": question_dt.isoformat(),
-                "age_days": (
-                    question_dt - passage_dt
-                ).total_seconds() / 86400.0,
-                "lexical_overlap": overlap,
-            }
+def get_question_id(record: dict) -> str:
+    return str(
+        first_value(
+            record,
+            [
+                "id",
+                "question_id",
+                "query_id",
+                "uid",
+            ],
         )
+        or ""
+    )
 
-    candidates.sort(
-        key=lambda x: (
-            -x["lexical_overlap"],
-            -x["timestamp_unix"],
+
+def get_question_timestamp(record: dict) -> Optional[float]:
+    return parse_timestamp(
+        first_value(
+            record,
+            [
+                "question_ts",
+                "query_ts",
+                "timestamp",
+                "question_timestamp",
+            ],
         )
     )
 
-    return candidates[:MAX_CANDIDATES_PER_QUERY]
 
-
-# ---------------------------------------------------------------------------
-# Memory-safe, resumable main pilot
-# ---------------------------------------------------------------------------
-
-def _stream_year_timestamped_passages(
-    curl_path: str,
-    url: str,
-    netrc_path: Path,
-    sorting_keys_path: Path,
-    max_attempts: int = 5,
-):
+def extract_clean_evidence_text(record: dict) -> str:
     """
-    Stream one WMT year without materializing the complete year in memory.
+    Try several known locations for the clean evidence text.
 
-    Important:
-        - WMT documents are consumed as a generator.
-        - publication timestamps are recorded as each document passes through.
-        - WMT passages are yielded immediately.
-        - no multi-million-passage list is created.
-
-    If the network stream fails, the complete year is retried.
+    If no evidence text exists, return an empty string.
+    We do NOT invent evidence.
     """
 
-    for attempt in range(1, max_attempts + 1):
-        print(
-            f"  streaming {url} "
-            f"(attempt {attempt}/{max_attempts})"
-        )
+    possible_keys = [
+        "gold_text",
+        "gold_passage",
+        "gold_evidence",
+        "evidence",
+        "context",
+        "answer_context",
+        "supporting_passage",
+    ]
 
-        proc = _start_curl_stream(
-            curl_path,
-            url,
-            netrc_path,
-        )
+    value = first_value(record, possible_keys)
 
-        sorting_key_to_ts = {}
-        passage_count = 0
+    if isinstance(value, str):
+        return value
 
-        try:
-            raw_docs = extraction.get_deduplicated_wmt_docs(
-                wmt_archive_files=[proc.stdout],
-                deduplicated_sorting_keys_file=str(
-                    sorting_keys_path
-                ),
+    if isinstance(value, dict):
+        for key in [
+            "text",
+            "passage",
+            "content",
+            "evidence",
+        ]:
+            if value.get(key):
+                return str(value[key])
+
+    if isinstance(value, list):
+        pieces = []
+
+        for item in value:
+            if isinstance(item, str):
+                pieces.append(item)
+
+            elif isinstance(item, dict):
+                for key in [
+                    "text",
+                    "passage",
+                    "content",
+                    "evidence",
+                ]:
+                    if item.get(key):
+                        pieces.append(str(item[key]))
+                        break
+
+        return " ".join(pieces)
+
+    # Some StreamingQA records keep passages/candidates.
+    for key in [
+        "candidates",
+        "passages",
+        "contexts",
+        "documents",
+    ]:
+        value = record.get(key)
+
+        if not isinstance(value, list):
+            continue
+
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+
+            is_gold = (
+                item.get("is_gold")
+                or item.get("gold")
+                or item.get("is_answer")
+                or item.get("answer_bearing")
             )
 
-            def docs_with_timestamps():
-                """
-                Pass WMT documents through while recording only the
-                sorting-key -> publication-timestamp mapping needed
-                for passage timestamp recovery.
-                """
-                for doc in raw_docs:
-                    sorting_key_to_ts[doc.sorting_key] = (
-                        doc.publication_ts
-                    )
-                    yield doc
-
-            passages = extraction.get_wmt_passages_from_docs(
-                docs_with_timestamps(),
-                prepend_date=False,
-            )
-
-            for passage in passages:
-                passage_count += 1
-
-                try:
-                    passage_dt = _passage_timestamp(
-                        passage,
-                        sorting_key_to_ts,
-                    )
-                except Exception:
-                    continue
-
-                yield {
-                    "doc_id": _passage_doc_id(passage),
-                    "text": _passage_text(passage),
-                    "timestamp": passage_dt.isoformat(),
-                    "timestamp_unix": int(
-                        passage_dt.timestamp()
-                    ),
-                }
-
-            proc.stdout.close()
-
-            returncode = proc.wait()
-
-            if returncode != 0:
-                raise RuntimeError(
-                    f"curl exited {returncode} mid-stream"
+            if is_gold:
+                text = first_value(
+                    item,
+                    [
+                        "text",
+                        "passage",
+                        "content",
+                        "evidence",
+                    ],
                 )
 
-            print(
-                f"  completed stream: "
-                f"{passage_count} passages"
-            )
+                if text:
+                    return str(text)
 
-            return
+    return ""
+
+
+# ============================================================
+# LOAD PILOT QUESTIONS
+# ============================================================
+
+def load_questions() -> List[dict]:
+    """
+    Load the frozen StreamingQA control sample.
+    """
+    if not QUESTIONS_PATH.exists():
+        raise FileNotFoundError(
+            f"Missing question file:\n{QUESTIONS_PATH}"
+        )
+
+    records = []
+
+    with QUESTIONS_PATH.open(
+        "r",
+        encoding="utf-8",
+    ) as f:
+
+        for line in f:
+            line = line.strip()
+
+            if not line:
+                continue
+
+            records.append(json.loads(line))
+
+    if len(records) < PILOT_QUERY_COUNT:
+        raise RuntimeError(
+            f"Expected at least {PILOT_QUERY_COUNT} questions, "
+            f"found {len(records)}."
+        )
+
+    return records[:PILOT_QUERY_COUNT]
+
+
+# ============================================================
+# WMT DOWNLOAD
+# ============================================================
+
+def download_file(
+    url: str,
+    output_path: Path,
+    attempts: int = 5,
+) -> Path:
+
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    if output_path.exists() and output_path.stat().st_size > 0:
+        return output_path
+
+    last_error = None
+
+    for attempt in range(1, attempts + 1):
+
+        print(
+            f"  downloading {url} "
+            f"(attempt {attempt}/{attempts})",
+            flush=True,
+        )
+
+        try:
+            with requests.get(
+                url,
+                stream=True,
+                timeout=120,
+            ) as response:
+
+                response.raise_for_status()
+
+                tmp_path = output_path.with_suffix(
+                    output_path.suffix + ".partial"
+                )
+
+                with tmp_path.open("wb") as out:
+
+                    for chunk in response.iter_content(
+                        chunk_size=1024 * 1024
+                    ):
+                        if chunk:
+                            out.write(chunk)
+
+                tmp_path.replace(output_path)
+
+                return output_path
 
         except Exception as exc:
+            last_error = exc
+
             print(
-                f"  stream attempt {attempt} failed: {exc!r}"
+                f"  download failed: {exc}",
+                flush=True,
             )
-
-            try:
-                proc.kill()
-            except Exception:
-                pass
-
-            try:
-                proc.stdout.close()
-            except Exception:
-                pass
-
-            try:
-                proc.wait()
-            except Exception:
-                pass
-
-            if attempt == max_attempts:
-                raise RuntimeError(
-                    f"Failed to stream {url} after "
-                    f"{max_attempts} attempts."
-                ) from exc
 
             time.sleep(5)
 
-
-def _add_passage_to_candidates(
-    passage: dict,
-    question_infos: list[dict],
-    candidate_store: dict[str, list[dict]],
-    seen_doc_ids: dict[str, set[str]],
-) -> None:
-    """
-    Test one streamed passage against the pilot questions.
-
-    Only the best MAX_CANDIDATES_PER_QUERY passages are retained
-    for each question, so memory usage remains tiny compared with
-    storing the entire WMT corpus.
-    """
-
-    passage_dt = datetime.datetime.fromisoformat(
-        passage["timestamp"]
+    raise RuntimeError(
+        f"Could not download {url}: {last_error}"
     )
 
-    passage_ts = passage["timestamp_unix"]
 
-    for info in question_infos:
-        if passage_ts > info["cutoff_ts"]:
-            continue
+# ============================================================
+# WMT SORTING KEY
+# ============================================================
 
-        qa_id = info["qa_id"]
+def load_sorting_key_years(
+    years: List[int],
+) -> Dict[str, str]:
+    """
+    Download/load WMT sorting-key data needed for the years.
 
-        # Prevent duplicates if a year has to be retried.
-        if passage["doc_id"] in seen_doc_ids[qa_id]:
-            continue
+    The exact WMT sorting-key format can differ across snapshots,
+    so this parser intentionally accepts several common forms.
+    """
 
-        overlap = lexical_overlap_score(
-            info["question_tokens"],
-            passage["text"],
+    sorting_path = (
+        RAW_DIR / "wmt_sorting_key_ids.txt.gz"
+    )
+
+    if not sorting_path.exists():
+        raise FileNotFoundError(
+            f"Missing WMT sorting-key file:\n{sorting_path}"
         )
 
-        if overlap < MIN_QUERY_TOKEN_OVERLAP:
-            continue
+    wanted = set(years)
 
-        candidate = {
-            **passage,
-            "question_ts": info["question_ts"],
-            "question_datetime": info["question_dt"].isoformat(),
-            "age_days": (
-                info["question_dt"] - passage_dt
-            ).total_seconds() / 86400.0,
-            "lexical_overlap": overlap,
-        }
+    result = {}
 
-        candidates = candidate_store[qa_id]
-        candidates.append(candidate)
+    with gzip.open(
+        sorting_path,
+        "rt",
+        encoding="utf-8",
+        errors="replace",
+    ) as f:
 
-        # Keep only the best candidates.
-        candidates.sort(
-            key=lambda x: (
-                -x["lexical_overlap"],
-                -x["timestamp_unix"],
-            )
+        for line in f:
+
+            line = line.strip()
+
+            if not line:
+                continue
+
+            parts = line.split()
+
+            if len(parts) < 2:
+                continue
+
+            # We try to find a YYYY token in the line.
+            year = None
+
+            for part in parts:
+                match = re.search(
+                    r"(20\d{2})",
+                    part,
+                )
+
+                if match:
+                    candidate_year = int(
+                        match.group(1)
+                    )
+
+                    if candidate_year in wanted:
+                        year = candidate_year
+                        break
+
+            if year is None:
+                continue
+
+            # First field is normally the document/sorting ID.
+            doc_id = parts[0]
+
+            result[doc_id] = str(year)
+
+    return result
+
+
+# ============================================================
+# WMT STREAMING
+# ============================================================
+
+def stream_wmt_year(
+    year: int,
+) -> Iterable[Tuple[str, str]]:
+    """
+    Stream a WMT year without loading the whole archive.
+
+    Yields:
+        (document_id, document_text)
+    """
+
+    archive_path = (
+        RAW_DIR
+        / "wmt"
+        / f"news-docs.{year}.en.filtered.gz"
+    )
+
+    if not archive_path.exists():
+
+        url = (
+            f"{WMT_BASE_URL}"
+            f"news-docs.{year}.en.filtered.gz"
         )
 
-        if len(candidates) > MAX_CANDIDATES_PER_QUERY:
-            removed = candidates.pop()
+        archive_path = download_file(
+            url,
+            archive_path,
+        )
 
-            # It is safe to remove this ID from the seen set because
-            # another passage with the same doc_id should not normally
-            # be considered again. The candidate list itself remains
-            # authoritative.
-            seen_doc_ids[qa_id].add(
-                candidate["doc_id"]
+    print(
+        f"  streaming {archive_path}",
+        flush=True,
+    )
+
+    with gzip.open(
+        archive_path,
+        "rt",
+        encoding="utf-8",
+        errors="replace",
+    ) as f:
+
+        doc_id = None
+        buffer = []
+
+        for line in f:
+
+            line = line.rstrip("\n")
+
+            # The WMT document files commonly use
+            # document headers beginning with <doc.
+            if line.startswith("<doc"):
+
+                if doc_id is not None:
+                    yield (
+                        doc_id,
+                        "\n".join(buffer),
+                    )
+
+                buffer = []
+
+                match = re.search(
+                    r'id="([^"]+)"',
+                    line,
+                )
+
+                if match:
+                    doc_id = match.group(1)
+                else:
+                    doc_id = line
+
+                continue
+
+            if line.startswith("</doc>"):
+
+                if doc_id is not None:
+                    yield (
+                        doc_id,
+                        "\n".join(buffer),
+                    )
+
+                doc_id = None
+                buffer = []
+
+                continue
+
+            if doc_id is not None:
+                buffer.append(line)
+
+        if doc_id is not None:
+            yield (
+                doc_id,
+                "\n".join(buffer),
             )
 
-        else:
-            seen_doc_ids[qa_id].add(
-                candidate["doc_id"]
-            )
+
+# ============================================================
+# PASSAGE EXTRACTION
+# ============================================================
+
+def split_into_passages(
+    document_text: str,
+) -> Iterable[str]:
+    """
+    Split a WMT document into manageable text passages.
+
+    We intentionally keep this simple and deterministic.
+    """
+
+    for paragraph in re.split(
+        r"\n\s*\n+",
+        document_text,
+    ):
+
+        paragraph = paragraph.strip()
+
+        if not paragraph:
+            continue
+
+        # Avoid tiny fragments.
+        if len(paragraph) < 80:
+            continue
+
+        yield paragraph
 
 
-def _write_checkpoint(
-    checkpoint_path: Path,
-    questions: list[dict],
-    candidate_store: dict[str, list[dict]],
-    completed_years: list[int],
+# ============================================================
+# RELEVANCE SCORING
+# ============================================================
+
+def relevance_score(
+    question_tokens: set[str],
+    evidence_tokens: set[str],
+    passage_tokens: set[str],
+) -> Tuple[int, int, int]:
+    """
+    Return:
+
+        total_score,
+        question_overlap,
+        evidence_overlap
+
+    Evidence overlap is weighted more heavily because it represents
+    the topic/content of the clean answer-bearing source.
+    """
+
+    q_overlap = token_overlap(
+        question_tokens,
+        passage_tokens,
+    )
+
+    e_overlap = token_overlap(
+        evidence_tokens,
+        passage_tokens,
+    )
+
+    # Evidence overlap is more informative than raw question overlap.
+    total = q_overlap + (2 * e_overlap)
+
+    return (
+        total,
+        q_overlap,
+        e_overlap,
+    )
+
+
+# ============================================================
+# CANDIDATE MANAGEMENT
+# ============================================================
+
+def add_candidate(
+    candidate_store: Dict[str, List[dict]],
+    question_id: str,
+    candidate: dict,
+) -> bool:
+    """
+    Add candidate while keeping only the strongest candidates.
+    """
+
+    candidates = candidate_store.setdefault(
+        question_id,
+        [],
+    )
+
+    candidates.append(candidate)
+
+    # Sort strongest first.
+    candidates.sort(
+        key=lambda x: (
+            x["relevance_score"],
+            x["evidence_overlap"],
+            x["question_overlap"],
+        ),
+        reverse=True,
+    )
+
+    # Remove duplicate passage texts.
+    unique = []
+
+    seen = set()
+
+    for item in candidates:
+
+        key = normalize_text(
+            item["text"]
+        )
+
+        if key in seen:
+            continue
+
+        seen.add(key)
+        unique.append(item)
+
+    candidates[:] = unique[
+        :MAX_CANDIDATES_PER_QUERY
+    ]
+
+    return True
+
+
+# ============================================================
+# CHECKPOINT
+# ============================================================
+
+def write_checkpoint(
+    questions: List[dict],
+    candidate_store: Dict[str, List[dict]],
+    completed_years: List[int],
+    streamed_counts: Dict[str, int],
 ) -> None:
-    """
-    Atomically save the small pilot checkpoint.
 
-    Only selected candidates are stored here, never the WMT passages.
-    """
+    ATTACK_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
 
-    state = {
-        "version": 1,
-        "pilot_query_count": len(questions),
+    payload = {
+        "pilot_query_count": PILOT_QUERY_COUNT,
         "stale_days": STALE_DAYS,
         "max_candidates_per_query": (
             MAX_CANDIDATES_PER_QUERY
@@ -664,500 +875,637 @@ def _write_checkpoint(
         "min_query_token_overlap": (
             MIN_QUERY_TOKEN_OVERLAP
         ),
+        "min_evidence_token_overlap": (
+            MIN_EVIDENCE_TOKEN_OVERLAP
+        ),
+        "min_relevance_score": (
+            MIN_RELEVANCE_SCORE
+        ),
         "question_ids": [
-            q["qa_id"]
+            get_question_id(q)
             for q in questions
         ],
         "completed_years": sorted(
             set(completed_years)
         ),
+        "streamed_counts": streamed_counts,
         "candidate_store": candidate_store,
     }
 
-    temporary_path = checkpoint_path.with_suffix(
-        checkpoint_path.suffix + ".tmp"
+    tmp_path = CHECKPOINT_PATH.with_suffix(
+        CHECKPOINT_PATH.suffix + ".tmp"
     )
 
-    with open(
-        temporary_path,
+    with tmp_path.open(
         "w",
         encoding="utf-8",
     ) as f:
+
         json.dump(
-            state,
+            payload,
             f,
             ensure_ascii=False,
             indent=2,
         )
 
-    temporary_path.replace(checkpoint_path)
-
-
-def _load_checkpoint(
-    checkpoint_path: Path,
-    questions: list[dict],
-) -> tuple[set[int], dict[str, list[dict]]]:
-    """
-    Load an existing checkpoint if it belongs to the same pilot.
-
-    Returns:
-        completed_years
-        candidate_store
-    """
-
-    if not checkpoint_path.exists():
-        return set(), {
-            q["qa_id"]: []
-            for q in questions
-        }
-
-    print(
-        f"Found checkpoint: {checkpoint_path}"
+    tmp_path.replace(
+        CHECKPOINT_PATH
     )
 
-    with open(
-        checkpoint_path,
+    print(
+        "  checkpoint saved",
+        flush=True,
+    )
+
+
+def load_checkpoint() -> dict:
+
+    if not CHECKPOINT_PATH.exists():
+        return {
+            "completed_years": [],
+            "streamed_counts": {},
+            "candidate_store": {},
+        }
+
+    with CHECKPOINT_PATH.open(
         "r",
         encoding="utf-8",
     ) as f:
-        state = json.load(f)
 
-    expected_ids = [
-        q["qa_id"]
-        for q in questions
-    ]
-
-    if state.get("version") != 1:
-        raise RuntimeError(
-            "Checkpoint version is incompatible. "
-            "Delete the checkpoint and rerun."
-        )
-
-    if state.get("question_ids") != expected_ids:
-        raise RuntimeError(
-            "Checkpoint question set does not match "
-            "the current pilot questions. "
-            "Delete the checkpoint before rerunning."
-        )
-
-    if state.get("stale_days") != STALE_DAYS:
-        raise RuntimeError(
-            "Checkpoint STALE_DAYS does not match "
-            "the current script."
-        )
-
-    candidate_store = {
-        q["qa_id"]: []
-        for q in questions
-    }
-
-    saved_candidates = state.get(
-        "candidate_store",
-        {},
-    )
-
-    for qa_id in candidate_store:
-        candidate_store[qa_id] = saved_candidates.get(
-            qa_id,
-            []
-        )
-
-    completed_years = set(
-        state.get(
-            "completed_years",
-            [],
-        )
-    )
-
-    print(
-        "Checkpoint contains completed years: "
-        f"{sorted(completed_years)}"
-    )
-
-    return completed_years, candidate_store
+        return json.load(f)
 
 
-def _write_final_output(
-    output_path: Path,
-    questions: list[dict],
-    candidate_store: dict[str, list[dict]],
+# ============================================================
+# FINAL OUTPUT
+# ============================================================
+
+def write_final_output(
+    questions: List[dict],
+    candidate_store: Dict[str, List[dict]],
 ) -> None:
-    """
-    Convert the small checkpoint state into the final pilot JSONL.
-    """
 
-    with open(
-        output_path,
+    ATTACK_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    with OUTPUT_PATH.open(
         "w",
         encoding="utf-8",
     ) as f:
 
         for question in questions:
-            candidates = candidate_store[
-                question["qa_id"]
-            ]
 
-            candidates.sort(
-                key=lambda x: (
-                    -x["lexical_overlap"],
-                    -x["timestamp_unix"],
-                )
-            )
+            qid = get_question_id(question)
 
-            candidates = candidates[
-                :MAX_CANDIDATES_PER_QUERY
-            ]
-
-            result = {
-                "qa_id": question["qa_id"],
-                "question": question["question"],
-                "answers": question.get(
-                    "answers",
+            row = {
+                "question_id": qid,
+                "question": get_question_text(
+                    question
+                ),
+                "question_ts": question.get(
+                    "question_ts"
+                ),
+                "stale_days": STALE_DAYS,
+                "candidates": candidate_store.get(
+                    qid,
                     [],
                 ),
-                "question_ts": question["question_ts"],
-                "evidence_ts": question["evidence_ts"],
-                "stale_threshold_days": STALE_DAYS,
-                "candidate_count": len(candidates),
-                "candidates": candidates,
             }
 
             f.write(
                 json.dumps(
-                    result,
+                    row,
                     ensure_ascii=False,
                 )
                 + "\n"
             )
 
+    print()
+    print("=" * 70)
+    print("FINAL OUTPUT WRITTEN")
+    print("=" * 70)
+    print(OUTPUT_PATH)
+
+    total = sum(
+        len(v)
+        for v in candidate_store.values()
+    )
+
+    print(
+        f"Total candidate passages: {total}"
+    )
+
+
+# ============================================================
+# MAIN
+# ============================================================
 
 def main():
-    cfg = load_config()
-
-    raw_dir = (
-        REPO_ROOT
-        / cfg["output"]["raw_dir"]
-    )
-
-    output_dir = (
-        REPO_ROOT
-        / "data"
-        / "processed"
-        / "attack_sources"
-    )
-
-    output_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    output_path = (
-        output_dir
-        / "streamingqa_stale_sources_pilot.jsonl"
-    )
-
-    checkpoint_path = (
-        output_dir
-        / "streamingqa_stale_sources_pilot.checkpoint.json"
-    )
-
-    sample = load_sample(raw_dir)
-
-    questions = sample[:PILOT_QUERY_COUNT]
 
     print("=" * 70)
     print("ChronoGuard-RAG -- STALE SOURCE PILOT")
     print("=" * 70)
-    print(f"Questions: {len(questions)}")
+
+    print(
+        f"Questions: {PILOT_QUERY_COUNT}"
+    )
+
     print(
         f"Stale threshold: >= {STALE_DAYS} days"
     )
+
     print(
         f"Maximum candidates/query: "
         f"{MAX_CANDIDATES_PER_QUERY}"
     )
+
     print(
-        f"Minimum lexical overlap: "
+        f"Minimum question-token overlap: "
         f"{MIN_QUERY_TOKEN_OVERLAP}"
     )
-    print(f"Output: {output_path}")
+
     print(
-        f"Checkpoint: {checkpoint_path}"
+        f"Minimum evidence-token overlap: "
+        f"{MIN_EVIDENCE_TOKEN_OVERLAP}"
     )
+
+    print(
+        f"Minimum relevance score: "
+        f"{MIN_RELEVANCE_SCORE}"
+    )
+
+    print(
+        f"Output: {OUTPUT_PATH}"
+    )
+
+    print(
+        f"Checkpoint: {CHECKPOINT_PATH}"
+    )
+
+    # --------------------------------------------------------
+    # Load questions.
+    # --------------------------------------------------------
+
+    questions = load_questions()
+
     print()
-
-    # ---------------------------------------------------------------
-    # Prepare per-question metadata.
-    # ---------------------------------------------------------------
-
-    question_infos = []
+    print(
+        "Loaded pilot questions:"
+    )
 
     for question in questions:
-        question_dt = datetime.datetime.fromtimestamp(
-            question["question_ts"],
-            tz=datetime.timezone.utc,
+
+        qid = get_question_id(question)
+
+        qts = get_question_timestamp(
+            question
         )
 
-        cutoff_dt = (
-            question_dt
-            - datetime.timedelta(days=STALE_DAYS)
-        )
-
-        question_infos.append(
-            {
-                "qa_id": question["qa_id"],
-                "question_ts": question["question_ts"],
-                "question_dt": question_dt,
-                "cutoff_ts": int(
-                    cutoff_dt.timestamp()
-                ),
-                "question_tokens": normalize_tokens(
-                    question["question"]
-                ),
-            }
-        )
-
-    # ---------------------------------------------------------------
-    # WMT sorting-key file.
-    # ---------------------------------------------------------------
-
-    sorting_keys_path = (
-        raw_dir
-        / "wmt_sorting_key_ids.txt.gz"
-    )
-
-    if not sorting_keys_path.exists():
-        print(
-            "Downloading WMT sorting-key file..."
-        )
-
-        url = cfg[
-            "evidence_source"
-        ][
-            "sorting_keys_url"
-        ]
-
-        urllib.request.urlretrieve(
-            url,
-            sorting_keys_path,
-        )
-
-    curl_path = _require_curl()
-
-    netrc_path = _make_netrc(cfg)
-
-    try:
-        src = cfg["evidence_source"]
-
-        years = sorted(
-            {
-                datetime.datetime.fromtimestamp(
-                    q["question_ts"],
-                    tz=datetime.timezone.utc,
-                ).year
-                for q in questions
-            }
-            |
-            {
-                datetime.datetime.fromtimestamp(
-                    q["evidence_ts"],
-                    tz=datetime.timezone.utc,
-                ).year
-                for q in questions
-            }
+        evidence = extract_clean_evidence_text(
+            question
         )
 
         print(
-            f"Years needed for pilot: {years}"
+            f"  {qid} | "
+            f"question_ts={qts} | "
+            f"evidence_chars={len(evidence)}"
         )
-        print()
 
-        # ---------------------------------------------------------------
-        # Load small checkpoint, if present.
-        # ---------------------------------------------------------------
+    # --------------------------------------------------------
+    # Build query information.
+    # --------------------------------------------------------
 
-        completed_years, candidate_store = (
-            _load_checkpoint(
-                checkpoint_path,
-                questions,
+    query_info = {}
+
+    for question in questions:
+
+        qid = get_question_id(question)
+
+        question_text = get_question_text(
+            question
+        )
+
+        evidence_text = extract_clean_evidence_text(
+            question
+        )
+
+        question_ts = get_question_timestamp(
+            question
+        )
+
+        if question_ts is None:
+            print(
+                f"WARNING: {qid} has no question_ts; "
+                f"it will be skipped."
             )
+
+            continue
+
+        question_tokens = meaningful_tokens(
+            question_text
         )
 
-        # Used only to avoid duplicate document IDs within
-        # the current execution.
-        seen_doc_ids = {
-            q["qa_id"]: {
-                candidate["doc_id"]
-                for candidate in candidate_store[
-                    q["qa_id"]
-                ]
-            }
-            for q in questions
+        evidence_tokens = meaningful_tokens(
+            evidence_text
+        )
+
+        query_info[qid] = {
+            "question_text": question_text,
+            "question_ts": question_ts,
+            "question_tokens": question_tokens,
+            "evidence_text": evidence_text,
+            "evidence_tokens": evidence_tokens,
         }
 
-        # ---------------------------------------------------------------
-        # Process one year at a time.
-        #
-        # CRITICAL:
-        # We never create:
-        #
-        #     all_passages = [...]
-        #
-        # and we never convert the WMT documents into a list.
-        # ---------------------------------------------------------------
+    # --------------------------------------------------------
+    # Determine years.
+    #
+    # IMPORTANT:
+    # We use the existing question/evidence timestamps to
+    # decide which years can possibly contain stale sources.
+    # --------------------------------------------------------
 
-        for year in years:
+    years = set()
 
-            if year in completed_years:
-                print(
-                    f"[{year}] already completed "
-                    f"according to checkpoint -- skipping"
-                )
-                continue
+    from datetime import datetime, timezone
 
-            fname = src[
-                "filename_pattern"
-            ].format(
-                year=year
-            )
+    for info in query_info.values():
 
-            url = (
-                src["base_url"]
-                + fname
-            )
+        question_date = datetime.fromtimestamp(
+            info["question_ts"],
+            tz=timezone.utc,
+        )
 
+        # Search years up to the year before the query.
+        for year in range(
+            2008,
+            question_date.year,
+        ):
+            years.add(year)
+
+    years = sorted(years)
+
+    print()
+    print(
+        f"Years potentially needed: {years}"
+    )
+
+    # --------------------------------------------------------
+    # Load checkpoint.
+    # --------------------------------------------------------
+
+    checkpoint = load_checkpoint()
+
+    completed_years = set(
+        checkpoint.get(
+            "completed_years",
+            [],
+        )
+    )
+
+    streamed_counts = checkpoint.get(
+        "streamed_counts",
+        {},
+    )
+
+    candidate_store = checkpoint.get(
+        "candidate_store",
+        {},
+    )
+
+    print()
+    print(
+        f"Completed years from checkpoint: "
+        f"{sorted(completed_years)}"
+    )
+
+    # --------------------------------------------------------
+    # Process one year at a time.
+    # --------------------------------------------------------
+
+    for year in years:
+
+        if year in completed_years:
+
+            print()
             print(
-                f"[{year}] processing "
-                f"(memory-safe streaming)..."
+                f"[{year}] already completed; "
+                f"skipping"
             )
 
-            streamed_count = 0
-            eligible_count = 0
+            continue
 
-            for passage in _stream_year_timestamped_passages(
-                curl_path,
-                url,
-                netrc_path,
-                sorting_keys_path,
+        print()
+        print(
+            f"[{year}] processing "
+            f"(targeted relevance + "
+            f"memory-safe streaming)..."
+        )
+
+        streamed = 0
+        added = 0
+
+        try:
+
+            for doc_id, document_text in stream_wmt_year(
+                year
             ):
-                streamed_count += 1
 
-                before_counts = {
-                    qa_id: len(candidates)
-                    for qa_id, candidates
-                    in candidate_store.items()
-                }
+                streamed += 1
 
-                _add_passage_to_candidates(
-                    passage,
-                    question_infos,
-                    candidate_store,
-                    seen_doc_ids,
-                )
+                if streamed % 500_000 == 0:
 
-                after_counts = {
-                    qa_id: len(candidates)
-                    for qa_id, candidates
-                    in candidate_store.items()
-                }
+                    print(
+                        f"  streamed documents: "
+                        f"{streamed:,}",
+                        flush=True,
+                    )
 
-                if any(
-                    after_counts[qa_id]
-                    > before_counts[qa_id]
-                    for qa_id in candidate_store
+                # ------------------------------------------------
+                # Evaluate each passage against the pilot questions.
+                # ------------------------------------------------
+
+                for passage in split_into_passages(
+                    document_text
                 ):
-                    eligible_count += 1
 
-            # Only mark the year complete AFTER the entire
-            # year has streamed successfully.
-            completed_years.add(year)
+                    passage_tokens = meaningful_tokens(
+                        passage
+                    )
 
-            _write_checkpoint(
-                checkpoint_path,
-                questions,
-                candidate_store,
-                sorted(completed_years),
+                    if not passage_tokens:
+                        continue
+
+                    # --------------------------------------------
+                    # Check every query.
+                    # --------------------------------------------
+
+                    for qid, info in query_info.items():
+
+                        # Already have enough strong candidates.
+                        current = candidate_store.get(
+                            qid,
+                            [],
+                        )
+
+                        # We still allow stronger candidates to
+                        # replace weaker ones, so do not blindly
+                        # skip here.
+                        #
+                        # The cheap checks happen first.
+
+                        q_overlap = token_overlap(
+                            info["question_tokens"],
+                            passage_tokens,
+                        )
+
+                        if (
+                            q_overlap
+                            < MIN_QUERY_TOKEN_OVERLAP
+                        ):
+                            continue
+
+                        e_overlap = token_overlap(
+                            info["evidence_tokens"],
+                            passage_tokens,
+                        )
+
+                        # If clean evidence exists, require
+                        # meaningful overlap with it.
+                        if info["evidence_tokens"]:
+
+                            if (
+                                e_overlap
+                                < MIN_EVIDENCE_TOKEN_OVERLAP
+                            ):
+                                continue
+
+                        # ----------------------------------------
+                        # Try to obtain a passage date.
+                        #
+                        # WMT document IDs sometimes contain dates.
+                        # We deliberately do not invent a date when
+                        # one cannot be recovered.
+                        # ----------------------------------------
+
+                        passage_timestamp = None
+
+                        date_match = re.search(
+                            r"(20\d{2})[-_]?(\d{2})[-_]?(\d{2})",
+                            passage,
+                        )
+
+                        if date_match:
+
+                            y = int(
+                                date_match.group(1)
+                            )
+
+                            m = int(
+                                date_match.group(2)
+                            )
+
+                            d = int(
+                                date_match.group(3)
+                            )
+
+                            try:
+
+                                from datetime import datetime, timezone
+
+                                passage_timestamp = (
+                                    datetime(
+                                        y,
+                                        m,
+                                        d,
+                                        tzinfo=timezone.utc,
+                                    ).timestamp()
+                                )
+
+                            except ValueError:
+                                passage_timestamp = None
+
+                        # ----------------------------------------
+                        # If passage itself has no date, use year
+                        # as a conservative timestamp.
+                        # ----------------------------------------
+
+                        if passage_timestamp is None:
+
+                            from datetime import datetime, timezone
+
+                            try:
+
+                                passage_timestamp = (
+                                    datetime(
+                                        year,
+                                        1,
+                                        1,
+                                        tzinfo=timezone.utc,
+                                    ).timestamp()
+                                )
+
+                            except ValueError:
+                                continue
+
+                        # ----------------------------------------
+                        # Temporal requirement.
+                        # ----------------------------------------
+
+                        age_days = days_difference(
+                            info["question_ts"],
+                            passage_timestamp,
+                        )
+
+                        if age_days < STALE_DAYS:
+                            continue
+
+                        # ----------------------------------------
+                        # Final relevance score.
+                        # ----------------------------------------
+
+                        score = (
+                            q_overlap
+                            + 2 * e_overlap
+                        )
+
+                        if score < MIN_RELEVANCE_SCORE:
+                            continue
+
+                        candidate = {
+                            "source_year": year,
+                            "doc_id": doc_id,
+                            "text": passage,
+                            "passage_timestamp": (
+                                passage_timestamp
+                            ),
+                            "age_days": round(
+                                age_days,
+                                2,
+                            ),
+                            "question_overlap": (
+                                q_overlap
+                            ),
+                            "evidence_overlap": (
+                                e_overlap
+                            ),
+                            "relevance_score": score,
+                        }
+
+                        add_candidate(
+                            candidate_store,
+                            qid,
+                            candidate,
+                        )
+
+                        added += 1
+
+            # ----------------------------------------------------
+            # Year complete.
+            # ----------------------------------------------------
+
+            completed_years.add(
+                year
             )
+
+            streamed_counts[
+                str(year)
+            ] = streamed
 
             print(
                 f"[{year}] complete"
             )
+
             print(
-                f"  streamed passages: "
-                f"{streamed_count}"
+                f"  streamed documents: "
+                f"{streamed:,}"
             )
+
             print(
-                f"  passages added to candidate sets: "
-                f"{eligible_count}"
+                f"  candidate additions: "
+                f"{added}"
             )
-            print(
-                f"  checkpoint saved"
+
+            write_checkpoint(
+                questions=questions,
+                candidate_store=candidate_store,
+                completed_years=list(
+                    completed_years
+                ),
+                streamed_counts=streamed_counts,
             )
+
+        except KeyboardInterrupt:
+
             print()
-
-        # ---------------------------------------------------------------
-        # Final output.
-        # ---------------------------------------------------------------
-
-        _write_final_output(
-            output_path,
-            questions,
-            candidate_store,
-        )
-
-        print()
-        print("=" * 70)
-        print("PILOT COMPLETE")
-        print("=" * 70)
-        print(
-            f"Saved: {output_path}"
-        )
-
-        total_candidates = 0
-        queries_with_candidates = 0
-
-        for question in questions:
-            count = len(
-                candidate_store[
-                    question["qa_id"]
-                ]
+            print(
+                "INTERRUPTED BY USER"
             )
-
-            total_candidates += count
-
-            if count > 0:
-                queries_with_candidates += 1
 
             print(
-                f"{question['qa_id']}: "
-                f"{count} stale candidates"
+                "The current year was NOT marked "
+                "complete."
             )
 
-        print()
-        print(
-            f"Queries with >=1 candidate: "
-            f"{queries_with_candidates}/"
-            f"{len(questions)}"
+            print(
+                "The previous completed-year "
+                "checkpoint is preserved."
+            )
+
+            raise
+
+        except Exception as exc:
+
+            print()
+            print(
+                f"[{year}] FAILED: {exc}"
+            )
+
+            print(
+                "Saving checkpoint before stopping..."
+            )
+
+            write_checkpoint(
+                questions=questions,
+                candidate_store=candidate_store,
+                completed_years=list(
+                    completed_years
+                ),
+                streamed_counts=streamed_counts,
+            )
+
+            raise
+
+    # --------------------------------------------------------
+    # Final output.
+    # --------------------------------------------------------
+
+    print()
+    print(
+        "Candidate counts by question:"
+    )
+
+    for question in questions:
+
+        qid = get_question_id(
+            question
+        )
+
+        candidates = candidate_store.get(
+            qid,
+            [],
         )
 
         print(
-            f"Total candidate passages: "
-            f"{total_candidates}"
+            f"  {qid}: "
+            f"{len(candidates)} candidates"
         )
 
-        print()
-        print(
-            "Checkpoint retained at:"
-        )
-        print(
-            checkpoint_path
-        )
-
-    finally:
-        try:
-            netrc_path.unlink()
-        except Exception:
-            pass
+    write_final_output(
+        questions,
+        candidate_store,
+    )
 
 
 if __name__ == "__main__":
