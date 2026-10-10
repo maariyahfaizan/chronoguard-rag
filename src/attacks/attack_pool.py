@@ -200,6 +200,11 @@ def _select_stale_candidate(
         if age_days < min_age_days:
             continue
 
+        # Age and lexical overlap are not enough to establish
+        # that evidence is genuinely stale.
+        if candidate.get("stale_evidence_validated") is not True:
+            continue
+
         overlap = _text_overlap(
             record["query"],
             candidate["text"],
@@ -409,6 +414,7 @@ def _apply_correct_content_wrong_date(
     }
 
 
+
 def _apply_duplicate_fresh(
     record: Record,
     *,
@@ -425,8 +431,9 @@ def _apply_duplicate_fresh(
         return None
 
     gold_ids = _gold_ids(record)
-    eligible = []
+    eligible_sources = []
 
+    # First, find valid fresh-looking source candidates.
     for index, candidate in enumerate(record["candidates"]):
         if _is_gold(candidate, gold_ids):
             continue
@@ -440,40 +447,48 @@ def _apply_duplicate_fresh(
             question_dt - candidate_dt
         ).total_seconds() / 86400.0
 
-        # Candidate must be no more than 30 days old relative
-        # to query time.
+        # The source must be dated between the query time
+        # and 30 days before the query.
         if 0 <= age_days <= 30:
-            eligible.append(
-                (
-                    index,
-                    candidate,
-                    age_days,
-                )
+            eligible_sources.append(
+                (index, candidate, age_days)
             )
 
-    if not eligible:
+    if not eligible_sources:
         return None
 
-    source_index, source, _ = rng.choice(eligible)
+    # Randomly choose a valid source.
+    source_index, source, _ = rng.choice(eligible_sources)
 
-    target_index = _select_replaceable_candidate(
-        record,
-        rng=rng,
+    # Next, find valid target slots.
+    # Exclude the source itself and all gold candidates.
+    eligible_targets = [
+        index
+        for index, candidate in enumerate(record["candidates"])
+        if index != source_index
+        and not _is_gold(candidate, gold_ids)
+    ]
+
+    if not eligible_targets:
+        return None
+
+    # Choose a target only after filtering.
+    target_index = rng.choice(eligible_targets)
+
+    # Safety check: never overwrite the source slot.
+    assert source_index != target_index, (
+        "Duplicate-fresh source and target must differ."
     )
-
-    if target_index is None:
-        return None
-
-    if target_index == source_index:
-        return None
 
     duplicate = copy.deepcopy(source)
 
-    # Preserve the candidate slot ID so candidate count and
-    # slot accounting remain stable.
-    duplicate["doc_id"] = record["candidates"][target_index]["doc_id"]
+    # Preserve the target slot's original document ID.
+    duplicate["doc_id"] = (
+        record["candidates"][target_index]["doc_id"]
+    )
     duplicate["is_source_document"] = False
 
+    # Replace the target while keeping candidate count unchanged.
     record["candidates"][target_index] = duplicate
 
     return {
@@ -499,23 +514,52 @@ def _apply_stale_evidence(
     if source is None:
         return None
 
-    target_index = _select_replaceable_candidate(
-        record,
-        rng=rng,
+    # Find the source candidate's position.
+    source_index = next(
+        (
+            index
+            for index, candidate in enumerate(record["candidates"])
+            if candidate is source
+        ),
+        None,
     )
 
-    if target_index is None:
+    if source_index is None:
+        raise AssertionError(
+            "Selected stale source is not in the candidate pool."
+        )
+
+    # Build eligible targets, excluding the source and all gold candidates.
+    gold_ids = _gold_ids(record)
+    eligible_targets = [
+        index
+        for index, candidate in enumerate(record["candidates"])
+        if index != source_index
+        and not _is_gold(candidate, gold_ids)
+    ]
+
+    if not eligible_targets:
         return None
+
+    # Choose a target only after filtering the eligible candidates.
+    target_index = rng.choice(eligible_targets)
+
+    # The source and target must never be the same.
+    assert source_index != target_index, (
+        "Stale-evidence source and target must differ."
+    )
 
     poison = copy.deepcopy(source)
     original_target = record["candidates"][target_index]
 
+    # Preserve the target slot's document ID.
     poison["doc_id"] = original_target["doc_id"]
     poison["is_source_document"] = False
 
     record["candidates"][target_index] = poison
 
     return {
+        "source_index": source_index,
         "target_index": target_index,
         "source_doc_id": source["doc_id"],
         "source_timestamp": source["timestamp"],
@@ -567,7 +611,7 @@ def _apply_fabricated_fresh(
     }
 
 
-def apply_attack(
+def _apply_attack_once(
     record: Mapping[str, Any],
     *,
     attack_type: AttackType,
@@ -704,6 +748,135 @@ def apply_attack(
     return attacked, metadata
 
 
+
+# WEEK5_POISON_COUNT_WRAPPER
+def apply_attack(
+    record: Mapping[str, Any], *, attack_type: AttackType, seed: int,
+    poison_payload: Optional[Mapping[str, Any]] = None,
+    min_stale_age_days: int = 30, future_days: int = 7,
+    wrong_date_days: int = 30, poison_count: int = 1,
+) -> tuple[Record, Dict[str, Any]]:
+    # Apply 1, 2, or 5 poisons to distinct non-gold slots atomically.
+    if poison_count not in (1, 2, 5):
+        raise ValueError('poison_count must be one of: 1, 2, 5')
+    _validate_record(record)
+    get_attack_spec(attack_type)
+
+    if poison_count == 1:
+        attacked, metadata = _apply_attack_once(
+            record, attack_type=attack_type, seed=seed,
+            poison_payload=poison_payload,
+            min_stale_age_days=min_stale_age_days,
+            future_days=future_days, wrong_date_days=wrong_date_days,
+        )
+
+        details = metadata.get('details', {})
+        target_index = details.get('target_index')
+        applied = bool(metadata.get('applied')) and target_index is not None
+
+        metadata['requested_poison_count'] = 1
+        metadata['actual_poison_count'] = 1 if applied else 0
+        metadata['target_indices'] = [int(target_index)] if applied else []
+        metadata['operations'] = [copy.deepcopy(details)] if applied else []
+        metadata['candidate_count_before'] = len(record['candidates'])
+        metadata['candidate_count_after'] = len(attacked['candidates'])
+
+        if isinstance(attacked.get('attack_metadata'), dict):
+            attacked['attack_metadata'] = metadata
+
+        return attacked, metadata
+
+    original = copy.deepcopy(dict(record))
+    working = copy.deepcopy(dict(record))
+    used_targets: list[int] = []
+    operation_details: list[Dict[str, Any]] = []
+    base_count = len(record['candidates'])
+
+    for operation_index in range(poison_count):
+        selected = None
+        selected_metadata = None
+        max_attempts = max(100, base_count * 20)
+        for attempt in range(max_attempts):
+            operation_seed = _stable_seed(
+                seed, operation_index * max_attempts + attempt, attack_type
+            )
+            candidate_working, candidate_metadata = _apply_attack_once(
+                working, attack_type=attack_type, seed=operation_seed,
+                poison_payload=poison_payload,
+                min_stale_age_days=min_stale_age_days,
+                future_days=future_days, wrong_date_days=wrong_date_days,
+            )
+            details = candidate_metadata.get('details', {})
+            target_index = details.get('target_index')
+            if not candidate_metadata.get('applied'):
+                if attempt == 0 and operation_index == 0:
+                    metadata = {
+                        'attack_type': attack_type, 'seed': seed,
+                        'eligible': False, 'applied': False,
+                        'reason': candidate_metadata.get('reason', 'no_eligible_target'),
+                        'requested_poison_count': poison_count,
+                        'actual_poison_count': 0, 'target_indices': [],
+                        'operations': [], 'candidate_count_before': base_count,
+                        'candidate_count_after': base_count,
+                    }
+                    original['attack_condition'] = attack_type
+                    original['attack_metadata'] = metadata
+                    return original, metadata
+                continue
+            if target_index is None or target_index in used_targets:
+                continue
+            selected, selected_metadata = candidate_working, candidate_metadata
+            break
+
+        if selected is None or selected_metadata is None:
+            metadata = {
+                'attack_type': attack_type, 'seed': seed,
+                'eligible': False, 'applied': False,
+                'reason': 'insufficient_distinct_targets',
+                'requested_poison_count': poison_count,
+                'actual_poison_count': 0, 'target_indices': [],
+                'operations': [], 'candidate_count_before': base_count,
+                'candidate_count_after': base_count,
+            }
+            original['attack_condition'] = attack_type
+            original['attack_metadata'] = metadata
+            return original, metadata
+
+        details = copy.deepcopy(selected_metadata['details'])
+        target_index = int(details['target_index'])
+        used_targets.append(target_index)
+        operation_details.append(details)
+        working = selected
+        # Validation applies to the reviewed stale source, not copied slots.
+        if attack_type == 'stale_evidence':
+            working['candidates'][target_index].pop('stale_evidence_validated', None)
+
+    if len(used_targets) != poison_count or len(set(used_targets)) != poison_count:
+        raise AssertionError('Poison targets must be unique and match poison_count.')
+    if len(working['candidates']) != base_count:
+        raise AssertionError('Attack changed candidate cardinality.')
+    for field in ('query', 'gold_answer', 'gold_aliases', 'question_ts',
+                  'gold_chunk_ids', 'gold_validated'):
+        if working[field] != record[field]:
+            raise AssertionError(f'Attack illegally modified ground-truth field: {field}')
+    gold_ids = _gold_ids(record)
+    for candidate in working['candidates']:
+        if _is_gold(candidate, gold_ids) and not candidate['is_source_document']:
+            raise AssertionError(f'Gold chunk lost source status: {candidate["doc_id"]}')
+    metadata = {
+        'attack_type': attack_type, 'seed': seed,
+        'eligible': True, 'applied': True,
+        'requested_poison_count': poison_count,
+        'actual_poison_count': len(used_targets),
+        'target_indices': used_targets, 'operations': operation_details,
+        'candidate_count_before': base_count,
+        'candidate_count_after': len(working['candidates']),
+    }
+    working['attack_condition'] = attack_type
+    working['attack_metadata'] = metadata
+    return working, metadata
+
+
 def generate_attacked_records(
     records: Iterable[Mapping[str, Any]],
     *,
@@ -713,6 +886,7 @@ def generate_attacked_records(
     min_stale_age_days: int = 30,
     future_days: int = 7,
     wrong_date_days: int = 30,
+    poison_count: int = 1,
 ) -> List[Record]:
     """Generate an attacked copy of every supplied record."""
     output: List[Record] = []
@@ -737,6 +911,7 @@ def generate_attacked_records(
             min_stale_age_days=min_stale_age_days,
             future_days=future_days,
             wrong_date_days=wrong_date_days,
+            poison_count=poison_count,
         )
 
         attacked["attack_record_index"] = index
