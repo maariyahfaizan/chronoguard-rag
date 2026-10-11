@@ -74,8 +74,8 @@ DATASETS = {
         },
     },
     "triviaqa": {
-        # StreamingQA's config calls this file configs/triviaqa_config.yaml.
-        "config": "configs/triviaqa_config.yaml",
+        # TriviaQA baseline settings live in the shared baseline config.
+        "config": "configs/baseline_config.yaml",
         "snapshots": ["data/processed/triviaqa_control_clean.jsonl"],   # shared.input_path
         "pool": None,
         "logs": {
