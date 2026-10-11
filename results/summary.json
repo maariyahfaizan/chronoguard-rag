@@ -1,0 +1,909 @@
+{
+  "meta": {
+    "generated_utc": "2026-10-11T17:20:36+00:00",
+    "git_commit": "4e1fc4c5bc9842875d75b39a5e0d3e966c24816d",
+    "git_dirty": false,
+    "partial_run": false,
+    "python": "3.13.7",
+    "numpy": "2.4.6",
+    "note": "Computed from raw logs (and the second judge's raw verdict file). Undefined values (None) are excluded, never counted as 0. For FreshQA, fresheval_judge2_correct is the headline judged accuracy; fresheval_correct (Mistral-7B self-judge) is a development metric. See results/judge_validation."
+  },
+  "rows": [
+    {
+      "dataset": "streamingqa",
+      "experiment": "E1",
+      "n_queries": 100,
+      "n_gold_validated": 97,
+      "n_retrieval_defined": 97,
+      "n_ndcg_defined": 97,
+      "metrics": {
+        "em": {
+          "value": 0.62,
+          "ci_lo": 0.52,
+          "ci_hi": 0.71,
+          "n_defined": 100
+        },
+        "f1": {
+          "value": 0.780861134577951,
+          "ci_lo": 0.7134270182723569,
+          "ci_hi": 0.8447008930180097,
+          "n_defined": 100
+        },
+        "recall_at_5": {
+          "value": 0.9304123711340206,
+          "ci_lo": 0.8831615120274913,
+          "ci_hi": 0.9707903780068727,
+          "n_defined": 97
+        },
+        "ndcg_at_5": {
+          "value": 0.9259129370432109,
+          "ci_lo": 0.8821965758905381,
+          "ci_hi": 0.963503659730708,
+          "n_defined": 97
+        },
+        "fraction_top_5_violating": {
+          "value": 0.026000000000000002,
+          "ci_lo": 0.01,
+          "ci_hi": 0.048,
+          "n_defined": 100
+        },
+        "valid_evidence_recall_at_5": {
+          "value": 0.9304123711340206,
+          "ci_lo": 0.8823024054982819,
+          "ci_hi": 0.9699312714776633,
+          "n_defined": 97
+        },
+        "time_valid_answer_accuracy": {
+          "value": 0.55,
+          "ci_lo": 0.45,
+          "ci_hi": 0.64,
+          "n_defined": 100
+        }
+      },
+      "config_path": "configs/streamingqa_eval_config.yaml",
+      "config_sha256": "f120742a16252f58d298a40c47b55121b9836eaba274f957b5f11b3bf5c87611",
+      "snapshot_sha256": {
+        "data/processed/streamingqa_control_pools_chunked.jsonl": "b4eede5c1ed4b06808fe44754cc04ee5036d3a572088de61dd6dff1f77174ddd",
+        "configs/streamingqa_config.yaml": "01a096a494d84e8bf82a63c41941b2a44b1b135d520bd48965f62d92f635d07e"
+      },
+      "log_path": "logs/streamingqa_baseline_run_chunked.jsonl",
+      "log_sha256": "e2368b1d47e2f3f790c87ed8ad84f67c26c5b3890321ab8e52973770b0ee6f81",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean"
+    },
+    {
+      "dataset": "streamingqa",
+      "experiment": "E2",
+      "n_queries": 100,
+      "n_gold_validated": 97,
+      "n_retrieval_defined": 97,
+      "n_ndcg_defined": 97,
+      "metrics": {
+        "em": {
+          "value": 0.61,
+          "ci_lo": 0.51,
+          "ci_hi": 0.7,
+          "n_defined": 100
+        },
+        "f1": {
+          "value": 0.7815309774135386,
+          "ci_lo": 0.7176147333457147,
+          "ci_hi": 0.8417372887981224,
+          "n_defined": 100
+        },
+        "recall_at_5": {
+          "value": 0.9819587628865979,
+          "ci_lo": 0.9621993127147768,
+          "ci_hi": 0.9965635738831615,
+          "n_defined": 97
+        },
+        "ndcg_at_5": {
+          "value": 0.9916068062297655,
+          "ci_lo": 0.9801612216248313,
+          "ci_hi": 1.0,
+          "n_defined": 97
+        },
+        "fraction_top_5_violating": {
+          "value": 0.036000000000000004,
+          "ci_lo": 0.016,
+          "ci_hi": 0.06000000000000001,
+          "n_defined": 100
+        },
+        "valid_evidence_recall_at_5": {
+          "value": 0.9819587628865979,
+          "ci_lo": 0.9621993127147768,
+          "ci_hi": 0.9965635738831615,
+          "n_defined": 97
+        },
+        "time_valid_answer_accuracy": {
+          "value": 0.53,
+          "ci_lo": 0.43,
+          "ci_hi": 0.63,
+          "n_defined": 100
+        }
+      },
+      "config_path": "configs/streamingqa_eval_config.yaml",
+      "config_sha256": "f120742a16252f58d298a40c47b55121b9836eaba274f957b5f11b3bf5c87611",
+      "snapshot_sha256": {
+        "data/processed/streamingqa_control_pools_chunked.jsonl": "b4eede5c1ed4b06808fe44754cc04ee5036d3a572088de61dd6dff1f77174ddd",
+        "configs/streamingqa_config.yaml": "01a096a494d84e8bf82a63c41941b2a44b1b135d520bd48965f62d92f635d07e"
+      },
+      "log_path": "logs/streamingqa_dense_run_chunked.jsonl",
+      "log_sha256": "f790bdffa0380851c4c3ac9a33318dab7ffb7e267215852e8ebbea4ae2297580",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean"
+    },
+    {
+      "dataset": "streamingqa",
+      "experiment": "E3",
+      "n_queries": 100,
+      "n_gold_validated": 97,
+      "n_retrieval_defined": 97,
+      "n_ndcg_defined": 97,
+      "metrics": {
+        "em": {
+          "value": 0.59,
+          "ci_lo": 0.49,
+          "ci_hi": 0.68,
+          "n_defined": 100
+        },
+        "f1": {
+          "value": 0.7702557919797418,
+          "ci_lo": 0.7041673882310043,
+          "ci_hi": 0.8317032911444344,
+          "n_defined": 100
+        },
+        "recall_at_5": {
+          "value": 0.9458762886597938,
+          "ci_lo": 0.9037800687285223,
+          "ci_hi": 0.9802405498281787,
+          "n_defined": 97
+        },
+        "ndcg_at_5": {
+          "value": 0.9523810533772674,
+          "ci_lo": 0.9150043943419544,
+          "ci_hi": 0.9834668600142905,
+          "n_defined": 97
+        },
+        "fraction_top_5_violating": {
+          "value": 0.032,
+          "ci_lo": 0.013950000000000044,
+          "ci_hi": 0.054000000000000006,
+          "n_defined": 100
+        },
+        "valid_evidence_recall_at_5": {
+          "value": 0.9458762886597938,
+          "ci_lo": 0.9037800687285223,
+          "ci_hi": 0.9802405498281788,
+          "n_defined": 97
+        },
+        "time_valid_answer_accuracy": {
+          "value": 0.51,
+          "ci_lo": 0.41,
+          "ci_hi": 0.61,
+          "n_defined": 100
+        }
+      },
+      "config_path": "configs/streamingqa_eval_config.yaml",
+      "config_sha256": "f120742a16252f58d298a40c47b55121b9836eaba274f957b5f11b3bf5c87611",
+      "snapshot_sha256": {
+        "data/processed/streamingqa_control_pools_chunked.jsonl": "b4eede5c1ed4b06808fe44754cc04ee5036d3a572088de61dd6dff1f77174ddd",
+        "configs/streamingqa_config.yaml": "01a096a494d84e8bf82a63c41941b2a44b1b135d520bd48965f62d92f635d07e"
+      },
+      "log_path": "logs/streamingqa_hybrid_run_chunked.jsonl",
+      "log_sha256": "c5eae97cd29849d506a5c64cb90dd6e84821876caf674122e1c94c10f5a9284f",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean"
+    },
+    {
+      "dataset": "streamingqa",
+      "experiment": "E4",
+      "n_queries": 100,
+      "n_gold_validated": 97,
+      "n_retrieval_defined": 97,
+      "n_ndcg_defined": 97,
+      "metrics": {
+        "em": {
+          "value": 0.59,
+          "ci_lo": 0.49,
+          "ci_hi": 0.68,
+          "n_defined": 100
+        },
+        "f1": {
+          "value": 0.775501521919763,
+          "ci_lo": 0.7118727795904044,
+          "ci_hi": 0.8374058145460246,
+          "n_defined": 100
+        },
+        "recall_at_5": {
+          "value": 0.9819587628865979,
+          "ci_lo": 0.9536082474226805,
+          "ci_hi": 1.0,
+          "n_defined": 97
+        },
+        "ndcg_at_5": {
+          "value": 0.9774785392057357,
+          "ci_lo": 0.9494960792558322,
+          "ci_hi": 0.9974619792918714,
+          "n_defined": 97
+        },
+        "fraction_top_5_violating": {
+          "value": 0.024000000000000004,
+          "ci_lo": 0.008,
+          "ci_hi": 0.044000000000000004,
+          "n_defined": 100
+        },
+        "valid_evidence_recall_at_5": {
+          "value": 0.9819587628865979,
+          "ci_lo": 0.9536082474226805,
+          "ci_hi": 1.0,
+          "n_defined": 97
+        },
+        "time_valid_answer_accuracy": {
+          "value": 0.53,
+          "ci_lo": 0.43,
+          "ci_hi": 0.63,
+          "n_defined": 100
+        }
+      },
+      "config_path": "configs/streamingqa_eval_config.yaml",
+      "config_sha256": "f120742a16252f58d298a40c47b55121b9836eaba274f957b5f11b3bf5c87611",
+      "snapshot_sha256": {
+        "data/processed/streamingqa_control_pools_chunked.jsonl": "b4eede5c1ed4b06808fe44754cc04ee5036d3a572088de61dd6dff1f77174ddd",
+        "configs/streamingqa_config.yaml": "01a096a494d84e8bf82a63c41941b2a44b1b135d520bd48965f62d92f635d07e"
+      },
+      "log_path": "logs/streamingqa_hybrid_reranker_run_chunked.jsonl",
+      "log_sha256": "d5a0e3330b511ade0d1ada028357d6d4f7b16a822fc4855ec797f225b6ad9112",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean"
+    },
+    {
+      "dataset": "freshqa",
+      "experiment": "E1",
+      "n_queries": 477,
+      "n_gold_validated": null,
+      "n_retrieval_defined": 477,
+      "n_ndcg_defined": 477,
+      "metrics": {
+        "em": {
+          "value": 0.12578616352201258,
+          "ci_lo": 0.09643605870020965,
+          "ci_hi": 0.15513626834381553,
+          "n_defined": 477
+        },
+        "f1": {
+          "value": 0.29553861139638443,
+          "ci_lo": 0.2646975723949084,
+          "ci_hi": 0.32653421649040865,
+          "n_defined": 477
+        },
+        "recall_at_5": {
+          "value": 0.7976939203354297,
+          "ci_lo": 0.7631027253668763,
+          "ci_hi": 0.8322851153039832,
+          "n_defined": 477
+        },
+        "ndcg_at_5": {
+          "value": 0.7290446207390722,
+          "ci_lo": 0.6937194493742722,
+          "ci_hi": 0.7635587497119168,
+          "n_defined": 477
+        },
+        "fraction_top_5_violating": {
+          "value": 0.34523809523809523,
+          "ci_lo": 0.20238095238095238,
+          "ci_hi": 0.4880952380952381,
+          "n_defined": 42
+        },
+        "valid_evidence_recall_at_5": {
+          "value": 1.0,
+          "ci_lo": 1.0,
+          "ci_hi": 1.0,
+          "n_defined": 15
+        },
+        "time_valid_answer_accuracy": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "fresheval_correct": {
+          "value": 0.5303983228511531,
+          "ci_lo": 0.4863731656184486,
+          "ci_hi": 0.5744234800838575,
+          "n_defined": 477
+        },
+        "fresheval_judge2_correct": {
+          "value": 0.3312368972746331,
+          "ci_lo": 0.2893081761006289,
+          "ci_hi": 0.3752620545073375,
+          "n_defined": 477
+        }
+      },
+      "config_path": "configs/freshqa_config.yaml",
+      "config_sha256": "e5d43a54582af17239aa1269193b55b7cb6576f2fb300c109633e78e9221c615",
+      "snapshot_sha256": {
+        "data/raw\\freshqa.csv": "3769244f66bb2666fe5160c8cc235339b7c54c61fc88d360995aa91d4c904789",
+        "data/raw\\freshqa_clean.csv": "37616614634bd43e3a46d51cd468c1660090313697f80f6c5820e4e89f9ff2ab",
+        "data/raw\\freshqa_evidence_snapshot.jsonl": "604bfc7bbe70c5663ebe814cbfbd5a57d3728cc136a549bae25dee0c7acd37c0"
+      },
+      "log_path": "logs/freshqa_baseline_run.jsonl",
+      "log_sha256": "235149f38f5fab6dc30da92b0005f37b0559e49f2dfd6a5fe1f472e3f888962d",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean",
+      "judge2": {
+        "metric": "fresheval_judge2_correct",
+        "path": "results/judge_validation/judge2_all.jsonl",
+        "sha256": "e9d329ddbdbf81af340d6027dcc8a355a34fd08205d6b0812687176f81642ea6",
+        "models": [
+          "Qwen/Qwen2.5-14B-Instruct"
+        ],
+        "revisions": [
+          "cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8"
+        ]
+      }
+    },
+    {
+      "dataset": "freshqa",
+      "experiment": "E2",
+      "n_queries": 477,
+      "n_gold_validated": null,
+      "n_retrieval_defined": 477,
+      "n_ndcg_defined": 477,
+      "metrics": {
+        "em": {
+          "value": 0.15513626834381553,
+          "ci_lo": 0.12368972746331237,
+          "ci_hi": 0.18867924528301888,
+          "n_defined": 477
+        },
+        "f1": {
+          "value": 0.3438235952776476,
+          "ci_lo": 0.31283178625757946,
+          "ci_hi": 0.3761254318718468,
+          "n_defined": 477
+        },
+        "recall_at_5": {
+          "value": 0.9989517819706499,
+          "ci_lo": 0.9968553459119497,
+          "ci_hi": 1.0,
+          "n_defined": 477
+        },
+        "ndcg_at_5": {
+          "value": 0.9765533229963738,
+          "ci_lo": 0.967499675487691,
+          "ci_hi": 0.9846309536574822,
+          "n_defined": 477
+        },
+        "fraction_top_5_violating": {
+          "value": 0.3588235294117647,
+          "ci_lo": 0.25882352941176473,
+          "ci_hi": 0.4588235294117647,
+          "n_defined": 85
+        },
+        "valid_evidence_recall_at_5": {
+          "value": 1.0,
+          "ci_lo": 1.0,
+          "ci_hi": 1.0,
+          "n_defined": 15
+        },
+        "time_valid_answer_accuracy": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "fresheval_correct": {
+          "value": 0.5807127882599581,
+          "ci_lo": 0.5366876310272537,
+          "ci_hi": 0.6247379454926625,
+          "n_defined": 477
+        },
+        "fresheval_judge2_correct": {
+          "value": 0.40041928721174,
+          "ci_lo": 0.35639412997903563,
+          "ci_hi": 0.44654088050314467,
+          "n_defined": 477
+        }
+      },
+      "config_path": "configs/freshqa_config.yaml",
+      "config_sha256": "e5d43a54582af17239aa1269193b55b7cb6576f2fb300c109633e78e9221c615",
+      "snapshot_sha256": {
+        "data/raw\\freshqa.csv": "3769244f66bb2666fe5160c8cc235339b7c54c61fc88d360995aa91d4c904789",
+        "data/raw\\freshqa_clean.csv": "37616614634bd43e3a46d51cd468c1660090313697f80f6c5820e4e89f9ff2ab",
+        "data/raw\\freshqa_evidence_snapshot.jsonl": "604bfc7bbe70c5663ebe814cbfbd5a57d3728cc136a549bae25dee0c7acd37c0"
+      },
+      "log_path": "logs/freshqa_dense_run.jsonl",
+      "log_sha256": "b0c0e6450627490b3b3b4fb4cacc6aecb924fa992ae41272b5647712528d775b",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean",
+      "judge2": {
+        "metric": "fresheval_judge2_correct",
+        "path": "results/judge_validation/judge2_all.jsonl",
+        "sha256": "e9d329ddbdbf81af340d6027dcc8a355a34fd08205d6b0812687176f81642ea6",
+        "models": [
+          "Qwen/Qwen2.5-14B-Instruct"
+        ],
+        "revisions": [
+          "cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8"
+        ]
+      }
+    },
+    {
+      "dataset": "freshqa",
+      "experiment": "E3",
+      "n_queries": 477,
+      "n_gold_validated": null,
+      "n_retrieval_defined": 477,
+      "n_ndcg_defined": 477,
+      "metrics": {
+        "em": {
+          "value": 0.1488469601677149,
+          "ci_lo": 0.11740041928721175,
+          "ci_hi": 0.18029350104821804,
+          "n_defined": 477
+        },
+        "f1": {
+          "value": 0.33113894767462965,
+          "ci_lo": 0.30028966707410976,
+          "ci_hi": 0.3630689542635093,
+          "n_defined": 477
+        },
+        "recall_at_5": {
+          "value": 0.8843466107617052,
+          "ci_lo": 0.8563941299790356,
+          "ci_hi": 0.9116002795248078,
+          "n_defined": 477
+        },
+        "ndcg_at_5": {
+          "value": 0.8248749584864391,
+          "ci_lo": 0.7956709084147213,
+          "ci_hi": 0.8534350703469328,
+          "n_defined": 477
+        },
+        "fraction_top_5_violating": {
+          "value": 0.3389830508474576,
+          "ci_lo": 0.22033898305084745,
+          "ci_hi": 0.4576271186440678,
+          "n_defined": 59
+        },
+        "valid_evidence_recall_at_5": {
+          "value": 1.0,
+          "ci_lo": 1.0,
+          "ci_hi": 1.0,
+          "n_defined": 15
+        },
+        "time_valid_answer_accuracy": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "fresheval_correct": {
+          "value": 0.559748427672956,
+          "ci_lo": 0.5157232704402516,
+          "ci_hi": 0.6037735849056604,
+          "n_defined": 477
+        },
+        "fresheval_judge2_correct": {
+          "value": 0.3920335429769392,
+          "ci_lo": 0.3480083857442348,
+          "ci_hi": 0.4360587002096436,
+          "n_defined": 477
+        }
+      },
+      "config_path": "configs/freshqa_config.yaml",
+      "config_sha256": "e5d43a54582af17239aa1269193b55b7cb6576f2fb300c109633e78e9221c615",
+      "snapshot_sha256": {
+        "data/raw\\freshqa.csv": "3769244f66bb2666fe5160c8cc235339b7c54c61fc88d360995aa91d4c904789",
+        "data/raw\\freshqa_clean.csv": "37616614634bd43e3a46d51cd468c1660090313697f80f6c5820e4e89f9ff2ab",
+        "data/raw\\freshqa_evidence_snapshot.jsonl": "604bfc7bbe70c5663ebe814cbfbd5a57d3728cc136a549bae25dee0c7acd37c0"
+      },
+      "log_path": "logs/freshqa_hybrid_run.jsonl",
+      "log_sha256": "a27cf649b48987681ad6fa7d8b8a70035715c16eec114c3b28a60a71e1029b3b",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean",
+      "judge2": {
+        "metric": "fresheval_judge2_correct",
+        "path": "results/judge_validation/judge2_all.jsonl",
+        "sha256": "e9d329ddbdbf81af340d6027dcc8a355a34fd08205d6b0812687176f81642ea6",
+        "models": [
+          "Qwen/Qwen2.5-14B-Instruct"
+        ],
+        "revisions": [
+          "cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8"
+        ]
+      }
+    },
+    {
+      "dataset": "freshqa",
+      "experiment": "E4",
+      "n_queries": 477,
+      "n_gold_validated": null,
+      "n_retrieval_defined": 477,
+      "n_ndcg_defined": 477,
+      "metrics": {
+        "em": {
+          "value": 0.16561844863731656,
+          "ci_lo": 0.1320754716981132,
+          "ci_hi": 0.20125786163522014,
+          "n_defined": 477
+        },
+        "f1": {
+          "value": 0.3509762316374287,
+          "ci_lo": 0.3191743387251068,
+          "ci_hi": 0.38384452336318625,
+          "n_defined": 477
+        },
+        "recall_at_5": {
+          "value": 0.9821802935010482,
+          "ci_lo": 0.9706498951781971,
+          "ci_hi": 0.9926624737945493,
+          "n_defined": 477
+        },
+        "ndcg_at_5": {
+          "value": 0.9515808397600213,
+          "ci_lo": 0.9363651464241932,
+          "ci_hi": 0.9654007576069125,
+          "n_defined": 477
+        },
+        "fraction_top_5_violating": {
+          "value": 0.22727272727272727,
+          "ci_lo": 0.14204545454545456,
+          "ci_hi": 0.3181818181818182,
+          "n_defined": 88
+        },
+        "valid_evidence_recall_at_5": {
+          "value": 1.0,
+          "ci_lo": 1.0,
+          "ci_hi": 1.0,
+          "n_defined": 15
+        },
+        "time_valid_answer_accuracy": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "fresheval_correct": {
+          "value": 0.5660377358490566,
+          "ci_lo": 0.5220125786163522,
+          "ci_hi": 0.610062893081761,
+          "n_defined": 477
+        },
+        "fresheval_judge2_correct": {
+          "value": 0.4088050314465409,
+          "ci_lo": 0.36682389937106924,
+          "ci_hi": 0.4528301886792453,
+          "n_defined": 477
+        }
+      },
+      "config_path": "configs/freshqa_config.yaml",
+      "config_sha256": "e5d43a54582af17239aa1269193b55b7cb6576f2fb300c109633e78e9221c615",
+      "snapshot_sha256": {
+        "data/raw\\freshqa.csv": "3769244f66bb2666fe5160c8cc235339b7c54c61fc88d360995aa91d4c904789",
+        "data/raw\\freshqa_clean.csv": "37616614634bd43e3a46d51cd468c1660090313697f80f6c5820e4e89f9ff2ab",
+        "data/raw\\freshqa_evidence_snapshot.jsonl": "604bfc7bbe70c5663ebe814cbfbd5a57d3728cc136a549bae25dee0c7acd37c0"
+      },
+      "log_path": "logs/freshqa_hybrid_reranker.jsonl",
+      "log_sha256": "0765e348f516cd734289621d1101f9e55e4593d969b5f6be790d70b9063424fb",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean",
+      "judge2": {
+        "metric": "fresheval_judge2_correct",
+        "path": "results/judge_validation/judge2_all.jsonl",
+        "sha256": "e9d329ddbdbf81af340d6027dcc8a355a34fd08205d6b0812687176f81642ea6",
+        "models": [
+          "Qwen/Qwen2.5-14B-Instruct"
+        ],
+        "revisions": [
+          "cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8"
+        ]
+      }
+    },
+    {
+      "dataset": "triviaqa",
+      "experiment": "E1",
+      "n_queries": 100,
+      "n_gold_validated": null,
+      "n_retrieval_defined": 85,
+      "n_ndcg_defined": 85,
+      "metrics": {
+        "em": {
+          "value": 0.53,
+          "ci_lo": 0.43,
+          "ci_hi": 0.63,
+          "n_defined": 100
+        },
+        "f1": {
+          "value": 0.676225476250244,
+          "ci_lo": 0.6011707225190391,
+          "ci_hi": 0.7507896403090095,
+          "n_defined": 100
+        },
+        "recall_at_5": {
+          "value": 0.8082281117575235,
+          "ci_lo": 0.758694821518351,
+          "ci_hi": 0.856113265819148,
+          "n_defined": 85
+        },
+        "ndcg_at_5": {
+          "value": 0.8296632969162606,
+          "ci_lo": 0.7855197083986184,
+          "ci_hi": 0.8722093645903227,
+          "n_defined": 85
+        },
+        "fraction_top_5_violating": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "valid_evidence_recall_at_5": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "time_valid_answer_accuracy": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        }
+      },
+      "config_path": "configs/baseline_config.yaml",
+      "config_sha256": "0e89311d536c81912d6c7a2e13660ff2d598c3b2018e0125d10b5ad559d87fba",
+      "snapshot_sha256": {
+        "data/processed/triviaqa_control_clean.jsonl": "c52ae151b4e175d106249362eddbc39d94f7761d197026465e8a256da1a1bf00"
+      },
+      "log_path": "logs/baseline_run.jsonl",
+      "log_sha256": "257ec4411092bf79c0f2ed4bf740b603b6687b297fb580c585af9457ba42968d",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean"
+    },
+    {
+      "dataset": "triviaqa",
+      "experiment": "E2",
+      "n_queries": 100,
+      "n_gold_validated": null,
+      "n_retrieval_defined": 85,
+      "n_ndcg_defined": 85,
+      "metrics": {
+        "em": {
+          "value": 0.55,
+          "ci_lo": 0.45,
+          "ci_hi": 0.65,
+          "n_defined": 100
+        },
+        "f1": {
+          "value": 0.6933261204476636,
+          "ci_lo": 0.6184277932437409,
+          "ci_hi": 0.7680092358236333,
+          "n_defined": 100
+        },
+        "recall_at_5": {
+          "value": 0.8358378223084105,
+          "ci_lo": 0.7885474035768153,
+          "ci_hi": 0.8806406934568699,
+          "n_defined": 85
+        },
+        "ndcg_at_5": {
+          "value": 0.9276770872196761,
+          "ci_lo": 0.8942146445935233,
+          "ci_hi": 0.9574234056416722,
+          "n_defined": 85
+        },
+        "fraction_top_5_violating": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "valid_evidence_recall_at_5": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "time_valid_answer_accuracy": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        }
+      },
+      "config_path": "configs/baseline_config.yaml",
+      "config_sha256": "0e89311d536c81912d6c7a2e13660ff2d598c3b2018e0125d10b5ad559d87fba",
+      "snapshot_sha256": {
+        "data/processed/triviaqa_control_clean.jsonl": "c52ae151b4e175d106249362eddbc39d94f7761d197026465e8a256da1a1bf00"
+      },
+      "log_path": "logs/dense_run.jsonl",
+      "log_sha256": "9c7d8e1609eb3f6de44cdb190c040f6624cfeeb1a40534057dea6c4874bb8164",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean"
+    },
+    {
+      "dataset": "triviaqa",
+      "experiment": "E3",
+      "n_queries": 100,
+      "n_gold_validated": null,
+      "n_retrieval_defined": 85,
+      "n_ndcg_defined": 85,
+      "metrics": {
+        "em": {
+          "value": 0.53,
+          "ci_lo": 0.43,
+          "ci_hi": 0.63,
+          "n_defined": 100
+        },
+        "f1": {
+          "value": 0.6810656653009594,
+          "ci_lo": 0.606531624464345,
+          "ci_hi": 0.755192192579325,
+          "n_defined": 100
+        },
+        "recall_at_5": {
+          "value": 0.8160198951375421,
+          "ci_lo": 0.7651046290310995,
+          "ci_hi": 0.8635269607843137,
+          "n_defined": 85
+        },
+        "ndcg_at_5": {
+          "value": 0.8599206579737595,
+          "ci_lo": 0.817411216617099,
+          "ci_hi": 0.8996514949197753,
+          "n_defined": 85
+        },
+        "fraction_top_5_violating": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "valid_evidence_recall_at_5": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "time_valid_answer_accuracy": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        }
+      },
+      "config_path": "configs/baseline_config.yaml",
+      "config_sha256": "0e89311d536c81912d6c7a2e13660ff2d598c3b2018e0125d10b5ad559d87fba",
+      "snapshot_sha256": {
+        "data/processed/triviaqa_control_clean.jsonl": "c52ae151b4e175d106249362eddbc39d94f7761d197026465e8a256da1a1bf00"
+      },
+      "log_path": "logs/hybrid_run.jsonl",
+      "log_sha256": "c4d107780e98fee5394b5d27055f89f798dcb7e84f8e759f7e08d7a067ee7b81",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean"
+    },
+    {
+      "dataset": "triviaqa",
+      "experiment": "E4",
+      "n_queries": 100,
+      "n_gold_validated": null,
+      "n_retrieval_defined": 85,
+      "n_ndcg_defined": 85,
+      "metrics": {
+        "em": {
+          "value": 0.54,
+          "ci_lo": 0.44,
+          "ci_hi": 0.64,
+          "n_defined": 100
+        },
+        "f1": {
+          "value": 0.679708993944288,
+          "ci_lo": 0.6050860653099623,
+          "ci_hi": 0.7544490439159557,
+          "n_defined": 100
+        },
+        "recall_at_5": {
+          "value": 0.8424484665661135,
+          "ci_lo": 0.7961643862673276,
+          "ci_hi": 0.886564192343604,
+          "n_defined": 85
+        },
+        "ndcg_at_5": {
+          "value": 0.9320984456279898,
+          "ci_lo": 0.9013114337696623,
+          "ci_hi": 0.9589794801048601,
+          "n_defined": 85
+        },
+        "fraction_top_5_violating": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "valid_evidence_recall_at_5": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        },
+        "time_valid_answer_accuracy": {
+          "value": null,
+          "ci_lo": null,
+          "ci_hi": null,
+          "n_defined": 0
+        }
+      },
+      "config_path": "configs/baseline_config.yaml",
+      "config_sha256": "0e89311d536c81912d6c7a2e13660ff2d598c3b2018e0125d10b5ad559d87fba",
+      "snapshot_sha256": {
+        "data/processed/triviaqa_control_clean.jsonl": "c52ae151b4e175d106249362eddbc39d94f7761d197026465e8a256da1a1bf00"
+      },
+      "log_path": "logs/hybrid_reranker_run.jsonl",
+      "log_sha256": "b3684cbab242c551eb1c476a77c6c7923646fa906cbc24bfc22836ea11f7e1bc",
+      "seed": 42,
+      "bootstrap": {
+        "n_resamples": 10000,
+        "seed": 42,
+        "type": "percentile"
+      },
+      "attack_condition": "clean"
+    }
+  ]
+}
