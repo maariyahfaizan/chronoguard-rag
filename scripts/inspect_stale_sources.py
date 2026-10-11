@@ -32,7 +32,16 @@ def parse_timestamp(value):
     if value is None:
         return None
 
+    if isinstance(value, (int, float)):
+        try:
+            return datetime.fromtimestamp(value, tz=timezone.utc)
+        except (ValueError, OverflowError, OSError):
+            return None
+
     text = str(value).strip()
+
+    if not text:
+        return None
 
     if text.endswith("Z"):
         text = text[:-1] + "+00:00"

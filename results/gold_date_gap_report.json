@@ -1,0 +1,839 @@
+[
+  {
+    "query": " Where did the Olivant investment vehicle publish its letter to the Vice-Chairman of UBS?",
+    "question_date": "2020-12-19",
+    "gold_dates": [
+      "2008-04-04"
+    ],
+    "nearest_gap_days": 4642
+  },
+  {
+    "query": "Which college does Sgt. Steve Brody work at?",
+    "question_date": "2020-08-13",
+    "gold_dates": [
+      "2008-10-30",
+      "2008-10-30"
+    ],
+    "nearest_gap_days": 4305
+  },
+  {
+    "query": " Where did Zuma go to exile?",
+    "question_date": "2020-11-21",
+    "gold_dates": [
+      "2009-09-25"
+    ],
+    "nearest_gap_days": 4075
+  },
+  {
+    "query": "Which agency is responsible for Japan's whaling programme?",
+    "question_date": "2020-04-15",
+    "gold_dates": [
+      "2009-04-14"
+    ],
+    "nearest_gap_days": 4019
+  },
+  {
+    "query": " Which act is related to false accounting?",
+    "question_date": "2020-12-28",
+    "gold_dates": [
+      "2010-02-05"
+    ],
+    "nearest_gap_days": 3979
+  },
+  {
+    "query": "What is the name of the curator of the Serpentine Gallery's first contemporary design show?",
+    "question_date": "2020-03-20",
+    "gold_dates": [
+      "2009-11-26",
+      "2009-11-26"
+    ],
+    "nearest_gap_days": 3767
+  },
+  {
+    "query": "How many children did Martin Luther King Jr. have?",
+    "question_date": "2020-12-12",
+    "gold_dates": [
+      "2011-01-17",
+      "2011-01-17"
+    ],
+    "nearest_gap_days": 3617
+  },
+  {
+    "query": "Who was the manager of the American Dodgers baseball team in 2011?",
+    "question_date": "2020-08-18",
+    "gold_dates": [
+      "2011-05-12"
+    ],
+    "nearest_gap_days": 3386
+  },
+  {
+    "query": " When was the World's Ugliest Dog Contest held?",
+    "question_date": "2020-09-13",
+    "gold_dates": [
+      "2011-07-01"
+    ],
+    "nearest_gap_days": 3362
+  },
+  {
+    "query": "What is the title of Roland Dyens's work for Martha Masters?",
+    "question_date": "2020-05-14",
+    "gold_dates": [
+      "2011-07-09"
+    ],
+    "nearest_gap_days": 3232
+  },
+  {
+    "query": "According to the article on secret justice bill published on 'Today', on May 29th, 2012 in the UK, what type of cases were discussed in a closed session?",
+    "question_date": "2020-10-27",
+    "gold_dates": [
+      "2012-05-29",
+      "2012-05-29",
+      "2012-05-29",
+      "2012-05-29"
+    ],
+    "nearest_gap_days": 3073
+  },
+  {
+    "query": "During internet outages reported on October 27, 2021, what three major internet platforms experienced periods of outage?",
+    "question_date": "2020-10-31",
+    "gold_dates": [
+      "2012-10-27"
+    ],
+    "nearest_gap_days": 2926
+  },
+  {
+    "query": "In June 2012, conservative leader Ruth Davidson questioned whether an independent Scotland could defend what key locations?",
+    "question_date": "2020-03-21",
+    "gold_dates": [
+      "2012-06-07"
+    ],
+    "nearest_gap_days": 2844
+  },
+  {
+    "query": "In 2013, what company launched a new car so F1 driver Max Chilton could win F1 world championships?",
+    "question_date": "2020-10-13",
+    "gold_dates": [
+      "2013-02-05"
+    ],
+    "nearest_gap_days": 2807
+  },
+  {
+    "query": "What is the name of the executive director of the Electronic Privacy Information Center?",
+    "question_date": "2020-06-21",
+    "gold_dates": [
+      "2012-12-10"
+    ],
+    "nearest_gap_days": 2750
+  },
+  {
+    "query": "What is the name of the Google phone?",
+    "question_date": "2020-03-12",
+    "gold_dates": [
+      "2012-10-09",
+      "2012-10-09"
+    ],
+    "nearest_gap_days": 2711
+  },
+  {
+    "query": "What was the title of the paper that Uk politician, Oliver Letwin, was photographed with fromthe Magna Housing Association on 10th September 2012?",
+    "question_date": "2020-01-11",
+    "gold_dates": [
+      "2012-09-11"
+    ],
+    "nearest_gap_days": 2678
+  },
+  {
+    "query": " Why did Nestle cut prices of some of its infant milk formula products in China?",
+    "question_date": "2020-03-30",
+    "gold_dates": [
+      "2013-08-08"
+    ],
+    "nearest_gap_days": 2426
+  },
+  {
+    "query": "Who did the Venezuelan protesters want to impose the sanctions?",
+    "question_date": "2020-06-16",
+    "gold_dates": [
+      "2014-05-12"
+    ],
+    "nearest_gap_days": 2227
+  },
+  {
+    "query": " Where was KAREN Rae when she disappeared?",
+    "question_date": "2020-10-03",
+    "gold_dates": [
+      "2015-05-13"
+    ],
+    "nearest_gap_days": 1970
+  },
+  {
+    "query": " Where will Nicola Sturgeon meet Carmen Farina?",
+    "question_date": "2020-08-20",
+    "gold_dates": [
+      "2015-06-08",
+      "2015-06-08"
+    ],
+    "nearest_gap_days": 1900
+  },
+  {
+    "query": " When did the second wildfire start in Bulgaria?",
+    "question_date": "2020-03-31",
+    "gold_dates": [
+      "2015-08-08"
+    ],
+    "nearest_gap_days": 1697
+  },
+  {
+    "query": " Which team will advance to the Eastern Conference finals?",
+    "question_date": "2020-09-02",
+    "gold_dates": [
+      "2016-05-02",
+      "2016-05-02",
+      "2016-05-02"
+    ],
+    "nearest_gap_days": 1584
+  },
+  {
+    "query": " The winds in Disney World are stronger than which mph?",
+    "question_date": "2020-04-18",
+    "gold_dates": [
+      "2016-10-07"
+    ],
+    "nearest_gap_days": 1289
+  },
+  {
+    "query": " What was the revised bid by Yancoal?",
+    "question_date": "2020-12-17",
+    "gold_dates": [
+      "2017-06-27"
+    ],
+    "nearest_gap_days": 1269
+  },
+  {
+    "query": " Who is the senior vice president of online and retail stores for Apple?",
+    "question_date": "2020-08-21",
+    "gold_dates": [
+      "2017-04-26",
+      "2017-04-26"
+    ],
+    "nearest_gap_days": 1213
+  },
+  {
+    "query": " Which Samsung is accused of giving donations to non-profit foundations?",
+    "question_date": "2020-03-09",
+    "gold_dates": [
+      "2017-02-13",
+      "2017-02-13",
+      "2017-02-13",
+      "2017-02-13"
+    ],
+    "nearest_gap_days": 1120
+  },
+  {
+    "query": " Which company is helping the US government track down Vietnam hackers?",
+    "question_date": "2020-04-28",
+    "gold_dates": [
+      "2017-05-25",
+      "2017-05-25"
+    ],
+    "nearest_gap_days": 1069
+  },
+  {
+    "query": "Who were the administrators called in for Cheque Centre in 2017?",
+    "question_date": "2020-07-21",
+    "gold_dates": [
+      "2017-09-02",
+      "2017-09-02"
+    ],
+    "nearest_gap_days": 1053
+  },
+  {
+    "query": "Which team did the Melbourne Demons beat by 24 points on 13 August 2017?",
+    "question_date": "2020-05-08",
+    "gold_dates": [
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16",
+      "2017-08-16"
+    ],
+    "nearest_gap_days": 996
+  },
+  {
+    "query": " When did Italians and foreigners migrate to Torino to work for Fiat and other major industrial companies?",
+    "question_date": "2020-01-31",
+    "gold_dates": [
+      "2017-08-10"
+    ],
+    "nearest_gap_days": 904
+  },
+  {
+    "query": " Which player was captain of the Melbourne Stars?",
+    "question_date": "2020-02-16",
+    "gold_dates": [
+      "2017-12-21"
+    ],
+    "nearest_gap_days": 787
+  },
+  {
+    "query": "Which song did Beyonce and Jay-Z sing?",
+    "question_date": "2020-05-13",
+    "gold_dates": [
+      "2018-04-16",
+      "2018-04-16",
+      "2018-04-16",
+      "2018-04-16"
+    ],
+    "nearest_gap_days": 758
+  },
+  {
+    "query": "Which university is the Marquette collection of Tolkien material from?",
+    "question_date": "2020-05-09",
+    "gold_dates": [
+      "2018-06-01"
+    ],
+    "nearest_gap_days": 708
+  },
+  {
+    "query": "Which Chinese defender scored an own goal before netting a late equaliser in the match against Kyrgyzstan?",
+    "question_date": "2020-12-06",
+    "gold_dates": [
+      "2019-01-08",
+      "2019-01-08"
+    ],
+    "nearest_gap_days": 698
+  },
+  {
+    "query": "When did bargaining between Shaw's and Teamsters Local 340 begin?",
+    "question_date": "2020-07-02",
+    "gold_dates": [
+      "2018-11-11",
+      "2018-11-11"
+    ],
+    "nearest_gap_days": 599
+  },
+  {
+    "query": " Who signed the Computer Misuse and Cybercrimes Act?",
+    "question_date": "2020-01-18",
+    "gold_dates": [
+      "2018-05-30"
+    ],
+    "nearest_gap_days": 598
+  },
+  {
+    "query": "What is the name of Virginia Lt. Gov.?",
+    "question_date": "2020-04-09",
+    "gold_dates": [
+      "2019-02-11"
+    ],
+    "nearest_gap_days": 423
+  },
+  {
+    "query": " Why did the police go to Norma's home?",
+    "question_date": "2020-07-29",
+    "gold_dates": [
+      "2019-08-31",
+      "2019-08-31"
+    ],
+    "nearest_gap_days": 333
+  },
+  {
+    "query": "When was V&A Dundee opened?",
+    "question_date": "2020-11-04",
+    "gold_dates": [
+      "2020-01-21",
+      "2020-01-21"
+    ],
+    "nearest_gap_days": 288
+  },
+  {
+    "query": " Why will Rangers play their return leg away to Braga?",
+    "question_date": "2020-05-07",
+    "gold_dates": [
+      "2019-12-16"
+    ],
+    "nearest_gap_days": 143
+  },
+  {
+    "query": "When was FBI raid on Councilman Jose Huizar's office?",
+    "question_date": "2020-03-05",
+    "gold_dates": [
+      "2019-12-05"
+    ],
+    "nearest_gap_days": 91
+  },
+  {
+    "query": " What are the prices of individual highly giftable pairs at Amazon?",
+    "question_date": "2020-01-09",
+    "gold_dates": [
+      "2019-12-10"
+    ],
+    "nearest_gap_days": 30
+  },
+  {
+    "query": " What fines were given to Assad Baraque?",
+    "question_date": "2020-10-09",
+    "gold_dates": [
+      "2020-09-09"
+    ],
+    "nearest_gap_days": 30
+  },
+  {
+    "query": "What is the name of the city in France where Sophie and Joe held their wedding?",
+    "question_date": "2020-04-05",
+    "gold_dates": [
+      "2020-03-07",
+      "2020-03-07"
+    ],
+    "nearest_gap_days": 29
+  },
+  {
+    "query": " When did Nicola Sturgeon reveal her plans to drag Scotland out of the Union?",
+    "question_date": "2020-03-03",
+    "gold_dates": [
+      "2020-02-04",
+      "2020-02-04"
+    ],
+    "nearest_gap_days": 28
+  },
+  {
+    "query": "Which paper is The Independent's Help The Hungry campaign backed by?",
+    "question_date": "2020-05-31",
+    "gold_dates": [
+      "2020-05-03"
+    ],
+    "nearest_gap_days": 28
+  },
+  {
+    "query": "What is the name of the movie starring Ana de Armas and Ben Affleck?",
+    "question_date": "2020-05-28",
+    "gold_dates": [
+      "2020-05-01"
+    ],
+    "nearest_gap_days": 27
+  },
+  {
+    "query": "How many countries have had coronavirus in February 2020?",
+    "question_date": "2020-03-24",
+    "gold_dates": [
+      "2020-02-28",
+      "2020-02-28"
+    ],
+    "nearest_gap_days": 25
+  },
+  {
+    "query": "What is the title of Anand Giridharadas' book?",
+    "question_date": "2020-03-19",
+    "gold_dates": [
+      "2020-02-23"
+    ],
+    "nearest_gap_days": 25
+  },
+  {
+    "query": "Which town is the centre of fighting between Armenia and Azerbaijan?",
+    "question_date": "2020-11-18",
+    "gold_dates": [
+      "2020-10-24",
+      "2020-10-24"
+    ],
+    "nearest_gap_days": 25
+  },
+  {
+    "query": " Who replaced Caroline Flack as voice over on Love Island?",
+    "question_date": "2020-03-13",
+    "gold_dates": [
+      "2020-02-18",
+      "2020-02-18"
+    ],
+    "nearest_gap_days": 24
+  },
+  {
+    "query": "What is the name of this year's UK Eurovision entry?",
+    "question_date": "2020-03-22",
+    "gold_dates": [
+      "2020-02-27",
+      "2020-02-27"
+    ],
+    "nearest_gap_days": 24
+  },
+  {
+    "query": " Who accompanied Dr. Elvis Francois on the guitar while the doctor was singing John Lennon's \"Imagine\"?",
+    "question_date": "2020-04-18",
+    "gold_dates": [
+      "2020-03-25",
+      "2020-03-25"
+    ],
+    "nearest_gap_days": 24
+  },
+  {
+    "query": "Which iconic road movie featured Steppenwolf's \"Born to be Wild\" in its opening credits?",
+    "question_date": "2020-11-05",
+    "gold_dates": [
+      "2020-10-12",
+      "2020-10-12"
+    ],
+    "nearest_gap_days": 24
+  },
+  {
+    "query": " Where did Kassym-Jomart Tokayev pay tribute to the fallen soldiers?",
+    "question_date": "2020-12-12",
+    "gold_dates": [
+      "2020-11-19"
+    ],
+    "nearest_gap_days": 23
+  },
+  {
+    "query": " What charges was Redmond O'Neal charged with?",
+    "question_date": "2020-10-07",
+    "gold_dates": [
+      "2020-09-15"
+    ],
+    "nearest_gap_days": 22
+  },
+  {
+    "query": " When will the deal between Grubhub and Just Eat Takeaway close?",
+    "question_date": "2020-07-03",
+    "gold_dates": [
+      "2020-06-11"
+    ],
+    "nearest_gap_days": 22
+  },
+  {
+    "query": " When did Shea signed a court filing asking a judge to agree to dismiss the prosecution of Michael Flynn?",
+    "question_date": "2020-06-09",
+    "gold_dates": [
+      "2020-05-18"
+    ],
+    "nearest_gap_days": 22
+  },
+  {
+    "query": " Where are the television stations of Meredith?",
+    "question_date": "2020-05-11",
+    "gold_dates": [
+      "2020-04-20"
+    ],
+    "nearest_gap_days": 21
+  },
+  {
+    "query": "When did Harold Bornstein reveal that Mr Trump dictated the whole letter?",
+    "question_date": "2020-10-23",
+    "gold_dates": [
+      "2020-10-02",
+      "2020-10-02",
+      "2020-10-02"
+    ],
+    "nearest_gap_days": 21
+  },
+  {
+    "query": "Celtic have 5 games before the split, how many do rangers possible have?",
+    "question_date": "2020-03-15",
+    "gold_dates": [
+      "2020-02-24"
+    ],
+    "nearest_gap_days": 20
+  },
+  {
+    "query": " Where was the Towong Shire?",
+    "question_date": "2020-07-10",
+    "gold_dates": [
+      "2020-06-21"
+    ],
+    "nearest_gap_days": 19
+  },
+  {
+    "query": "What is the name of LACO's new Creative Advisor & Composer-In-Residence?",
+    "question_date": "2020-09-16",
+    "gold_dates": [
+      "2020-08-28"
+    ],
+    "nearest_gap_days": 19
+  },
+  {
+    "query": " Where does the Gender inclusive career workshop takes place?",
+    "question_date": "2020-03-24",
+    "gold_dates": [
+      "2020-03-06",
+      "2020-03-06",
+      "2020-03-06"
+    ],
+    "nearest_gap_days": 18
+  },
+  {
+    "query": "What comedian is set to reveal his new hair transplant on this Saturday's Peter Crouch Save Our Summer show?",
+    "question_date": "2020-07-13",
+    "gold_dates": [
+      "2020-06-26"
+    ],
+    "nearest_gap_days": 17
+  },
+  {
+    "query": " Where did Klobuchar serve as a prosecutor?",
+    "question_date": "2020-06-18",
+    "gold_dates": [
+      "2020-06-01",
+      "2020-06-01"
+    ],
+    "nearest_gap_days": 17
+  },
+  {
+    "query": "What is the name of Michael McIntyre's game show?",
+    "question_date": "2020-12-29",
+    "gold_dates": [
+      "2020-12-13",
+      "2020-12-13"
+    ],
+    "nearest_gap_days": 16
+  },
+  {
+    "query": " Where was Ahmed Iqbal Ullah stabbed to death?",
+    "question_date": "2020-07-12",
+    "gold_dates": [
+      "2020-06-27"
+    ],
+    "nearest_gap_days": 15
+  },
+  {
+    "query": "On 11th September 2020, how many acres were reported by CBS Los Angeles as being scorched by the El Dorado Fire?",
+    "question_date": "2020-09-25",
+    "gold_dates": [
+      "2020-09-11"
+    ],
+    "nearest_gap_days": 14
+  },
+  {
+    "query": "When was George Alagiah diagnosed with bowel cancer for the second time?",
+    "question_date": "2020-04-14",
+    "gold_dates": [
+      "2020-03-31",
+      "2020-03-31"
+    ],
+    "nearest_gap_days": 14
+  },
+  {
+    "query": "According to The Independent, ow many test did UgenTec's software fail to identify as positive?",
+    "question_date": "2020-10-09",
+    "gold_dates": [
+      "2020-09-25"
+    ],
+    "nearest_gap_days": 14
+  },
+  {
+    "query": "How many UK adults are reported as being affected by high blood pressure?",
+    "question_date": "2020-03-23",
+    "gold_dates": [
+      "2020-03-10"
+    ],
+    "nearest_gap_days": 13
+  },
+  {
+    "query": " When did Shilpa Shetty flew to Manali?",
+    "question_date": "2020-10-18",
+    "gold_dates": [
+      "2020-10-06",
+      "2020-10-06"
+    ],
+    "nearest_gap_days": 12
+  },
+  {
+    "query": " Where have Armie Hammer and Elizabeth Chambers Hammer been quarantining for months?",
+    "question_date": "2020-07-23",
+    "gold_dates": [
+      "2020-07-11"
+    ],
+    "nearest_gap_days": 12
+  },
+  {
+    "query": "What is the abbreviation of WTA?",
+    "question_date": "2020-03-28",
+    "gold_dates": [
+      "2020-03-16"
+    ],
+    "nearest_gap_days": 12
+  },
+  {
+    "query": " The Royal Mail is going to issue stamps to commemorate Brexit. How many stamps are going to be issued?",
+    "question_date": "2020-02-02",
+    "gold_dates": [
+      "2020-01-22"
+    ],
+    "nearest_gap_days": 11
+  },
+  {
+    "query": " When will the snooker World Championships begin?",
+    "question_date": "2020-07-16",
+    "gold_dates": [
+      "2020-07-05"
+    ],
+    "nearest_gap_days": 11
+  },
+  {
+    "query": "When was Donald Trumps official Twitch account created?",
+    "question_date": "2020-07-10",
+    "gold_dates": [
+      "2020-06-29"
+    ],
+    "nearest_gap_days": 11
+  },
+  {
+    "query": "Who has extended their stay in July 2020 with Glasgow Warriors?",
+    "question_date": "2020-07-17",
+    "gold_dates": [
+      "2020-07-07"
+    ],
+    "nearest_gap_days": 10
+  },
+  {
+    "query": "Which former Minister of Petroleum Resources was implicated in the P&ID case?",
+    "question_date": "2020-09-13",
+    "gold_dates": [
+      "2020-09-04"
+    ],
+    "nearest_gap_days": 9
+  },
+  {
+    "query": " Which club does Arvind Krishna belong to?",
+    "question_date": "2020-02-09",
+    "gold_dates": [
+      "2020-01-31",
+      "2020-01-31"
+    ],
+    "nearest_gap_days": 9
+  },
+  {
+    "query": " What was the previous record of Tajion Jones?",
+    "question_date": "2020-01-28",
+    "gold_dates": [
+      "2020-01-21"
+    ],
+    "nearest_gap_days": 7
+  },
+  {
+    "query": " How much money was transferred to two companies owned by Hussain?",
+    "question_date": "2020-06-09",
+    "gold_dates": [
+      "2020-06-02",
+      "2020-06-02"
+    ],
+    "nearest_gap_days": 7
+  },
+  {
+    "query": "Which NFL team was Odell Beckham Jr playing for when the incident happened?",
+    "question_date": "2020-01-22",
+    "gold_dates": [
+      "2020-01-16"
+    ],
+    "nearest_gap_days": 6
+  },
+  {
+    "query": " When will British students no longer take part in the Erasmus program?",
+    "question_date": "2020-01-13",
+    "gold_dates": [
+      "2020-01-09",
+      "2020-01-09",
+      "2020-01-09"
+    ],
+    "nearest_gap_days": 4
+  },
+  {
+    "query": "What is the name of the San Antonio mayor?",
+    "question_date": "2020-03-06",
+    "gold_dates": [
+      "2020-03-03"
+    ],
+    "nearest_gap_days": 3
+  },
+  {
+    "query": "Which speaker is associated with Turning Point USA?",
+    "question_date": "2020-08-27",
+    "gold_dates": [
+      "2020-08-25",
+      "2020-08-25"
+    ],
+    "nearest_gap_days": 2
+  },
+  {
+    "query": "Who was the top-scorer for India in their warm-up cricket match against Australia in December 2020?",
+    "question_date": "2020-12-12",
+    "gold_dates": [
+      "2020-12-11",
+      "2020-12-11",
+      "2020-12-11",
+      "2020-12-11",
+      "2020-12-11",
+      "2020-12-11"
+    ],
+    "nearest_gap_days": 1
+  },
+  {
+    "query": " Which officer kept his knee on George Floyd's neck?",
+    "question_date": "2020-05-30",
+    "gold_dates": [
+      "2020-05-29"
+    ],
+    "nearest_gap_days": 1
+  },
+  {
+    "query": " Where would Jack like David to get married?",
+    "question_date": "2020-06-24",
+    "gold_dates": [
+      "2020-06-23"
+    ],
+    "nearest_gap_days": 1
+  },
+  {
+    "query": "Who wrote the book \"The Singapore Grip\"?",
+    "question_date": "2020-09-13",
+    "gold_dates": [
+      "2020-09-12"
+    ],
+    "nearest_gap_days": 1
+  },
+  {
+    "query": " What was the revenue of GE for the fourth quarter?",
+    "question_date": "2020-01-30",
+    "gold_dates": [
+      "2020-01-29"
+    ],
+    "nearest_gap_days": 1
+  },
+  {
+    "query": " How long was George Floyd knelt on his neck?",
+    "question_date": "2020-08-25",
+    "gold_dates": [
+      "2020-08-24"
+    ],
+    "nearest_gap_days": 1
+  },
+  {
+    "query": "According to Serbia's daily Sportski Zurnal, will Djokovic play in this year's US Open?",
+    "question_date": "2020-07-09",
+    "gold_dates": [
+      "2020-07-09",
+      "2020-07-09"
+    ],
+    "nearest_gap_days": 0
+  },
+  {
+    "query": "What is the name of Billie Eilish's brother?",
+    "question_date": "2020-01-27",
+    "gold_dates": [
+      "2020-01-27"
+    ],
+    "nearest_gap_days": 0
+  },
+  {
+    "query": "Which former Australian Open champion will Alexander Zverev face in the quarter-finals?",
+    "question_date": "2020-01-27",
+    "gold_dates": [
+      "2020-01-27"
+    ],
+    "nearest_gap_days": 0
+  }
+]

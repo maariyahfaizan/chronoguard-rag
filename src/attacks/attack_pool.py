@@ -61,19 +61,27 @@ def _parse_timestamp(value: Any) -> Optional[datetime]:
 
     if isinstance(value, datetime):
         dt = value
+    elif isinstance(value, (int, float)) and not isinstance(value, bool):
+        try:
+            dt = datetime.fromtimestamp(value, tz=timezone.utc)
+        except (ValueError, OverflowError, OSError):
+            return None
     else:
         text = str(value).strip()
 
         if not text:
             return None
 
-        if text.endswith("Z"):
-            text = text[:-1] + "+00:00"
-
         try:
-            dt = datetime.fromisoformat(text)
-        except ValueError:
-            return None
+            dt = datetime.fromtimestamp(float(text), tz=timezone.utc)
+        except (ValueError, OverflowError, OSError):
+            if text.endswith("Z"):
+                text = text[:-1] + "+00:00"
+
+            try:
+                dt = datetime.fromisoformat(text)
+            except ValueError:
+                return None
 
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)

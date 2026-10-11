@@ -67,10 +67,24 @@ class TestAttackPoolPoisonCounts(unittest.TestCase):
                         self.assertEqual(len(metadata['target_indices']), count)
                         self.assertEqual(len(set(metadata['target_indices'])), count)
                         self.assertEqual(metadata['candidate_count_before'], metadata['candidate_count_after'])
-                        self.assertEqual(attacked['gold_answer'], record['gold_answer'])
-                        self.assertEqual(attacked['question_ts'], record['question_ts'])
-                        self.assertEqual(attacked['gold_chunk_ids'], record['gold_chunk_ids'])
-                        self.assertEqual(attacked['candidates'][0], record['candidates'][0])
+                        protected_fields = [
+                                'query',
+                                'gold_answer',
+                                'gold_aliases',
+                                'question_ts',
+                                'gold_chunk_ids',
+                                'gold_validated',
+                            ]
+
+                        for field in protected_fields:
+                            self.assertEqual(attacked[field], record[field], field)
+
+                        self.assertEqual(
+                            attacked['candidates'][0],
+                            record['candidates'][0],
+                            'Gold candidate was modified',
+                        )
+                        
                     else:
                         self.assertEqual(metadata['actual_poison_count'], 0)
                         self.assertEqual(attacked['candidates'], record['candidates'])

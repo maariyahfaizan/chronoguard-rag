@@ -1,0 +1,791 @@
+{
+  "report_type": "synthetic_attack_pool_validation",
+  "generated_at_utc": "2026-10-11T12:44:07.285729+00:00",
+  "seed": 42,
+  "attack_types": [
+    "stale_evidence",
+    "fabricated_fresh",
+    "future_date",
+    "duplicate_fresh",
+    "correct_content_wrong_date"
+  ],
+  "requested_poison_counts": [
+    1,
+    2,
+    5
+  ],
+  "cases_total": 15,
+  "cases_passed": 15,
+  "cases_failed": 0,
+  "payload_sha256": "4a897af4cca257850b0f72e3194b1f3d655bc3fd8297a4b1ee8ecb017996991a",
+  "source_record": "synthetic test record; not real StreamingQA data",
+  "stale_evidence_note": "The stale-evidence case uses a synthetic candidate marked validated. Real-corpus stale-evidence validation remains deferred until the original Kaggle shards are restored.",
+  "results": [
+    {
+      "attack_type": "stale_evidence",
+      "requested_poison_count": 1,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "stale_evidence",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "details": {
+          "source_index": 1,
+          "target_index": 2,
+          "source_doc_id": "stale-001",
+          "source_timestamp": "2024-01-01T12:00:00Z"
+        },
+        "candidate_count_before": 9,
+        "candidate_count_after": 9,
+        "requested_poison_count": 1,
+        "actual_poison_count": 1,
+        "target_indices": [
+          2
+        ],
+        "operations": [
+          {
+            "source_index": 1,
+            "target_index": 2,
+            "source_doc_id": "stale-001",
+            "source_timestamp": "2024-01-01T12:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "attack_type": "stale_evidence",
+      "requested_poison_count": 2,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "stale_evidence",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 2,
+        "actual_poison_count": 2,
+        "target_indices": [
+          3,
+          5
+        ],
+        "operations": [
+          {
+            "source_index": 1,
+            "target_index": 3,
+            "source_doc_id": "stale-001",
+            "source_timestamp": "2024-01-01T12:00:00Z"
+          },
+          {
+            "source_index": 1,
+            "target_index": 5,
+            "source_doc_id": "stale-001",
+            "source_timestamp": "2024-01-01T12:00:00Z"
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    },
+    {
+      "attack_type": "stale_evidence",
+      "requested_poison_count": 5,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "stale_evidence",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 5,
+        "actual_poison_count": 5,
+        "target_indices": [
+          3,
+          5,
+          4,
+          8,
+          2
+        ],
+        "operations": [
+          {
+            "source_index": 1,
+            "target_index": 3,
+            "source_doc_id": "stale-001",
+            "source_timestamp": "2024-01-01T12:00:00Z"
+          },
+          {
+            "source_index": 1,
+            "target_index": 5,
+            "source_doc_id": "stale-001",
+            "source_timestamp": "2024-01-01T12:00:00Z"
+          },
+          {
+            "source_index": 1,
+            "target_index": 4,
+            "source_doc_id": "stale-001",
+            "source_timestamp": "2024-01-01T12:00:00Z"
+          },
+          {
+            "source_index": 1,
+            "target_index": 8,
+            "source_doc_id": "stale-001",
+            "source_timestamp": "2024-01-01T12:00:00Z"
+          },
+          {
+            "source_index": 1,
+            "target_index": 2,
+            "source_doc_id": "stale-001",
+            "source_timestamp": "2024-01-01T12:00:00Z"
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    },
+    {
+      "attack_type": "fabricated_fresh",
+      "requested_poison_count": 1,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "fabricated_fresh",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "details": {
+          "target_index": 2,
+          "payload_id": "validation-test-payload",
+          "timestamp": "2025-02-10T12:00:00Z"
+        },
+        "candidate_count_before": 9,
+        "candidate_count_after": 9,
+        "requested_poison_count": 1,
+        "actual_poison_count": 1,
+        "target_indices": [
+          2
+        ],
+        "operations": [
+          {
+            "target_index": 2,
+            "payload_id": "validation-test-payload",
+            "timestamp": "2025-02-10T12:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "attack_type": "fabricated_fresh",
+      "requested_poison_count": 2,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "fabricated_fresh",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 2,
+        "actual_poison_count": 2,
+        "target_indices": [
+          7,
+          6
+        ],
+        "operations": [
+          {
+            "target_index": 7,
+            "payload_id": "validation-test-payload",
+            "timestamp": "2025-02-10T12:00:00Z"
+          },
+          {
+            "target_index": 6,
+            "payload_id": "validation-test-payload",
+            "timestamp": "2025-02-10T12:00:00Z"
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    },
+    {
+      "attack_type": "fabricated_fresh",
+      "requested_poison_count": 5,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "fabricated_fresh",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 5,
+        "actual_poison_count": 5,
+        "target_indices": [
+          7,
+          6,
+          1,
+          5,
+          3
+        ],
+        "operations": [
+          {
+            "target_index": 7,
+            "payload_id": "validation-test-payload",
+            "timestamp": "2025-02-10T12:00:00Z"
+          },
+          {
+            "target_index": 6,
+            "payload_id": "validation-test-payload",
+            "timestamp": "2025-02-10T12:00:00Z"
+          },
+          {
+            "target_index": 1,
+            "payload_id": "validation-test-payload",
+            "timestamp": "2025-02-10T12:00:00Z"
+          },
+          {
+            "target_index": 5,
+            "payload_id": "validation-test-payload",
+            "timestamp": "2025-02-10T12:00:00Z"
+          },
+          {
+            "target_index": 3,
+            "payload_id": "validation-test-payload",
+            "timestamp": "2025-02-10T12:00:00Z"
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    },
+    {
+      "attack_type": "future_date",
+      "requested_poison_count": 1,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "future_date",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "details": {
+          "target_index": 2,
+          "original_timestamp": "2025-01-24T12:00:00Z",
+          "shifted_timestamp": "2025-02-08T12:00:00Z"
+        },
+        "candidate_count_before": 9,
+        "candidate_count_after": 9,
+        "requested_poison_count": 1,
+        "actual_poison_count": 1,
+        "target_indices": [
+          2
+        ],
+        "operations": [
+          {
+            "target_index": 2,
+            "original_timestamp": "2025-01-24T12:00:00Z",
+            "shifted_timestamp": "2025-02-08T12:00:00Z"
+          }
+        ]
+      }
+    },
+    {
+      "attack_type": "future_date",
+      "requested_poison_count": 2,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "future_date",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 2,
+        "actual_poison_count": 2,
+        "target_indices": [
+          3,
+          4
+        ],
+        "operations": [
+          {
+            "target_index": 3,
+            "original_timestamp": "2025-01-23T12:00:00Z",
+            "shifted_timestamp": "2025-02-08T12:00:00Z"
+          },
+          {
+            "target_index": 4,
+            "original_timestamp": "2025-01-22T12:00:00Z",
+            "shifted_timestamp": "2025-02-08T12:00:00Z"
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    },
+    {
+      "attack_type": "future_date",
+      "requested_poison_count": 5,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "future_date",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 5,
+        "actual_poison_count": 5,
+        "target_indices": [
+          3,
+          4,
+          5,
+          6,
+          8
+        ],
+        "operations": [
+          {
+            "target_index": 3,
+            "original_timestamp": "2025-01-23T12:00:00Z",
+            "shifted_timestamp": "2025-02-08T12:00:00Z"
+          },
+          {
+            "target_index": 4,
+            "original_timestamp": "2025-01-22T12:00:00Z",
+            "shifted_timestamp": "2025-02-08T12:00:00Z"
+          },
+          {
+            "target_index": 5,
+            "original_timestamp": "2025-01-21T12:00:00Z",
+            "shifted_timestamp": "2025-02-08T12:00:00Z"
+          },
+          {
+            "target_index": 6,
+            "original_timestamp": "2025-01-20T12:00:00Z",
+            "shifted_timestamp": "2025-02-08T12:00:00Z"
+          },
+          {
+            "target_index": 8,
+            "original_timestamp": "2025-01-18T12:00:00Z",
+            "shifted_timestamp": "2025-02-08T12:00:00Z"
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    },
+    {
+      "attack_type": "duplicate_fresh",
+      "requested_poison_count": 1,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "duplicate_fresh",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "details": {
+          "source_index": 7,
+          "target_index": 1,
+          "source_doc_id": "fresh-006"
+        },
+        "candidate_count_before": 9,
+        "candidate_count_after": 9,
+        "requested_poison_count": 1,
+        "actual_poison_count": 1,
+        "target_indices": [
+          1
+        ],
+        "operations": [
+          {
+            "source_index": 7,
+            "target_index": 1,
+            "source_doc_id": "fresh-006"
+          }
+        ]
+      }
+    },
+    {
+      "attack_type": "duplicate_fresh",
+      "requested_poison_count": 2,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "duplicate_fresh",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 2,
+        "actual_poison_count": 2,
+        "target_indices": [
+          7,
+          3
+        ],
+        "operations": [
+          {
+            "source_index": 8,
+            "target_index": 7,
+            "source_doc_id": "fresh-007"
+          },
+          {
+            "source_index": 2,
+            "target_index": 3,
+            "source_doc_id": "fresh-001"
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    },
+    {
+      "attack_type": "duplicate_fresh",
+      "requested_poison_count": 5,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "duplicate_fresh",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 5,
+        "actual_poison_count": 5,
+        "target_indices": [
+          7,
+          3,
+          1,
+          5,
+          4
+        ],
+        "operations": [
+          {
+            "source_index": 8,
+            "target_index": 7,
+            "source_doc_id": "fresh-007"
+          },
+          {
+            "source_index": 2,
+            "target_index": 3,
+            "source_doc_id": "fresh-001"
+          },
+          {
+            "source_index": 5,
+            "target_index": 1,
+            "source_doc_id": "fresh-004"
+          },
+          {
+            "source_index": 2,
+            "target_index": 5,
+            "source_doc_id": "fresh-001"
+          },
+          {
+            "source_index": 6,
+            "target_index": 4,
+            "source_doc_id": "fresh-005"
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    },
+    {
+      "attack_type": "correct_content_wrong_date",
+      "requested_poison_count": 1,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "correct_content_wrong_date",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "details": {
+          "source_index": 0,
+          "source_doc_id": "gold-001",
+          "target_index": 2,
+          "original_timestamp": "2025-01-30T12:00:00Z",
+          "wrong_timestamp": "2024-12-31T12:00:00Z",
+          "wrong_date_days": 30
+        },
+        "candidate_count_before": 9,
+        "candidate_count_after": 9,
+        "requested_poison_count": 1,
+        "actual_poison_count": 1,
+        "target_indices": [
+          2
+        ],
+        "operations": [
+          {
+            "source_index": 0,
+            "source_doc_id": "gold-001",
+            "target_index": 2,
+            "original_timestamp": "2025-01-30T12:00:00Z",
+            "wrong_timestamp": "2024-12-31T12:00:00Z",
+            "wrong_date_days": 30
+          }
+        ]
+      }
+    },
+    {
+      "attack_type": "correct_content_wrong_date",
+      "requested_poison_count": 2,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "correct_content_wrong_date",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 2,
+        "actual_poison_count": 2,
+        "target_indices": [
+          7,
+          6
+        ],
+        "operations": [
+          {
+            "source_index": 0,
+            "source_doc_id": "gold-001",
+            "target_index": 7,
+            "original_timestamp": "2025-01-30T12:00:00Z",
+            "wrong_timestamp": "2024-12-31T12:00:00Z",
+            "wrong_date_days": 30
+          },
+          {
+            "source_index": 0,
+            "source_doc_id": "gold-001",
+            "target_index": 6,
+            "original_timestamp": "2025-01-30T12:00:00Z",
+            "wrong_timestamp": "2024-12-31T12:00:00Z",
+            "wrong_date_days": 30
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    },
+    {
+      "attack_type": "correct_content_wrong_date",
+      "requested_poison_count": 5,
+      "checks": {
+        "input_unchanged": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidate_preserved": true,
+        "attack_applied": true,
+        "requested_count_correct": true,
+        "actual_count_correct": true,
+        "target_indices_distinct": true,
+        "targets_are_valid_non_gold_slots": true,
+        "fixed_seed_deterministic": true
+      },
+      "passed": true,
+      "metadata": {
+        "attack_type": "correct_content_wrong_date",
+        "seed": 42,
+        "eligible": true,
+        "applied": true,
+        "requested_poison_count": 5,
+        "actual_poison_count": 5,
+        "target_indices": [
+          7,
+          6,
+          3,
+          4,
+          8
+        ],
+        "operations": [
+          {
+            "source_index": 0,
+            "source_doc_id": "gold-001",
+            "target_index": 7,
+            "original_timestamp": "2025-01-30T12:00:00Z",
+            "wrong_timestamp": "2024-12-31T12:00:00Z",
+            "wrong_date_days": 30
+          },
+          {
+            "source_index": 0,
+            "source_doc_id": "gold-001",
+            "target_index": 6,
+            "original_timestamp": "2025-01-30T12:00:00Z",
+            "wrong_timestamp": "2024-12-31T12:00:00Z",
+            "wrong_date_days": 30
+          },
+          {
+            "source_index": 0,
+            "source_doc_id": "gold-001",
+            "target_index": 3,
+            "original_timestamp": "2025-01-30T12:00:00Z",
+            "wrong_timestamp": "2024-12-31T12:00:00Z",
+            "wrong_date_days": 30
+          },
+          {
+            "source_index": 0,
+            "source_doc_id": "gold-001",
+            "target_index": 4,
+            "original_timestamp": "2025-01-30T12:00:00Z",
+            "wrong_timestamp": "2024-12-31T12:00:00Z",
+            "wrong_date_days": 30
+          },
+          {
+            "source_index": 0,
+            "source_doc_id": "gold-001",
+            "target_index": 8,
+            "original_timestamp": "2025-01-30T12:00:00Z",
+            "wrong_timestamp": "2024-12-31T12:00:00Z",
+            "wrong_date_days": 30
+          }
+        ],
+        "candidate_count_before": 9,
+        "candidate_count_after": 9
+      }
+    }
+  ]
+}

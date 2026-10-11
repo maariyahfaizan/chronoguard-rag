@@ -1,23 +1,30 @@
 import sys
+import json
 from pathlib import Path
+from datetime import datetime, timezone
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import json
-from datetime import datetime, timezone
-
-
-INPUT = Path(
-    "data/processed/streamingqa_control_pools_chunked.jsonl"
-)
+INPUT = PROJECT_ROOT / "data/processed/streamingqa_control_pools_chunked.jsonl"
+OUTPUT = PROJECT_ROOT / "results/attack_eligibility_report.json"
 
 
 def parse_timestamp(value):
     if value is None:
         return None
 
+    # StreamingQA question timestamps may be Unix timestamps.
+    if isinstance(value, (int, float)):
+        try:
+            return datetime.fromtimestamp(value, tz=timezone.utc)
+        except (ValueError, OverflowError, OSError):
+            return None
+
     text = str(value).strip()
+
+    if not text:
+        return None
 
     if text.endswith("Z"):
         text = text[:-1] + "+00:00"
@@ -32,15 +39,11 @@ def parse_timestamp(value):
 
     return dt.astimezone(timezone.utc)
 
-
 def query_tokens(text):
     tokens = set()
 
-    for token in text.lower().split():
-        cleaned = "".join(
-            ch for ch in token
-            if ch.isalnum()
-        )
+    for token in str(text).lower().split():
+        cleaned = "".join(ch for ch in token if ch.isalnum())
 
         if len(cleaned) >= 3:
             tokens.add(cleaned)
@@ -49,137 +52,191 @@ def query_tokens(text):
 
 
 def overlap(query, text):
-    q = query_tokens(query)
-    t = query_tokens(text)
+    query_set = query_tokens(query)
+    text_set = query_tokens(text)
 
-    if not q:
+    if not query_set:
         return 0.0
 
-    return len(q & t) / len(q)
+    return len(query_set & text_set) / len(query_set)
 
 
-total = 0
-with_old = 0
-with_30_day_old = 0
-with_old_overlap = 0
-with_30_day_old_overlap = 0
-
-examples = []
-
-
-with INPUT.open("r", encoding="utf-8") as f:
-    for record_index, line in enumerate(f):
-        if not line.strip():
-            continue
-
-        record = json.loads(line)
-        total += 1
-
-        question_dt = parse_timestamp(
-            record["question_ts"]
+def main():
+    if not INPUT.exists():
+        raise FileNotFoundError(
+            f"Input dataset not found: {INPUT}"
         )
 
-        if question_dt is None:
-            continue
+    total_records = 0
+    invalid_question_timestamp = 0
 
-        gold_ids = set(
-            record["gold_chunk_ids"]
-        )
+    record_counts = {
+        "with_older_non_gold_candidate": 0,
+        "with_candidate_at_least_30_days_old": 0,
+        "with_older_candidate_and_query_overlap": 0,
+        "with_30_day_old_candidate_and_query_overlap": 0,
+    }
 
-        old_candidates = []
-        old_overlap_candidates = []
+    candidate_counts = {
+        "older_non_gold_candidates": 0,
+        "candidates_at_least_30_days_old": 0,
+        "older_candidates_with_query_overlap": 0,
+        "30_day_old_candidates_with_query_overlap": 0,
+    }
 
-        for candidate in record["candidates"]:
-            if candidate["doc_id"] in gold_ids:
+    examples = []
+
+    with INPUT.open("r", encoding="utf-8") as file:
+        for record_index, line in enumerate(file):
+            if not line.strip():
                 continue
 
-            candidate_dt = parse_timestamp(
-                candidate["timestamp"]
+            record = json.loads(line)
+            total_records += 1
+
+            question_dt = parse_timestamp(
+                record.get("question_ts")
             )
 
-            if candidate_dt is None:
+            if question_dt is None:
+                invalid_question_timestamp += 1
                 continue
 
-            age_days = (
-                question_dt - candidate_dt
-            ).total_seconds() / 86400.0
+            gold_ids = {
+                str(value)
+                for value in record.get("gold_chunk_ids", [])
+            }
 
-            if age_days > 0:
-                with_old += 1
-                old_candidates.append(
-                    (age_days, candidate)
+            has_old = False
+            has_30_day_old = False
+            has_old_overlap = False
+            has_30_day_old_overlap = False
+
+            record_examples = []
+
+            for candidate in record.get("candidates", []):
+                if str(candidate.get("doc_id")) in gold_ids:
+                    continue
+
+                candidate_dt = parse_timestamp(
+                    candidate.get("timestamp")
                 )
 
-                if overlap(
-                    record["query"],
-                    candidate["text"],
-                ) > 0:
-                    old_overlap_candidates.append(
-                        (age_days, candidate)
-                    )
+                if candidate_dt is None:
+                    continue
 
-            if age_days >= 30:
-                with_30_day_old += 1
+                age_days = (
+                    question_dt - candidate_dt
+                ).total_seconds() / 86400.0
 
-                if overlap(
-                    record["query"],
-                    candidate["text"],
-                ) > 0:
-                    with_30_day_old_overlap += 1
+                if age_days <= 0:
+                    continue
 
-        if old_candidates:
-            with_old += 0
+                has_old = True
+                candidate_counts["older_non_gold_candidates"] += 1
 
-        if old_overlap_candidates:
-            with_old_overlap += 1
-
-        if old_candidates and len(examples) < 5:
-            examples.append(
-                (
-                    record_index,
-                    record["query"],
-                    question_dt.isoformat(),
-                    sorted(
-                        old_candidates,
-                        key=lambda x: x[0],
-                        reverse=True,
-                    )[:3],
+                has_overlap = (
+                    overlap(
+                        record.get("query", ""),
+                        candidate.get("text", ""),
+                    ) > 0
                 )
-            )
+
+                if has_overlap:
+                    has_old_overlap = True
+                    candidate_counts[
+                        "older_candidates_with_query_overlap"
+                    ] += 1
+
+                if age_days >= 30:
+                    has_30_day_old = True
+                    candidate_counts[
+                        "candidates_at_least_30_days_old"
+                    ] += 1
+
+                    if has_overlap:
+                        has_30_day_old_overlap = True
+                        candidate_counts[
+                            "30_day_old_candidates_with_query_overlap"
+                        ] += 1
+
+                if len(record_examples) < 3:
+                    record_examples.append({
+                        "age_days": round(age_days, 2),
+                        "timestamp": candidate.get("timestamp"),
+                        "doc_id": candidate.get("doc_id"),
+                        "query_overlap": has_overlap,
+                        "text_preview": str(
+                            candidate.get("text", "")
+                        )[:180],
+                    })
+
+            if has_old:
+                record_counts["with_older_non_gold_candidate"] += 1
+
+            if has_30_day_old:
+                record_counts[
+                    "with_candidate_at_least_30_days_old"
+                ] += 1
+
+            if has_old_overlap:
+                record_counts[
+                    "with_older_candidate_and_query_overlap"
+                ] += 1
+
+            if has_30_day_old_overlap:
+                record_counts[
+                    "with_30_day_old_candidate_and_query_overlap"
+                ] += 1
+
+            if has_old and len(examples) < 5:
+                examples.append({
+                    "record_index": record_index,
+                    "query": record.get("query"),
+                    "question_timestamp": question_dt.isoformat(),
+                    "older_candidates": record_examples,
+                })
+
+    report = {
+        "report_type": "stale_eligibility_diagnostic",
+        "input": str(INPUT.relative_to(PROJECT_ROOT)),
+        "eligibility_warning": (
+            "Age and query overlap do not prove evidence is obsolete. "
+            "This diagnostic does not establish stale-evidence eligibility. "
+            "The attack still requires stale_evidence_validated == True."
+        ),
+        "total_records": total_records,
+        "records_with_invalid_question_timestamp": (
+            invalid_question_timestamp
+        ),
+        "record_counts": record_counts,
+        "candidate_counts": candidate_counts,
+        "examples": examples,
+    }
+
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+
+    with OUTPUT.open("w", encoding="utf-8") as file:
+        json.dump(report, file, indent=2, ensure_ascii=False)
+        file.write("\n")
+
+    print("=== STALE ELIGIBILITY DIAGNOSTIC ===")
+    print("Total records:", total_records)
+    print(
+        "Invalid question timestamps:",
+        invalid_question_timestamp,
+    )
+
+    print("\nRecord counts:")
+    for name, count in record_counts.items():
+        print(f"  {name}: {count}")
+
+    print("\nCandidate counts:")
+    for name, count in candidate_counts.items():
+        print(f"  {name}: {count}")
+
+    print("\nSaved report:", OUTPUT)
 
 
-print("=== STALE-ELIGIBILITY DIAGNOSTIC ===")
-print("Total records:", total)
-print()
-print(
-    "Records with at least one older non-gold candidate:",
-    with_old,
-)
-print(
-    "Records with at least one >=30-day-old non-gold candidate:",
-    with_30_day_old,
-)
-print(
-    "Records with older candidate + query-token overlap:",
-    with_old_overlap,
-)
-print(
-    "Records with >=30-day-old candidate + query-token overlap:",
-    with_30_day_old_overlap,
-)
-
-print()
-print("=== EXAMPLES ===")
-
-for record_index, query, question_ts, candidates in examples:
-    print()
-    print("Record:", record_index)
-    print("Query:", query)
-    print("Question timestamp:", question_ts)
-
-    for age_days, candidate in candidates:
-        print(
-            f"  age_days={age_days:.1f}, "
-            f"timestamp={candidate['timestamp']}, "
-            f"doc_id={candidate['doc_id']}"
-        )
+if __name__ == "__main__":
+    main()
