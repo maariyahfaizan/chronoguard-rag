@@ -10,6 +10,8 @@ Design principles:
 - Make every poisoning operation explicit and traceable.
 - Do not invent fabricated claims inside this module.
 - Use deterministic random selection controlled by a seed.
+- Write attacked timestamps in the same format as the clean pool
+  (ISO-8601 with a +00:00 offset).
 """
 
 from __future__ import annotations
@@ -46,6 +48,11 @@ REQUIRED_CANDIDATE_FIELDS = {
     "is_source_document",
 }
 
+# Numeric strings are read as Unix seconds only when they are plausibly Unix
+# times (>= 1973). Shorter digit strings such as "20200709" are treated as
+# ISO-8601 basic dates instead of being read as seconds since 1970.
+_MIN_UNIX_SECONDS = 1e8
+
 
 def _stable_seed(base_seed: int, record_index: int, attack_type: str) -> int:
     """Create a reproducible per-record seed."""
@@ -55,7 +62,8 @@ def _stable_seed(base_seed: int, record_index: int, attack_type: str) -> int:
 
 
 def _parse_timestamp(value: Any) -> Optional[datetime]:
-    """Parse an ISO timestamp into a timezone-aware datetime."""
+    """Parse a datetime, Unix timestamp (number or numeric string) or ISO-8601
+    string into a timezone-aware UTC datetime. Returns None if unparseable."""
     if value is None:
         return None
 
@@ -73,8 +81,16 @@ def _parse_timestamp(value: Any) -> Optional[datetime]:
             return None
 
         try:
-            dt = datetime.fromtimestamp(float(text), tz=timezone.utc)
-        except (ValueError, OverflowError, OSError):
+            number = float(text)
+        except ValueError:
+            number = None
+
+        if number is not None and abs(number) >= _MIN_UNIX_SECONDS:
+            try:
+                dt = datetime.fromtimestamp(number, tz=timezone.utc)
+            except (ValueError, OverflowError, OSError):
+                return None
+        else:
             if text.endswith("Z"):
                 text = text[:-1] + "+00:00"
 
@@ -90,8 +106,13 @@ def _parse_timestamp(value: Any) -> Optional[datetime]:
 
 
 def _format_timestamp(dt: datetime) -> str:
-    """Format timestamp consistently as ISO-8601 UTC."""
-    return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+    """Format a timestamp as ISO-8601 UTC with a +00:00 offset.
+
+    This matches the clean StreamingQA pool (for example
+    '2012-10-20T00:00:00+00:00'), so attacked and clean candidates are read
+    identically by the evaluator.
+    """
+    return dt.astimezone(timezone.utc).isoformat()
 
 
 def _validate_record(record: Mapping[str, Any]) -> None:
@@ -168,6 +189,84 @@ def _text_overlap(query: str, text: str) -> float:
     return len(query_tokens & text_tokens) / len(query_tokens)
 
 
+def merge_stale_reviews(
+    records: Iterable[Mapping[str, Any]],
+    reviews: Iterable[Mapping[str, Any]],
+) -> List[Record]:
+    """Return copies of records with human-reviewed stale candidates flagged.
+
+    `stale_evidence_validated` must only be set through this function, from a
+    review file, never by hand-editing the pools and never from age or lexical
+    overlap alone.
+
+    Each review is a mapping with:
+        query_index  position of the record in `records`
+        doc_id       candidate chunk ID that was reviewed
+        validated    True only if the candidate is answer-bearing and
+                     obsolete/conflicting at the question time
+        reviewer     who reviewed it (required when validated)
+        reason       why it is stale (required when validated)
+
+    Entries with validated=False are ignored. A reviewed gold candidate, or a
+    reviewed doc_id that is absent from its record, raises ValueError.
+    """
+    by_index: Dict[int, Dict[str, Mapping[str, Any]]] = {}
+
+    for review in reviews:
+        if not review.get("validated"):
+            continue
+
+        for key in ("query_index", "doc_id", "reviewer", "reason"):
+            if review.get(key) in (None, ""):
+                raise ValueError(
+                    f"Stale review is missing '{key}': {dict(review)}"
+                )
+
+        by_index.setdefault(int(review["query_index"]), {})[
+            str(review["doc_id"])
+        ] = review
+
+    output: List[Record] = []
+
+    for index, record in enumerate(records):
+        updated = copy.deepcopy(dict(record))
+        wanted = by_index.get(index, {})
+        matched: set[str] = set()
+        gold_ids = _gold_ids(updated)
+
+        for candidate in updated["candidates"]:
+            doc_id = str(candidate["doc_id"])
+            review = wanted.get(doc_id)
+
+            if review is None:
+                continue
+
+            if _is_gold(candidate, gold_ids):
+                raise ValueError(
+                    "A gold candidate cannot be validated as stale "
+                    f"evidence (record {index}, doc_id {doc_id})."
+                )
+
+            candidate["stale_evidence_validated"] = True
+            candidate["stale_review"] = {
+                "reviewer": str(review["reviewer"]),
+                "reason": str(review["reason"]),
+            }
+            matched.add(doc_id)
+
+        missing = set(wanted) - matched
+
+        if missing:
+            raise ValueError(
+                f"Reviewed doc_ids not found in record {index}: "
+                f"{sorted(missing)}"
+            )
+
+        output.append(updated)
+
+    return output
+
+
 def _select_stale_candidate(
     record: Mapping[str, Any],
     *,
@@ -180,6 +279,7 @@ def _select_stale_candidate(
     - not be gold evidence;
     - have a parseable timestamp;
     - precede the question reference time by at least min_age_days;
+    - carry stale_evidence_validated=True (set via merge_stale_reviews);
     - have some lexical topical overlap with the query.
 
     A candidate is not called 'stale' merely because it is old.
@@ -271,25 +371,6 @@ def _select_replaceable_candidate(
     return rng.choice(eligible)
 
 
-def _replace_candidate(
-    record: Record,
-    *,
-    target_index: int,
-    poison_candidate: Candidate,
-) -> None:
-    """Replace one non-gold candidate while preserving candidate count."""
-    original = record["candidates"][target_index]
-    replacement = copy.deepcopy(poison_candidate)
-
-    # Keep the target's slot identity unique and traceable.
-    replacement["doc_id"] = str(original["doc_id"])
-
-    # This is deliberately false for an injected poison.
-    replacement["is_source_document"] = False
-
-    record["candidates"][target_index] = replacement
-
-
 def _make_future_timestamp(
     timestamp: Any,
     question_ts: Any,
@@ -361,7 +442,9 @@ def _apply_correct_content_wrong_date(
     The content is copied from validated gold evidence, while the
     timestamp is deliberately shifted backward.
 
-    The original gold candidate is never modified.
+    The original gold candidate is never modified. With wrong_date_days=0
+    the copy keeps the correct date: use that as the duplication-only control,
+    because this attack also adds a second copy of the gold text.
     """
     gold_ids = _gold_ids(record)
 
@@ -420,7 +503,6 @@ def _apply_correct_content_wrong_date(
         "wrong_timestamp": poison["timestamp"],
         "wrong_date_days": wrong_date_days,
     }
-
 
 
 def _apply_duplicate_fresh(
@@ -512,7 +594,7 @@ def _apply_stale_evidence(
     rng: random.Random,
     min_age_days: int = 30,
 ) -> Optional[Dict[str, Any]]:
-    """Amplify an explicitly old and topically relevant candidate."""
+    """Amplify an explicitly old, reviewed and topically relevant candidate."""
     source = _select_stale_candidate(
         record,
         rng=rng,
@@ -564,6 +646,10 @@ def _apply_stale_evidence(
     poison["doc_id"] = original_target["doc_id"]
     poison["is_source_document"] = False
 
+    # The review applies to the reviewed source passage, not to its copies.
+    poison.pop("stale_evidence_validated", None)
+    poison.pop("stale_review", None)
+
     record["candidates"][target_index] = poison
 
     return {
@@ -583,7 +669,8 @@ def _apply_fabricated_fresh(
     """Insert an explicitly supplied fabricated-fresh evidence payload.
 
     The false claim must be supplied externally. This function deliberately
-    does not invent a claim from the gold answer.
+    does not invent a claim from the gold answer. The inserted candidate is
+    flagged is_synthetic_poison=True.
     """
     if "text" not in payload:
         raise ValueError(
@@ -593,6 +680,12 @@ def _apply_fabricated_fresh(
     if "timestamp" not in payload:
         raise ValueError(
             "fabricated_fresh payload requires an explicit 'timestamp' field"
+        )
+
+    if _parse_timestamp(payload["timestamp"]) is None:
+        raise ValueError(
+            "fabricated_fresh payload 'timestamp' is not a parseable "
+            f"timestamp: {payload['timestamp']!r}"
         )
 
     target_index = _select_replaceable_candidate(
@@ -608,6 +701,8 @@ def _apply_fabricated_fresh(
         "text": str(payload["text"]),
         "timestamp": str(payload["timestamp"]),
         "is_source_document": False,
+        "is_synthetic_poison": True,
+        "payload_id": payload.get("payload_id"),
     }
 
     record["candidates"][target_index] = poison
@@ -727,18 +822,8 @@ def _apply_attack_once(
                 f"Attack illegally modified ground-truth field: {field}"
             )
 
-    # No gold chunk may have been modified into poison.
-    gold_ids = _gold_ids(record)
-
-    for candidate in attacked["candidates"]:
-        if (
-            candidate["doc_id"] in gold_ids
-            and not candidate["is_source_document"]
-        ):
-            raise AssertionError(
-                "Gold chunk lost source status: "
-                f"{candidate['doc_id']}"
-            )
+    # Every gold candidate must be exactly unchanged (text, timestamp, flags).
+    _assert_gold_unchanged(record, attacked)
 
     metadata.update(
         {
@@ -755,6 +840,38 @@ def _apply_attack_once(
 
     return attacked, metadata
 
+
+def _assert_gold_unchanged(
+    original: Mapping[str, Any],
+    attacked: Mapping[str, Any],
+) -> None:
+    """Fail if any gold candidate differs from the clean record."""
+    gold_ids = _gold_ids(original)
+    before = {
+        str(c["doc_id"]): c
+        for c in original["candidates"]
+        if _is_gold(c, gold_ids)
+    }
+    after = {
+        str(c["doc_id"]): c
+        for c in attacked["candidates"]
+        if _is_gold(c, gold_ids)
+    }
+
+    if before.keys() != after.keys():
+        raise AssertionError("A gold chunk was added or removed.")
+
+    for doc_id, candidate in before.items():
+        if after[doc_id] != candidate:
+            raise AssertionError(f"Gold chunk was modified: {doc_id}")
+
+    # Poisoned slots keep their original doc_id, so the set of doc_ids must
+    # not change (this also catches an attack introducing duplicate IDs).
+    ids_before = {str(c["doc_id"]) for c in original["candidates"]}
+    ids_after = {str(c["doc_id"]) for c in attacked["candidates"]}
+
+    if ids_before != ids_after:
+        raise AssertionError("Attack changed the set of candidate doc_ids.")
 
 
 # WEEK5_POISON_COUNT_WRAPPER
@@ -785,6 +902,10 @@ def apply_attack(
         metadata['requested_poison_count'] = 1
         metadata['actual_poison_count'] = 1 if applied else 0
         metadata['target_indices'] = [int(target_index)] if applied else []
+        metadata['target_doc_ids'] = (
+            [attacked['candidates'][int(target_index)]['doc_id']]
+            if applied else []
+        )
         metadata['operations'] = [copy.deepcopy(details)] if applied else []
         metadata['candidate_count_before'] = len(record['candidates'])
         metadata['candidate_count_after'] = len(attacked['candidates'])
@@ -797,6 +918,7 @@ def apply_attack(
     original = copy.deepcopy(dict(record))
     working = copy.deepcopy(dict(record))
     used_targets: list[int] = []
+    used_sources: list[int] = []
     operation_details: list[Dict[str, Any]] = []
     base_count = len(record['candidates'])
 
@@ -824,6 +946,7 @@ def apply_attack(
                         'reason': candidate_metadata.get('reason', 'no_eligible_target'),
                         'requested_poison_count': poison_count,
                         'actual_poison_count': 0, 'target_indices': [],
+                        'target_doc_ids': [],
                         'operations': [], 'candidate_count_before': base_count,
                         'candidate_count_after': base_count,
                     }
@@ -832,6 +955,13 @@ def apply_attack(
                     return original, metadata
                 continue
             if target_index is None or target_index in used_targets:
+                continue
+            # A passage copied by one operation must not be overwritten by
+            # another, and a copy slot must not be used as a later source.
+            source_index = details.get('source_index')
+            if source_index is not None and (
+                source_index in used_targets or target_index in used_sources
+            ):
                 continue
             selected, selected_metadata = candidate_working, candidate_metadata
             break
@@ -843,6 +973,7 @@ def apply_attack(
                 'reason': 'insufficient_distinct_targets',
                 'requested_poison_count': poison_count,
                 'actual_poison_count': 0, 'target_indices': [],
+                'target_doc_ids': [],
                 'operations': [], 'candidate_count_before': base_count,
                 'candidate_count_after': base_count,
             }
@@ -853,11 +984,10 @@ def apply_attack(
         details = copy.deepcopy(selected_metadata['details'])
         target_index = int(details['target_index'])
         used_targets.append(target_index)
+        if details.get('source_index') is not None:
+            used_sources.append(int(details['source_index']))
         operation_details.append(details)
         working = selected
-        # Validation applies to the reviewed stale source, not copied slots.
-        if attack_type == 'stale_evidence':
-            working['candidates'][target_index].pop('stale_evidence_validated', None)
 
     if len(used_targets) != poison_count or len(set(used_targets)) != poison_count:
         raise AssertionError('Poison targets must be unique and match poison_count.')
@@ -867,16 +997,15 @@ def apply_attack(
                   'gold_chunk_ids', 'gold_validated'):
         if working[field] != record[field]:
             raise AssertionError(f'Attack illegally modified ground-truth field: {field}')
-    gold_ids = _gold_ids(record)
-    for candidate in working['candidates']:
-        if _is_gold(candidate, gold_ids) and not candidate['is_source_document']:
-            raise AssertionError(f'Gold chunk lost source status: {candidate["doc_id"]}')
+    _assert_gold_unchanged(record, working)
     metadata = {
         'attack_type': attack_type, 'seed': seed,
         'eligible': True, 'applied': True,
         'requested_poison_count': poison_count,
         'actual_poison_count': len(used_targets),
-        'target_indices': used_targets, 'operations': operation_details,
+        'target_indices': used_targets,
+        'target_doc_ids': [working['candidates'][i]['doc_id'] for i in used_targets],
+        'operations': operation_details,
         'candidate_count_before': base_count,
         'candidate_count_after': len(working['candidates']),
     }
@@ -895,8 +1024,15 @@ def generate_attacked_records(
     future_days: int = 7,
     wrong_date_days: int = 30,
     poison_count: int = 1,
+    skip_ineligible: bool = False,
 ) -> List[Record]:
-    """Generate an attacked copy of every supplied record."""
+    """Generate an attacked copy of every supplied record.
+
+    With skip_ineligible=True, records where the attack could not be applied
+    are left out, so ineligible cases are never forced into the benchmark.
+    Otherwise they are returned unchanged with attack_metadata['applied']
+    set to False.
+    """
     output: List[Record] = []
 
     for index, record in enumerate(records):
@@ -911,7 +1047,7 @@ def generate_attacked_records(
         if poison_payloads is not None:
             payload = poison_payloads.get(str(index))
 
-        attacked, _ = apply_attack(
+        attacked, metadata = apply_attack(
             record,
             attack_type=attack_type,
             seed=per_record_seed,
@@ -921,6 +1057,9 @@ def generate_attacked_records(
             wrong_date_days=wrong_date_days,
             poison_count=poison_count,
         )
+
+        if skip_ineligible and not metadata.get("applied"):
+            continue
 
         attacked["attack_record_index"] = index
         output.append(attacked)

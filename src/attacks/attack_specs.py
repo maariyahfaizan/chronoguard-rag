@@ -19,13 +19,24 @@ AttackType = Literal[
 
 @dataclass(frozen=True)
 class AttackSpec:
-    """Specification for one controlled temporal poisoning condition."""
+    """Specification for one controlled temporal poisoning condition.
+
+    changes_visible_text: whether the attack changes passage TEXT that the
+    frozen E1-E4 systems can read. The frozen baselines do not consume
+    timestamps, so an attack with changes_visible_text=False (future_date) is
+    a metadata-only negative control for E1-E4 and cannot change their
+    rankings or generations. correct_content_wrong_date copies gold text into
+    a non-gold slot (visible) and also shifts the timestamp (invisible); its
+    effect on E1-E4 can therefore come from the duplicated text alone. Compare
+    it with the same attack at wrong_date_days=0 to isolate the date.
+    """
 
     name: AttackType
     description: str
     requires_replacement_text: bool
     requires_timestamp_shift: bool
     requires_duplicate: bool
+    changes_visible_text: bool = True
 
 
 ATTACK_SPECS = {
@@ -38,6 +49,7 @@ ATTACK_SPECS = {
         requires_replacement_text=True,
         requires_timestamp_shift=False,
         requires_duplicate=False,
+        changes_visible_text=True,
     ),
     "fabricated_fresh": AttackSpec(
         name="fabricated_fresh",
@@ -48,16 +60,19 @@ ATTACK_SPECS = {
         requires_replacement_text=True,
         requires_timestamp_shift=True,
         requires_duplicate=False,
+        changes_visible_text=True,
     ),
     "future_date": AttackSpec(
         name="future_date",
         description=(
             "Shift an otherwise plausible evidence timestamp so that the "
-            "passage appears newer than it should be."
+            "passage appears newer than it should be. Metadata-only: a "
+            "negative control for baselines that do not read timestamps."
         ),
         requires_replacement_text=False,
         requires_timestamp_shift=True,
         requires_duplicate=False,
+        changes_visible_text=False,
     ),
     "duplicate_fresh": AttackSpec(
         name="duplicate_fresh",
@@ -68,17 +83,20 @@ ATTACK_SPECS = {
         requires_replacement_text=True,
         requires_timestamp_shift=False,
         requires_duplicate=True,
+        changes_visible_text=True,
     ),
     "correct_content_wrong_date": AttackSpec(
         name="correct_content_wrong_date",
         description=(
             "Keep the evidence content correct while deliberately assigning "
             "an incorrect timestamp, isolating timestamp sensitivity from "
-            "content falsification."
+            "content falsification. Copies gold text into a non-gold slot, "
+            "so use wrong_date_days=0 as the duplication-only control."
         ),
         requires_replacement_text=False,
         requires_timestamp_shift=True,
         requires_duplicate=False,
+        changes_visible_text=True,
     ),
 }
 
