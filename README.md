@@ -155,7 +155,7 @@ Local setup:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.local.txt
-python -m pytest
+python -m pytest tests/test_metrics.py
 ```
 
 ## 7. Reproducing the frozen baselines
