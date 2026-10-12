@@ -2,9 +2,9 @@
 
 Clean RAG baselines for a study of **freshness poisoning** in retrieval-augmented generation: how stale, fabricated-"newer", or timestamp-shifted evidence can override correct evidence, and how a recency-aware verification layer (ChronoGuard-RAG) can defend against it.
 
-**Current phase:** Weeks 3-4 (clean baselines) are in their closure cycle. Gate A is complete apart from one manual-review item. Gate B items 6-9 are done; item 10 (the frozen summary) is generated last, after the final commit. No attack conditions and no ChronoGuard defense have been implemented yet. Week 5 (attack construction) starts once Week 4 is signed off.
+**Current phase:** Weeks 3-4 (clean baselines) are in their closure cycle. Gate A is complete apart from one manual-review item. Gate B is complete: the frozen summary (`results/summary.csv`, `results/summary.json`) was generated from the raw logs on a clean tree and committed. Still open before the freeze tag: StreamingQA E2-E4 config-driven smoke tests and the third A1 manual-review case (documentation only). No attack results and no ChronoGuard defense are part of the frozen baseline (see section 9 for the Week 5 scaffolding that is present in the repository).
 
-**Frozen baseline commit:** `<FILL IN LAST: git rev-parse HEAD after final commit; tag week4-frozen>`
+**Freeze:** the git tag `week4-frozen` marks the commit that contains this README. The summary artifacts were committed in `18edada` and generated at commit `4e1fc4c` (`git_dirty: false` in `results/summary.json`).
 
 ---
 
@@ -32,6 +32,8 @@ All four share one generator, one prompt template and one evaluation path, so re
 Generator: `mistralai/Mistral-7B-Instruct-v0.2`, 4-bit, greedy decoding (`do_sample=False`). Final context: top-k = 5, from a 20-candidate pool.
 
 ## 3. Results
+
+All numbers below are reproduced by `scripts/make_summary.py` from the raw logs (`results/summary.json`).
 
 ### 3.1 StreamingQA (official clean reference, post-Gate-A)
 
@@ -94,7 +96,7 @@ The Mistral-7B judge also generates the answers, so it was validated against hum
 - Mistral is systematically lenient. Qwen shows no detectable bias, but its higher agreement is not statistically distinguishable from Mistral's at n=112 (errors only Mistral makes: 10, only Qwen makes: 6, p = 0.45). The supported claim is about calibration, not agreement.
 - Qwen's 10 disagreements with the human labels were reviewed: nine are judge errors and one is a borderline label. In four it overrides the gold answer with its own beliefs, and in three it reasons from the wrong current year. Its knowledge appears to end around 2023, so it can penalise correct, fresh answers. This is a validity threat and is stated as one.
 - The 112-item sample was easier than average, so the human accuracy on it is not an estimate of true accuracy. The judge comparison is paired and is not affected.
-- Qwen setup: `Qwen/Qwen2.5-14B-Instruct`, revision `cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8`, 4-bit NF4 with fp16 compute, greedy decoding, 300 new tokens (Mistral's limit was 80), the same FreshEval prompt and code path. All 1,908 verdicts parsed.
+- Qwen setup: `Qwen/Qwen2.5-14B-Instruct`, revision `cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8` (also recorded in `results/summary.json`), 4-bit NF4 with fp16 compute, greedy decoding, 300 new tokens (Mistral's limit was 80), the same FreshEval prompt and code path. All 1,908 verdicts parsed.
 - Raw files are in `results/judge_validation/` (`annotation.csv`, `key.csv`, `judge2_raw.jsonl`, `judge2_all.jsonl`).
 
 ## 4. What Gate A fixed (StreamingQA)
@@ -105,9 +107,9 @@ The Mistral-7B judge also generates the answers, so it was validated against hum
 | A2 one evidence unit | Passages are chunked to 320 reranker-tokens with 64-token overlap, used by all four systems | Max chunk 320 tokens (avg 171.6); 5 of 2,051 chunks exceed the 1500-character generator cap (max overshoot 20 characters among retrieved chunks) |
 | A3 rerun | E1-E4 rerun on the corrected, chunked pool | Table 3.1 |
 | A4 statistics | Bootstrap CIs, paired tests, Holm-Bonferroni | `logs/statistics_results_streamingqa.json` |
-| A5 config as source of truth | All four drivers read parameters from `configs/streamingqa_eval_config.yaml`; a missing key raises an error | E1 smoke test byte-identical to the pre-A5 run. E2-E4 import-tested only |
+| A5 config as source of truth | All four drivers read parameters from `configs/streamingqa_eval_config.yaml`; a missing key raises an error | E1 smoke test byte-identical to the pre-A5 run. E2-E4 import-tested only (config-driven smoke tests open) |
 
-Chunking applies to StreamingQA only. The shared retrieval/generation modules (`bm25.py`, `dense.py`, `hybrid.py`, `reranker.py`, `generate.py`) are unchanged, so TriviaQA and FreshQA behaviour is unaffected.
+Chunking applies to StreamingQA only (TriviaQA and FreshQA are control/secondary datasets and are intentionally not rechunked). The shared retrieval/generation modules (`bm25.py`, `dense.py`, `hybrid.py`, `reranker.py`, `generate.py`) are unchanged, so TriviaQA and FreshQA behaviour is unaffected. Any later cross-dataset attack comparison must document these preprocessing differences.
 
 ## 5. Status
 
@@ -115,12 +117,12 @@ Chunking applies to StreamingQA only. The shared retrieval/generation modules (`
 |---|---|
 | Week 3 | Complete |
 | Week 4 Gate A (items 1-5) | Complete |
-| A1: manual inspection of the 3 unvalidated queries | 2 of 3 answer-bearing on manual reading (Ferne McCann, Germany); Colm O'Rourke pending. Whether manual labels enter the metrics is a supervisor question |
-| B-6 README | Done (freeze hash filled in last) |
-| B-7 pin environment | Done (see Section 6) |
+| A1: manual inspection of the 3 unvalidated queries | 2 of 3 answer-bearing on manual reading (Ferne McCann, Germany); Colm O'Rourke pending. Supervisor decision: Option A (document only; frozen labels and the 97/100 basis are unchanged) |
+| B-6 README | Done |
+| B-7 pin environment | Done (see section 6) |
 | B-8 tracked artifacts / filenames | Done |
 | B-9 FreshQA judge validation | Done: 112 blind human labels, second judge on the sample and on all 1,908 verdicts (section 3.4) |
-| B-10 frozen summary artifact | Script written (`scripts/make_summary.py`, all three datasets); run last, after the final commit |
+| B-10 frozen summary artifact | Done: `results/summary.csv` and `results/summary.json` (commit `18edada`, generated at `4e1fc4c`, clean tree) |
 | StreamingQA E2-E4 config-driven smoke tests | Open |
 | Scale TriviaQA/StreamingQA beyond n=100 | Planned before paper-level evaluation |
 | Failure analysis (50-100 errors) | Partial |
@@ -131,12 +133,21 @@ Two environments produced the frozen results. Reproduce each stage in the enviro
 
 | Stage | Environment | Package files |
 |---|---|---|
-| Retrieval, generation, E1-E4 runs | Kaggle, Python 3.12.13, torch 2.10.0 (CUDA 12.8), Tesla T4 | `requirements.txt`, `requirements.lock.txt` |
-| Paired statistics, summary generation, tests | Local Windows machine, Python `<3.13.x: FILL IN>`, numpy 2.4.6, pandas 3.0.5, scipy 1.18.0 | `requirements.local.txt`, `requirements.local.lock.txt` |
+| Retrieval, generation, E1-E4 runs | Kaggle, Python 3.12.13, torch 2.10.0 (CUDA 12.8), Tesla T4 | `requirements.txt` |
+| Paired statistics, summary generation, tests | Local Windows machine, Python 3.13.7, numpy 2.4.6, pandas 3.0.5, scipy 1.18.0 | `requirements.local.txt`, `requirements.local.lock.txt` |
 
-Kaggle versions were recorded on `<DATE>` from the Kaggle image and may differ slightly from the image at the time of the earliest runs. The second FreshQA judge (Qwen2.5-14B-Instruct) ran in the same Kaggle environment on a single T4; `bitsandbytes` had to be reinstalled in that session (`pip install -U "bitsandbytes>=0.46.1"`).
+Kaggle package versions were read from the Kaggle image used for the runs and may differ slightly from the image at the time of the earliest runs. No full lock file is committed for the Kaggle environment. The second FreshQA judge (Qwen2.5-14B-Instruct) ran in the same Kaggle environment on a single T4; `bitsandbytes` had to be reinstalled in that session (`pip install -U "bitsandbytes>=0.46.1"`).
 
-Model revisions (commit SHAs) are recorded in the config files under `revision:` for the generator, Contriever and the reranker. `<TODO: fill in>`
+**Model revisions.** The baseline code loads the generator, Contriever and the reranker by model name (`from_pretrained(model_name)`), and no revision was pinned in the configs or recorded in the run logs. Those three models therefore ran at whatever revision the Hugging Face Hub served at run time, and their commit hashes are not recorded for the frozen baseline runs. This is a known reproducibility limitation. The only recorded revision is the second judge's:
+
+| Model | Role | Revision |
+|---|---|---|
+| `mistralai/Mistral-7B-Instruct-v0.2` | Generator, development judge | Not recorded |
+| `facebook/contriever` | Dense retrieval (E2-E4) | Not recorded |
+| `BAAI/bge-reranker-base` | Reranker (E4) | Not recorded |
+| `Qwen/Qwen2.5-14B-Instruct` | Headline FreshQA judge | `cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8` |
+
+From Week 5 onward, model revisions are to be pinned explicitly in the configs.
 
 Local setup:
 
@@ -147,16 +158,20 @@ python -m pip install -r requirements.local.txt
 python -m pytest
 ```
 
-## 7. Reproducing the frozen StreamingQA baseline
+## 7. Reproducing the frozen baselines
 
-Steps that need a GPU (`run_*`) run on Kaggle. Steps after them run locally. Script paths follow the repository layout; adjust if yours differ.
+Steps that need a GPU (`run_*`) were run on Kaggle. Steps after them run locally. Script paths follow the repository layout in section 9; adjust the invocation (`python path/to/script.py` or `python -m ...`) if your setup differs.
+
+### StreamingQA (primary)
 
 ```bash
-# 1. Snapshot (seeded n=100)
-python save_snapshot.py
+# 1. Preprocess and snapshot (seeded n=100)
+python src/eval/preprocess_streamingqa.py
+python src/eval/save_snapshot_streamingqa.py
 
 # 2. Build candidate pools from the WMT news archive (13 yearly gzip shards; large download)
-python build_streamingqa_pools.py
+python src/eval/fetch_wmt_archives.py
+python src/eval/build_streamingqa_pools.py
 
 # 3. Freeze the evidence unit: chunk pools and validate gold chunks (Gate A 1-2)
 python src/eval/chunk_streamingqa_pools.py
@@ -164,7 +179,7 @@ python src/eval/chunk_streamingqa_pools.py
 # 4. Check chunking uniformity across the run logs
 python verify_chunking_a3.py
 
-# 5. Clean baselines E1-E4 (Kaggle GPU). Parameters come from configs/streamingqa_eval_config.yaml
+# 5. Clean baselines E1-E4 (GPU). Parameters come from configs/streamingqa_eval_config.yaml
 python scripts/run_baseline_streamingqa.py          # E1 BM25
 python scripts/run_dense_streamingqa.py             # E2 Contriever
 python scripts/run_hybrid_streamingqa.py            # E3 Hybrid RRF
@@ -172,36 +187,54 @@ python scripts/run_hybrid_reranker_streamingqa.py   # E4 Hybrid + reranker
 
 # 6. Paired statistics with Holm-Bonferroni (local)
 python scripts/run_statistics_streamingqa.py
-
-# 7. Summary table (local): results/summary.csv
-python scripts/build_summary_csv.py
 ```
 
-Reproducing TriviaQA and FreshQA:
+### FreshQA (full TEST split)
 
 ```bash
-# FreshQA (full TEST split)
-python preprocess.py --split TEST
-python fetch_freshqa_sources.py          # evidence snapshot (committed)
-python build_freshqa_pools.py            # regenerate pools; not tracked (about 646 MB), deterministic with seed=42
-# then the E1-E4 FreshQA runners  <TODO: list exact script names>
+python src/eval/preprocess_freshqa.py
+python src/eval/fetch_freshqa_sources.py     # evidence snapshot (committed)
+python src/eval/build_freshqa_pools.py       # regenerate pools; not tracked (about 646 MB), deterministic with seed=42
 
-# TriviaQA
-# <TODO: list exact preprocessing and E1-E4 script names>
+python scripts/run_baseline_freshqa.py              # E1
+python scripts/run_dense_freshqa.py                 # E2
+python scripts/run_hybrid_freshqa.py                # E3
+python scripts/run_hybrid_reranker_freshqa.py       # E4
 ```
 
-Reproducing the FreshQA judge validation (after the FreshQA E1-E4 logs exist):
+### TriviaQA (static control)
+
+```bash
+python src/eval/preprocess.py
+python src/eval/save_snapshot.py
+
+python scripts/run_baseline.py                # E1
+python scripts/run_dense.py                   # E2
+python scripts/run_hybrid.py                  # E3
+python scripts/run_hybrid_reranker.py         # E4
+python scripts/run_statistics.py              # paired statistics (local)
+```
+
+### FreshQA judge validation (after the FreshQA E1-E4 logs exist)
 
 ```bash
 python scripts/judge_validation_sample.py       # seeded, stratified sample + blind annotation sheet
 # label results/judge_validation/annotation.csv by hand (1 = correct, 0 = incorrect); do not open key.csv
-python scripts/judge2_run.py                    # second judge on the 112 items (Kaggle GPU)
+python scripts/judge2_run.py                    # second judge on the 112 items (GPU)
 python scripts/judge_validation_agreement.py    # agreement, kappa, sign tests, breakdowns
 python scripts/show_disagreements.py --judge 2  # disagreements, for the error analysis
-python scripts/judge2_run.py --all              # second judge on all 1,908 verdicts (Kaggle GPU)
+python scripts/judge2_run.py --all              # second judge on all 1,908 verdicts (GPU)
 ```
 
-Long Kaggle runs use `resumable_log.py` (skips already-completed `query_id`s on restart) and `git_checkpoint.py` (periodic commit and push), because a full 477-question FreshQA run was once lost to an unsaved session.
+### Frozen summary (local, run last, on a clean working tree)
+
+```bash
+python scripts/make_summary.py     # writes results/summary.csv and results/summary.json
+```
+
+`make_summary.py` recomputes every number from the raw logs (plus the second judge's raw verdict file) and records the git commit, a dirty-tree flag, and SHA-256 hashes of the configs, dataset snapshots and logs. Delete any previous `results/summary.*` before rerunning, because untracked files make the tree dirty. It uses `configs/streamingqa_eval_config.yaml` for StreamingQA, `configs/freshqa_config.yaml` for FreshQA and `configs/baseline_config.yaml` for TriviaQA.
+
+Long GPU runs use `resumable_log.py` (skips already-completed `query_id`s on restart) and `git_checkpoint.py` (periodic commit and push), because a full 477-question FreshQA run was once lost to an unsaved session.
 
 ## 8. Evaluation
 
@@ -219,7 +252,7 @@ Known limitation: the generator caps each passage at 1500 characters, while Stre
 ```
 chronoguard-rag/
 ├── configs/
-│   ├── baseline_config.yaml
+│   ├── baseline_config.yaml            # TriviaQA baseline settings
 │   ├── freshqa_config.yaml
 │   ├── streamingqa_config.yaml
 │   └── streamingqa_eval_config.yaml
@@ -243,12 +276,11 @@ chronoguard-rag/
 │       ├── wmt_sorting_key_ids.txt.gz
 │       └── wmt/
 │           ├── news-docs.2008.en.filtered.gz
-│           ├── news-docs.2009.en.filtered.gz
 │           ├── ...
 │           └── news-docs.2015.en.filtered.gz.partial
 │
 ├── logs/
-│   ├── baseline_run.jsonl
+│   ├── baseline_run.jsonl              # TriviaQA E1-E4: baseline/dense/hybrid/hybrid_reranker
 │   ├── dense_run.jsonl
 │   ├── hybrid_run.jsonl
 │   ├── hybrid_reranker_run.jsonl
@@ -260,6 +292,8 @@ chronoguard-rag/
 ├── notebooks/
 │
 ├── results/
+│   ├── summary.csv                     # frozen clean-baseline summary (from raw logs)
+│   ├── summary.json
 │   └── judge_validation/
 │       ├── annotation.csv
 │       ├── annotation_rater2.csv
@@ -270,14 +304,11 @@ chronoguard-rag/
 │       └── key.csv
 │
 ├── scripts/
-│   ├── inspect_attack_eligibility.py
-│   ├── inspect_stale_sources.py
-│   ├── inspect_temporal_coverage.py
 │   ├── judge2_run.py
 │   ├── judge_validation_agreement.py
 │   ├── judge_validation_sample.py
 │   ├── make_summary.py
-│   ├── run_baseline.py
+│   ├── run_baseline.py                 # TriviaQA E1
 │   ├── run_baseline_freshqa.py
 │   ├── run_baseline_streamingqa.py
 │   ├── run_dense.py
@@ -291,17 +322,11 @@ chronoguard-rag/
 │   ├── run_hybrid_streamingqa.py
 │   ├── run_statistics.py
 │   ├── run_statistics_streamingqa.py
-│   ├── show_disagreements.py
-│   └── test_attack_pool.py
+│   └── show_disagreements.py
 │
 ├── src/
-│   ├── attacks/
-│   │   ├── attack_pool.py
-│   │   ├── attack_specs.py
-│   │   └── __init__.py
-│   │
-│   ├── chronoguard/
-│   │
+│   ├── attacks/                        # Week 5 scaffolding; no results in the frozen baseline
+│   ├── chronoguard/                    # reserved for the defense
 │   ├── eval/
 │   │   ├── build_freshqa_pools.py
 │   │   ├── build_streamingqa_pools.py
@@ -320,24 +345,27 @@ chronoguard-rag/
 │   │   ├── save_snapshot.py
 │   │   ├── save_snapshot_streamingqa.py
 │   │   └── statistics.py
-│   │
 │   ├── generation/
 │   │   └── generate.py
-│   │
 │   └── retrieval/
 │       ├── bm25.py
 │       ├── dense.py
 │       ├── hybrid.py
 │       └── reranker.py
 │
-└── tests/
-    ├── conftest.py
-    ├── test_evaluator.py
-    ├── test_metrics.py
-    └── test_retrieval.py
+├── tests/
+│   ├── conftest.py
+│   ├── test_evaluator.py
+│   ├── test_metrics.py
+│   └── test_retrieval.py
+│
+├── verify_chunking_a3.py
+├── requirements.txt                    # Kaggle environment
+├── requirements.local.txt              # local environment
+└── requirements.local.lock.txt
 ```
 
-### Directory overview
+The repository also contains Week 5 attack-construction scaffolding (`src/attacks/`, `src/eval/build_streamingqa_attack_sources.py` and attack inspection scripts under `scripts/`). It is work in progress and none of it contributes to the frozen clean-baseline results above.
 
 | Directory          | Purpose                                                                                     |
 | ------------------ | ------------------------------------------------------------------------------------------- |
@@ -346,17 +374,15 @@ chronoguard-rag/
 | `data/raw/`        | Frozen dataset snapshots and source evidence, including WMT News Crawl data.                |
 | `logs/`            | Retrieval, evaluation, and statistical experiment logs.                                     |
 | `notebooks/`       | Exploratory and experiment notebooks.                                                       |
-| `results/`         | Human/judge validation outputs and agreement analysis.                                      |
-| `scripts/`         | Experiment runners, inspection utilities, validation scripts, and summary generation.       |
-| `src/attacks/`     | Attack-pool construction and attack specifications.                                         |
-| `src/chronoguard/` | Core ChronoGuard components.                                                                |
+| `results/`         | Frozen summary artifacts and human/judge validation outputs.                                |
+| `scripts/`         | Experiment runners, validation scripts, and summary generation.                             |
+| `src/attacks/`     | Attack-pool construction and attack specifications (Week 5, in development).                |
+| `src/chronoguard/` | Core ChronoGuard components (not started).                                                  |
 | `src/eval/`        | Dataset preparation, evidence fetching, preprocessing, evaluation, metrics, and statistics. |
 | `src/generation/`  | Answer-generation components.                                                               |
 | `src/retrieval/`   | BM25, dense, hybrid, and reranker retrieval implementations.                                |
-| `tests/`           | Automated tests for evaluation, metrics, and retrieval.                                     |
-    regression tests (duplicate passage identity, RRF duplicates, truncation, undefined metrics)
-```
+| `tests/`           | Automated tests for evaluation, metrics, and retrieval, including regression tests (duplicate passage identity, RRF duplicates, truncation, undefined metrics). |
 
 ## 10. Next: Week 5
 
-After Week 4 sign-off the clean baseline is read-only except for documented bug fixes. Week 5 constructs the attack conditions (stale amplification, fabricated-fresh evidence, future-date shift, duplicate fresh-looking poison, correct-content/wrong-date controls) and measures them across E1-E4 before designing the ChronoGuard defense.
+After Week 4 sign-off the clean baseline is read-only except for documented bug fixes. Week 5 constructs the attack conditions (stale amplification, fabricated-fresh evidence, future-date shift, duplicate fresh-looking poison, correct-content/wrong-date controls) and measures them across E1-E4 before designing the ChronoGuard defense. Per the supervisor review, timestamp-only attacks cannot change the current baselines' rankings or generations because none of the baseline components consume timestamp metadata; they are treated as negative controls and as ChronoGuard attacks, or evaluated under a separate date-visible representation.

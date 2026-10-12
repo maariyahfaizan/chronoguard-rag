@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Build the frozen clean-baseline summary from RAW per-query logs only.
 
 Outputs (one row per dataset x experiment):
@@ -74,8 +74,8 @@ DATASETS = {
         },
     },
     "triviaqa": {
-        # StreamingQA's config calls this file configs/triviaqa_config.yaml.
-        "config": "configs/triviaqa_config.yaml",
+        # TriviaQA baseline settings live in the shared baseline config.
+        "config": "configs/baseline_config.yaml",
         "snapshots": ["data/processed/triviaqa_control_clean.jsonl"],   # shared.input_path
         "pool": None,
         "logs": {
@@ -184,27 +184,26 @@ def mean_ci(values, rng):
 
 
 def count_gold_validated(pool_path, query_ids):
-    """Queries with at least one validated gold chunk, from the pool file. Returns None if the
-    pool is missing or carries no validation field (a wrong guess is never reported as data)."""
+    """Number of pool records whose gold evidence is validated (record-level `gold_validated`).
+    The chunked StreamingQA pool has no query_id, so records cannot be matched to log queries
+    individually; the count is only reported when the pool and the log have the same number of
+    queries. Otherwise None (a wrong guess is never reported as data)."""
     if not pool_path or not Path(pool_path).exists():
         return None
-    seen_field, validated = False, set()
+    n_total, n_valid, seen_field = 0, 0, False
     with open(pool_path, encoding="utf-8") as f:
         for line in f:
-            r = json.loads(line)
-            qid = r.get("query_id")
-            if qid not in query_ids:
+            if not line.strip():
                 continue
-            cands = r.get("candidates") or r.get("passages") or []
-            for c in cands:
-                if isinstance(c, dict) and "gold_validated" in c:
-                    seen_field = True
-                    if c["gold_validated"]:
-                        validated.add(qid)
-            if r.get("gold_chunk_ids"):
+            r = json.loads(line)
+            n_total += 1
+            if "gold_validated" in r:
                 seen_field = True
-                validated.add(qid)
-    return len(validated) if seen_field else None
+                if r["gold_validated"]:
+                    n_valid += 1
+    if not seen_field or n_total != len(query_ids):
+        return None
+    return n_valid
 
 
 def load_judge2(path):
