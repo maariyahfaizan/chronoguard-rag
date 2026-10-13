@@ -956,13 +956,15 @@ def apply_attack(
                 continue
             if target_index is None or target_index in used_targets:
                 continue
-            # A passage copied by one operation must not be overwritten by
-            # another, and a copy slot must not be used as a later source.
+            # Copy attacks amplify ONE source passage: every operation copies
+            # the same source, that source is never overwritten, and a copy
+            # slot is never used as a later source.
             source_index = details.get('source_index')
-            if source_index is not None and (
-                source_index in used_targets or target_index in used_sources
-            ):
-                continue
+            if source_index is not None:
+                if source_index in used_targets or target_index in used_sources:
+                    continue
+                if used_sources and source_index != used_sources[0]:
+                    continue
             selected, selected_metadata = candidate_working, candidate_metadata
             break
 
