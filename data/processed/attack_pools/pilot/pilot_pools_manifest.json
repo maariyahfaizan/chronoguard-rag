@@ -1,0 +1,256 @@
+{
+  "generated_at_utc": "2026-10-13T12:37:48.375593+00:00",
+  "git": {
+    "commit": "e8b49f723963e13b917e1d3ffe06819ecc1671a6",
+    "dirty": true
+  },
+  "base_seed": 42,
+  "pilot_file_sha256": "beedf666ea97cf990b141f8ee0a680a50be8db55445a2d424f37631980b3c376",
+  "payload_file_sha256": "dc8ccafab9dd99682e28017319dcf5935a85f242ffce313b9da7f16439ffa423",
+  "validation_report_generated_at": "2026-10-13T12:28:24.063887+00:00",
+  "not_generated": [
+    {
+      "condition": "stale_evidence",
+      "reason": "No validated stale evidence for the pilot; ineligible, not forced."
+    }
+  ],
+  "pools": [
+    {
+      "file": "data/processed/attack_pools/pilot/fabricated_fresh_n1.jsonl",
+      "condition": "fabricated_fresh",
+      "attack_type": "fabricated_fresh",
+      "poison_count": 1,
+      "condition_kwargs": {},
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "9b82bf1b5bf4598afdab933cc5510da1f9d9fb7ba8d5a0506a5f46dd07631958"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/fabricated_fresh_n2.jsonl",
+      "condition": "fabricated_fresh",
+      "attack_type": "fabricated_fresh",
+      "poison_count": 2,
+      "condition_kwargs": {},
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "e2cce187fcd1edd3805a252029aebe433547e97bb0a2db702eb49a96c500049c"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/fabricated_fresh_n5.jsonl",
+      "condition": "fabricated_fresh",
+      "attack_type": "fabricated_fresh",
+      "poison_count": 5,
+      "condition_kwargs": {},
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "6b3d819fd01132e2d558eacd557fc158d11ff01df237dec2fef264eef8eec585"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/future_date_n1.jsonl",
+      "condition": "future_date",
+      "attack_type": "future_date",
+      "poison_count": 1,
+      "condition_kwargs": {},
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "24fc249834000fb20b62a151b01fc8b868802f2f33198aa64667f53d50c1479f"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/future_date_n2.jsonl",
+      "condition": "future_date",
+      "attack_type": "future_date",
+      "poison_count": 2,
+      "condition_kwargs": {},
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "5b7903a405bf0c0aa5c8a641857a69531ef53fd21124fdbc9cd8d661624aea90"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/future_date_n5.jsonl",
+      "condition": "future_date",
+      "attack_type": "future_date",
+      "poison_count": 5,
+      "condition_kwargs": {},
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "2439b60b11ba05b032f2d644e29f57c161b7d2c4ed195faf42ea9de54c64fc8d"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/duplicate_fresh_n1.jsonl",
+      "condition": "duplicate_fresh",
+      "attack_type": "duplicate_fresh",
+      "poison_count": 1,
+      "condition_kwargs": {},
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "b9e4d460fb5e3283bcec22f448b4ba496af383bdc07d52dbcf0ad2162a534fd0"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/duplicate_fresh_n2.jsonl",
+      "condition": "duplicate_fresh",
+      "attack_type": "duplicate_fresh",
+      "poison_count": 2,
+      "condition_kwargs": {},
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "308695e3fa25fb9acaaf36ff47eaf5e14c4372618512d06d859226c38c40c7e5"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/duplicate_fresh_n5.jsonl",
+      "condition": "duplicate_fresh",
+      "attack_type": "duplicate_fresh",
+      "poison_count": 5,
+      "condition_kwargs": {},
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "663d1a1bf1f680bea61201485a30d38176e1efc006c968dddaff3b1a0ba2e8e7"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n1.jsonl",
+      "condition": "correct_content_wrong_date_30d",
+      "attack_type": "correct_content_wrong_date",
+      "poison_count": 1,
+      "condition_kwargs": {
+        "wrong_date_days": 30
+      },
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "a5b79f9a985948c7ba8884cd932fa972e87beab46ca00a9114c43e9d14d7b43c"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n2.jsonl",
+      "condition": "correct_content_wrong_date_30d",
+      "attack_type": "correct_content_wrong_date",
+      "poison_count": 2,
+      "condition_kwargs": {
+        "wrong_date_days": 30
+      },
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "091d5b868291a5f8bed42020c4ef56df17671f46dded775461e0ac9f0e89556c"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n5.jsonl",
+      "condition": "correct_content_wrong_date_30d",
+      "attack_type": "correct_content_wrong_date",
+      "poison_count": 5,
+      "condition_kwargs": {
+        "wrong_date_days": 30
+      },
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "1ffc1615ddc65c95671e5a6784cd4095395c1738101e7a697410e76755937844"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n1.jsonl",
+      "condition": "correct_content_wrong_date_0d_control",
+      "attack_type": "correct_content_wrong_date",
+      "poison_count": 1,
+      "condition_kwargs": {
+        "wrong_date_days": 0
+      },
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "a2d6100615c90a9f50d1f4969274db52fe09453cc13c586be97b13c55687e298"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n2.jsonl",
+      "condition": "correct_content_wrong_date_0d_control",
+      "attack_type": "correct_content_wrong_date",
+      "poison_count": 2,
+      "condition_kwargs": {
+        "wrong_date_days": 0
+      },
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "734ab3b299fdd3ecacf2199726018436f792bb5ae11217fc73d46114f7275913"
+    },
+    {
+      "file": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n5.jsonl",
+      "condition": "correct_content_wrong_date_0d_control",
+      "attack_type": "correct_content_wrong_date",
+      "poison_count": 5,
+      "condition_kwargs": {
+        "wrong_date_days": 0
+      },
+      "n_records": 3,
+      "pilot_indices": [
+        0,
+        1,
+        2
+      ],
+      "skipped_ineligible": [],
+      "sha256": "25837b6c38c13ccf65d6961d47d4e641462a14d42ebf794a9b54564669a1eb9b"
+    }
+  ]
+}
