@@ -1,9 +1,9 @@
 {
   "report_type": "pilot_attack_validation_real_pool",
-  "generated_at_utc": "2026-10-12T12:09:30.604436+00:00",
+  "generated_at_utc": "2026-10-13T12:28:24.063887+00:00",
   "git": {
-    "commit": "5562025ae4e05c86c49527f3279618b85684c127",
-    "dirty": true
+    "commit": "de79455296b6a378e61b28b01fb26b60180d605a",
+    "dirty": false
   },
   "base_seed": 42,
   "poison_counts": [
@@ -14,7 +14,7 @@
   "pilot_file": "data\\processed\\attack_sources\\streamingqa_attack_pilot.jsonl",
   "pilot_file_sha256": "beedf666ea97cf990b141f8ee0a680a50be8db55445a2d424f37631980b3c376",
   "payload_file": "data\\processed\\attack_sources\\streamingqa_pilot_fabricated_payloads.jsonl",
-  "payload_file_sha256": "f371c6911078426fb0e0f32ec7dd1df59a3458ea8be8642dc979763ff8ddebfc",
+  "payload_file_sha256": "dc8ccafab9dd99682e28017319dcf5935a85f242ffce313b9da7f16439ffa423",
   "payload_pairing_and_dates": [
     {
       "pilot_index": 0,
