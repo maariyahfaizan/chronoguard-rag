@@ -1,22 +1,52 @@
-import glob, json, sys
-from datetime import datetime
+import glob, hashlib, json, os, subprocess, sys
+from datetime import datetime, timezone
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+os.chdir(ROOT)
 
 CLEAN = "data/processed/attack_sources/streamingqa_attack_pilot.jsonl"
+REPORT = "results/pilot_pool_check.json"
+
 
 def load(p):
     with open(p, encoding="utf-8") as f:
         return [json.loads(l) for l in f if l.strip()]
+
 
 def to_ts(v):
     if isinstance(v, (int, float)):
         return float(v)
     return datetime.fromisoformat(v).timestamp()
 
+
+def sha_lf(path):
+    """SHA-256 of the file with CRLF normalised to LF (matches what git stores)."""
+    data = open(path, "rb").read().replace(b"\r\n", b"\n")
+    return hashlib.sha256(data).hexdigest()
+
+
+def git(*args):
+    try:
+        return subprocess.run(["git", *args], capture_output=True, text=True,
+                              cwd=ROOT).stdout.strip()
+    except Exception:
+        return None
+
+
 clean = load(CLEAN)
 fails = []
+files = []
+n_records = 0
+
 for path in sorted(glob.glob("data/processed/attack_pools/pilot/*_n*.jsonl")):
     name = path.replace("\\", "/").split("/")[-1]
-    for r in load(path):
+    expected_count = int(name.rsplit("_n", 1)[1].split(".")[0])
+    records = load(path)
+    n_records += len(records)
+    files.append({"file": name, "n_records": len(records),
+                  "expected_poison_count": expected_count,
+                  "sha256_lf": sha_lf(path)})
+    for r in records:
         i = r["pilot_index"]
         c = clean[i]
         meta = r.get("attack_metadata") or {}
@@ -24,6 +54,9 @@ for path in sorted(glob.glob("data/processed/attack_pools/pilot/*_n*.jsonl")):
         tag = f"{name} pilot {i}"
         if not idx:
             fails.append(f"{tag}: no target_indices"); continue
+        # NEW check: number of targets must match the count in the file name
+        if len(idx) != expected_count:
+            fails.append(f"{tag}: {len(idx)} targets but file says n{expected_count}")
         for k in ("query", "gold_answer", "gold_aliases", "question_ts", "gold_chunk_ids"):
             if r[k] != c[k]:
                 fails.append(f"{tag}: {k} changed")
@@ -47,4 +80,34 @@ for path in sorted(glob.glob("data/processed/attack_pools/pilot/*_n*.jsonl")):
 print("ALL OK" if not fails else "FAILURES:")
 for f in fails:
     print(" ", f)
+
+status = git("status", "--porcelain") or ""
+report = {
+    "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+    "git_commit": git("rev-parse", "HEAD"),
+    "git_dirty": bool(status),
+    "git_status_porcelain": status.splitlines(),
+    "checker_sha256_lf": sha_lf(os.path.abspath(__file__)),
+    "clean_pilot_file": CLEAN,
+    "clean_pilot_sha256_lf": sha_lf(CLEAN),
+    "n_pool_files": len(files),
+    "n_records_checked": n_records,
+    "files": files,
+    "checks_performed": [
+        "query, gold_answer, gold_aliases, question_ts, gold_chunk_ids unchanged",
+        "candidate doc_id list identical to clean (constant count)",
+        "changed slots exactly equal target_indices (implies unique slots)",
+        "no target slot is gold",
+        "no target slot flagged is_source_document",
+        "fabricated_fresh timestamps before question",
+        "future_date timestamps after question",
+        "number of targets equals poison count in file name (added check)",
+    ],
+    "result": "ALL OK" if not fails else "FAILED",
+    "failures": fails,
+}
+os.makedirs(os.path.dirname(REPORT), exist_ok=True)
+with open(REPORT, "w", encoding="utf-8") as f:
+    json.dump(report, f, indent=2)
+print("saved", REPORT)
 sys.exit(1 if fails else 0)

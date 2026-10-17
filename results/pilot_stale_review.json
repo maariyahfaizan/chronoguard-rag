@@ -1,0 +1,32 @@
+{
+  "query": "How many countries have had coronavirus in February 2020?",
+  "reviews": [
+    {
+      "query_index": 1,
+      "pilot_index": 1,
+      "pool_slot": 10,
+      "doc_id": "20200221000000000000\u0000\u0001ab4751fbf4cc593f3ad3641d6eeecfbac0c34e7df2286a5701e1d1e401055c34\u0000\u0001_0#chunk0",
+      "validated": false,
+      "reviewer": "Maariyah",
+      "reason": "Old and shares only filler words with the query; does not mention coronavirus or a count of countries, so it is not answer-bearing stale evidence."
+    },
+    {
+      "query_index": 1,
+      "pilot_index": 1,
+      "pool_slot": 16,
+      "doc_id": "20200221000000000000\u0000\u0001f6c71552d6addefa7d7114634b19570429176c333d12ff183e1e02a5490a0245\u0000\u0001_0#chunk0",
+      "validated": false,
+      "reviewer": "Maariyah",
+      "reason": "Old and shares only filler words with the query; does not mention coronavirus or a count of countries, so it is not answer-bearing stale evidence."
+    },
+    {
+      "query_index": 1,
+      "pilot_index": 1,
+      "pool_slot": 1,
+      "doc_id": "20200222000000000000\u0000\u0001ec96a15acfde2b3f67b7f8f83fa372daf036e62941843947198c61113215815e\u0000\u0001_3#chunk0",
+      "validated": false,
+      "reviewer": "Maariyah",
+      "reason": "Old and shares only filler words with the query; does not mention coronavirus or a count of countries, so it is not answer-bearing stale evidence."
+    }
+  ]
+}
