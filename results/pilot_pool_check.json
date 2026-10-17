@@ -1,0 +1,115 @@
+{
+  "generated_at_utc": "2026-10-17T05:21:57.428285+00:00",
+  "git_commit": "66e4a4144c5b6210dd0c95ce55cd6e9f4891eed6",
+  "git_dirty": false,
+  "git_status_porcelain": [],
+  "checker_sha256_lf": "a10fcb70d72c25e52ddcc79b7b981456c017da42423a29b9e51184e75bb948ec",
+  "clean_pilot_file": "data/processed/attack_sources/streamingqa_attack_pilot.jsonl",
+  "clean_pilot_sha256_lf": "beedf666ea97cf990b141f8ee0a680a50be8db55445a2d424f37631980b3c376",
+  "n_pool_files": 15,
+  "n_records_checked": 45,
+  "files": [
+    {
+      "file": "correct_content_wrong_date_0d_control_n1.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 1,
+      "sha256_lf": "5769840831b0f752579517362cd5b9912d2943c0bca9a97d09603c91f2baf1d5"
+    },
+    {
+      "file": "correct_content_wrong_date_0d_control_n2.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 2,
+      "sha256_lf": "363162e1baa9f769202ac145910f9161e59f8051cf6eb3e7092bcebd067e7fa5"
+    },
+    {
+      "file": "correct_content_wrong_date_0d_control_n5.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 5,
+      "sha256_lf": "3eee1be66f3804d8bc56157e098168a83cca441b687476de4a1707ce394e33b3"
+    },
+    {
+      "file": "correct_content_wrong_date_30d_n1.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 1,
+      "sha256_lf": "069062f0555f091429de0a294401d628c8328002ea506b9fa5aaf7d52f18e7c0"
+    },
+    {
+      "file": "correct_content_wrong_date_30d_n2.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 2,
+      "sha256_lf": "26c50aa31d64de31a8000b39092ef552b85defcbdaf0ea08ba4f34856378c79a"
+    },
+    {
+      "file": "correct_content_wrong_date_30d_n5.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 5,
+      "sha256_lf": "c10ceb3e7b8cee636335b774e84b9fa60422546252dc72f85af28e799eeeecb1"
+    },
+    {
+      "file": "duplicate_fresh_n1.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 1,
+      "sha256_lf": "7308519be4ed777c53ddb4272d0e98abb4548d4e3ec67bea98debd643480d5e4"
+    },
+    {
+      "file": "duplicate_fresh_n2.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 2,
+      "sha256_lf": "ca36826947989a010e569cbc25b3a88cf6c3e505ad763a391fffede744511963"
+    },
+    {
+      "file": "duplicate_fresh_n5.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 5,
+      "sha256_lf": "d30e9afe5068456a95a6ee668921179edf3e02c3d306b943dabbfb9f71f26643"
+    },
+    {
+      "file": "fabricated_fresh_n1.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 1,
+      "sha256_lf": "6c9bb208c95e179e844eb39794df12f99a70f13ee7690d196945295df81c8d53"
+    },
+    {
+      "file": "fabricated_fresh_n2.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 2,
+      "sha256_lf": "147b22bbca753540764c23ad1552f528567ef1d6213c728f561ed876c39a8e9e"
+    },
+    {
+      "file": "fabricated_fresh_n5.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 5,
+      "sha256_lf": "7f843dc00d674d8e7d26c6b49aa4d44090ea5535b9f1dba98cc86d6376d92ba0"
+    },
+    {
+      "file": "future_date_n1.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 1,
+      "sha256_lf": "169b8d997127d3ff4048283c595de48306f365334f54c368450babb1ee9a70f9"
+    },
+    {
+      "file": "future_date_n2.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 2,
+      "sha256_lf": "35b3e82f82b39f8bc3b1d9f5c4e1993da0ca1f3c67aa05ccd6c850d97a1df90d"
+    },
+    {
+      "file": "future_date_n5.jsonl",
+      "n_records": 3,
+      "expected_poison_count": 5,
+      "sha256_lf": "dbad94e8f1c82714b1bdf05bdde231845ff12e4716affe9faee7d0290aac5644"
+    }
+  ],
+  "checks_performed": [
+    "query, gold_answer, gold_aliases, question_ts, gold_chunk_ids unchanged",
+    "candidate doc_id list identical to clean (constant count)",
+    "changed slots exactly equal target_indices (implies unique slots)",
+    "no target slot is gold",
+    "no target slot flagged is_source_document",
+    "fabricated_fresh timestamps before question",
+    "future_date timestamps after question",
+    "number of targets equals poison count in file name (added check)"
+  ],
+  "result": "ALL OK",
+  "failures": []
+}
