@@ -1,0 +1,517 @@
+{
+  "git_commit": "b37bce48ca8024307611f85c5e40d10781576f69",
+  "runs": [
+    {
+      "pool": "clean",
+      "experiment": "E1",
+      "input": "data/processed/attack_sources/streamingqa_attack_pilot.jsonl",
+      "log": "logs/pilot_attacks/clean__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "clean",
+      "experiment": "E2",
+      "input": "data/processed/attack_sources/streamingqa_attack_pilot.jsonl",
+      "log": "logs/pilot_attacks/clean__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "clean",
+      "experiment": "E3",
+      "input": "data/processed/attack_sources/streamingqa_attack_pilot.jsonl",
+      "log": "logs/pilot_attacks/clean__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "clean",
+      "experiment": "E4",
+      "input": "data/processed/attack_sources/streamingqa_attack_pilot.jsonl",
+      "log": "logs/pilot_attacks/clean__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n1.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n1.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n1.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n1.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n2.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n2.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n2.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n2.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n5.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n5.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n5.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n5.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_0d_control_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n1.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n1.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n1.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n1.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n2.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n2.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n2.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n2.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n5.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n5.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n5.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n5.jsonl",
+      "log": "logs/pilot_attacks/correct_content_wrong_date_30d_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "duplicate_fresh_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/duplicate_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks/duplicate_fresh_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "fabricated_fresh_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/fabricated_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks/fabricated_fresh_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/future_date_n1.jsonl",
+      "log": "logs/pilot_attacks/future_date_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/future_date_n1.jsonl",
+      "log": "logs/pilot_attacks/future_date_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/future_date_n1.jsonl",
+      "log": "logs/pilot_attacks/future_date_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/future_date_n1.jsonl",
+      "log": "logs/pilot_attacks/future_date_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/future_date_n2.jsonl",
+      "log": "logs/pilot_attacks/future_date_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/future_date_n2.jsonl",
+      "log": "logs/pilot_attacks/future_date_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/future_date_n2.jsonl",
+      "log": "logs/pilot_attacks/future_date_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/future_date_n2.jsonl",
+      "log": "logs/pilot_attacks/future_date_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot/future_date_n5.jsonl",
+      "log": "logs/pilot_attacks/future_date_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot/future_date_n5.jsonl",
+      "log": "logs/pilot_attacks/future_date_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot/future_date_n5.jsonl",
+      "log": "logs/pilot_attacks/future_date_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    },
+    {
+      "pool": "future_date_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot/future_date_n5.jsonl",
+      "log": "logs/pilot_attacks/future_date_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3
+    }
+  ]
+}

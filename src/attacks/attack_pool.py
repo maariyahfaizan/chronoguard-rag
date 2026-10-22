@@ -12,6 +12,10 @@ Design principles:
 - Use deterministic random selection controlled by a seed.
 - Write attacked timestamps in the same format as the clean pool
   (ISO-8601 with a +00:00 offset).
+- Pair fabricated payloads with questions only by source_qa_id (never by
+  file order or index); see identity.py.
+- Poison counts are nested: the n=1 slot is the first slot of n=2, and the
+  n=2 slots are the first two slots of n=5, for the same record and seed.
 """
 
 from __future__ import annotations
@@ -25,6 +29,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Optional
 
 from .attack_specs import AttackType, get_attack_spec
+from .identity import check_payload_matches_record
 
 
 Candidate = Dict[str, Any]
@@ -54,9 +59,13 @@ REQUIRED_CANDIDATE_FIELDS = {
 _MIN_UNIX_SECONDS = 1e8
 
 
-def _stable_seed(base_seed: int, record_index: int, attack_type: str) -> int:
-    """Create a reproducible per-record seed."""
-    payload = f"{base_seed}|{record_index}|{attack_type}".encode("utf-8")
+def _stable_seed(base_seed: int, record_key: int | str, attack_type: str) -> int:
+    """Create a reproducible per-record seed.
+
+    Pass the record's source_qa_id as record_key so the seed does not depend
+    on the record's position in a file.
+    """
+    payload = f"{base_seed}|{record_key}|{attack_type}".encode("utf-8")
     digest = hashlib.sha256(payload).hexdigest()
     return int(digest[:16], 16)
 
@@ -703,6 +712,7 @@ def _apply_fabricated_fresh(
         "is_source_document": False,
         "is_synthetic_poison": True,
         "payload_id": payload.get("payload_id"),
+        "payload_source_qa_id": payload.get("source_qa_id"),
     }
 
     record["candidates"][target_index] = poison
@@ -881,39 +891,22 @@ def apply_attack(
     min_stale_age_days: int = 30, future_days: int = 7,
     wrong_date_days: int = 30, poison_count: int = 1,
 ) -> tuple[Record, Dict[str, Any]]:
-    # Apply 1, 2, or 5 poisons to distinct non-gold slots atomically.
+    """Apply 1, 2, or 5 poisons to distinct non-gold slots atomically.
+
+    Every count runs the same deterministic sequence of operations, and
+    operation k depends only on the seed and operations 0..k-1. So for one
+    record and seed the selected slots are nested: n=1 -> [A],
+    n=2 -> [A, B], n=5 -> [A, B, C, D, E].
+
+    fabricated_fresh payloads must carry the record's source_qa_id; a
+    missing or mismatched identifier raises PayloadIdentityError.
+    """
     if poison_count not in (1, 2, 5):
         raise ValueError('poison_count must be one of: 1, 2, 5')
     _validate_record(record)
     get_attack_spec(attack_type)
-
-    if poison_count == 1:
-        attacked, metadata = _apply_attack_once(
-            record, attack_type=attack_type, seed=seed,
-            poison_payload=poison_payload,
-            min_stale_age_days=min_stale_age_days,
-            future_days=future_days, wrong_date_days=wrong_date_days,
-        )
-
-        details = metadata.get('details', {})
-        target_index = details.get('target_index')
-        applied = bool(metadata.get('applied')) and target_index is not None
-
-        metadata['requested_poison_count'] = 1
-        metadata['actual_poison_count'] = 1 if applied else 0
-        metadata['target_indices'] = [int(target_index)] if applied else []
-        metadata['target_doc_ids'] = (
-            [attacked['candidates'][int(target_index)]['doc_id']]
-            if applied else []
-        )
-        metadata['operations'] = [copy.deepcopy(details)] if applied else []
-        metadata['candidate_count_before'] = len(record['candidates'])
-        metadata['candidate_count_after'] = len(attacked['candidates'])
-
-        if isinstance(attacked.get('attack_metadata'), dict):
-            attacked['attack_metadata'] = metadata
-
-        return attacked, metadata
+    if attack_type == 'fabricated_fresh' and poison_payload is not None:
+        check_payload_matches_record(record, poison_payload)
 
     original = copy.deepcopy(dict(record))
     working = copy.deepcopy(dict(record))
@@ -1011,6 +1004,9 @@ def apply_attack(
         'candidate_count_before': base_count,
         'candidate_count_after': len(working['candidates']),
     }
+    if poison_count == 1:
+        # Single-operation shape kept for existing consumers of 'details'.
+        metadata['details'] = copy.deepcopy(operation_details[0])
     working['attack_condition'] = attack_type
     working['attack_metadata'] = metadata
     return working, metadata
@@ -1030,6 +1026,11 @@ def generate_attacked_records(
 ) -> List[Record]:
     """Generate an attacked copy of every supplied record.
 
+    poison_payloads maps source_qa_id -> payload. The per-record seed uses
+    the record's source_qa_id when present, so results do not depend on the
+    order of `records`. Records without source_qa_id fall back to their
+    position (only acceptable for attacks that take no payload).
+
     With skip_ineligible=True, records where the attack could not be applied
     are left out, so ineligible cases are never forced into the benchmark.
     Otherwise they are returned unchanged with attack_metadata['applied']
@@ -1040,14 +1041,19 @@ def generate_attacked_records(
     for index, record in enumerate(records):
         per_record_seed = _stable_seed(
             seed,
-            index,
+            record.get("source_qa_id", index),
             attack_type,
         )
 
         payload = None
 
         if poison_payloads is not None:
-            payload = poison_payloads.get(str(index))
+            if not record.get("source_qa_id"):
+                raise ValueError(
+                    "Payloads are paired by source_qa_id; record "
+                    f"{index} has none."
+                )
+            payload = poison_payloads.get(record["source_qa_id"])
 
         attacked, metadata = apply_attack(
             record,
@@ -1098,7 +1104,11 @@ def write_jsonl(
     records: Iterable[Mapping[str, Any]],
     path: str | Path,
 ) -> None:
-    """Write attacked records to JSONL."""
+    """Write attacked records to JSONL with LF line endings.
+
+    LF matches .gitattributes (*.jsonl eol=lf), so a file's sha256 is the same
+    on Windows, in git and in a Linux (Kaggle) checkout.
+    """
     path = Path(path)
 
     path.parent.mkdir(
@@ -1106,7 +1116,7 @@ def write_jsonl(
         exist_ok=True,
     )
 
-    with path.open("w", encoding="utf-8") as handle:
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
         for record in records:
             handle.write(
                 json.dumps(

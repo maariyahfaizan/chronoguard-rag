@@ -9,6 +9,7 @@ from src.retrieval.bm25 import retrieve_best
 from src.generation.generate import load_model, generate_answer, build_prompt
 from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metrics_by_group
 from src.eval.config_loader import experiment_params
+from src.eval.run_metadata import attack_log_fields
 
 # StreamingQA-specific driver for E1 (BM25). Deliberately a separate file
 # from run_baseline.py rather than a branch inside it -- run_baseline.py
@@ -40,6 +41,14 @@ from src.eval.config_loader import experiment_params
 # set, not two. See src/eval/config_loader.py for the fail-loud behavior
 # if a key is missing.
 
+# NOTE ON THIS REVISION (pre-Week-6 item 6): each log row now records the
+# pool's real attack_condition (and source_qa_id, poison slots, attack seed)
+# via attack_log_fields(row) instead of a hardcoded "clean". Clean input rows
+# have no attack fields, so they still log attack_condition "clean" exactly as
+# before. An optional run_metadata dict (model revisions, config/pool hashes,
+# git commit, seeds, environment) is stored on every row when the caller passes
+# it; the frozen Week-4 baseline invocations pass none.
+
 _CFG = experiment_params("E1")
 INPUT_PATH = _CFG["input_path"]
 LOG_PATH = _CFG["log_path"]
@@ -47,7 +56,8 @@ TOP_K = _CFG["top_k"]
 GENERATOR_MODEL = _CFG["generator_model"]
 
 
-def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, log_path=LOG_PATH, top_k=TOP_K):
+def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, log_path=LOG_PATH, top_k=TOP_K,
+                              run_metadata=None):
     if model is None or tokenizer is None:
         # Model name now comes from the YAML (GENERATOR_MODEL) rather than
         # generate.py's own hardcoded default -- load_model() already
@@ -56,7 +66,7 @@ def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, 
 
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
-    with open(input_path) as f:
+    with open(input_path, "r", encoding="utf-8") as f:
         rows = [json.loads(line) for line in f]
 
     results = []
@@ -138,8 +148,9 @@ def run_baseline_streamingqa(model=None, tokenizer=None, input_path=INPUT_PATH, 
                 "latency_seconds": latency,
                 "input_token_count": input_token_count,
                 "output_token_count": output_token_count,
-                "attack_condition": "clean",
+                **attack_log_fields(row),
                 **metrics,
+                **({"run_metadata": run_metadata} if run_metadata is not None else {}),
             }
 
             log_file.write(json.dumps(record) + "\n")

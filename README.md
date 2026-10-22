@@ -147,7 +147,7 @@ Kaggle package versions were read from the Kaggle image used for the runs and ma
 | `BAAI/bge-reranker-base` | Reranker (E4) | Not recorded |
 | `Qwen/Qwen2.5-14B-Instruct` | Headline FreshQA judge | `cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8` |
 
-From Week 5 onward, model revisions are to be pinned explicitly in the configs.
+From Week 5 onward, model revisions are to be pinned explicitly in the configs. They are now pinned in `configs/model_revisions.yaml` (verified 2026-10-21) and recorded in every attacked-run log; the pins are not claimed to be the revisions the frozen baseline runs used.
 
 Local setup:
 

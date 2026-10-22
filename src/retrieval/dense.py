@@ -5,11 +5,11 @@ from transformers import AutoTokenizer, AutoModel
 MODEL_NAME = "facebook/contriever"
 
 
-def load_dense_model(model_name: str = MODEL_NAME):
-    """Load the Contriever dense retriever."""
+def load_dense_model(model_name: str = MODEL_NAME, revision: str | None = None):
+    """Load the Contriever dense retriever (revision: pinned Hub commit, or None)."""
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModel.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
+    model = AutoModel.from_pretrained(model_name, revision=revision)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = model.to(device)

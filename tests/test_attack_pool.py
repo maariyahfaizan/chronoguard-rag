@@ -15,6 +15,7 @@ ATTACK_TYPES = [
 
 POISON_PAYLOAD = {
     "payload_id": "test-poison-001",
+    "source_qa_id": "test-qa-001",
     "text": (
         "A deliberately fabricated test claim about the "
         "Rangers football team and its current league position."
@@ -26,6 +27,7 @@ POISON_PAYLOAD = {
 def make_test_record():
     """Create a small, controlled record for attack tests."""
     return {
+        "source_qa_id": "test-qa-001",
         "query": "What is the current Rangers football team position?",
         "gold_answer": "Rangers are in the test position.",
         "gold_aliases": ["Rangers test position"],

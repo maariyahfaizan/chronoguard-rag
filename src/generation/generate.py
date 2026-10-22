@@ -2,12 +2,17 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import torch
 
 
-def load_model(model_name: str = "mistralai/Mistral-7B-Instruct-v0.2"):
-    """Load Mistral in 4-bit on whatever GPU is available (Kaggle T4)."""
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+def load_model(model_name: str = "mistralai/Mistral-7B-Instruct-v0.2", revision: str | None = None):
+    """Load Mistral in 4-bit on whatever GPU is available (Kaggle T4).
+
+    revision pins the Hugging Face commit (configs/model_revisions.yaml).
+    None keeps the Week-4 behaviour of loading whatever the Hub serves.
+    """
+    tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision)
     quant_config = BitsAndBytesConfig(load_in_4bit=True)
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
+        revision=revision,
         dtype=torch.float16,
         quantization_config=quant_config,
         device_map="auto",

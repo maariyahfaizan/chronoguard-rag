@@ -1,11 +1,141 @@
 {
-  "generated_at_utc": "2026-10-17T05:21:57.428285+00:00",
-  "git_commit": "66e4a4144c5b6210dd0c95ce55cd6e9f4891eed6",
-  "git_dirty": false,
-  "git_status_porcelain": [],
-  "checker_sha256_lf": "a10fcb70d72c25e52ddcc79b7b981456c017da42423a29b9e51184e75bb948ec",
+  "protocol_version": "week5_pilot_v2_nested",
+  "generated_at_utc": "2026-10-21T08:21:33.716260+00:00",
+  "git_commit": "dc937b460362cf82f91839695ccde4aeef617ce4",
+  "git_dirty": true,
+  "git_status_porcelain": [
+    "M README.md",
+    " D data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n1.jsonl",
+    " D data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n2.jsonl",
+    " D data/processed/attack_pools/pilot/correct_content_wrong_date_0d_control_n5.jsonl",
+    " D data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n1.jsonl",
+    " D data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n2.jsonl",
+    " D data/processed/attack_pools/pilot/correct_content_wrong_date_30d_n5.jsonl",
+    " D data/processed/attack_pools/pilot/duplicate_fresh_n1.jsonl",
+    " D data/processed/attack_pools/pilot/duplicate_fresh_n2.jsonl",
+    " D data/processed/attack_pools/pilot/duplicate_fresh_n5.jsonl",
+    " D data/processed/attack_pools/pilot/fabricated_fresh_n1.jsonl",
+    " D data/processed/attack_pools/pilot/fabricated_fresh_n2.jsonl",
+    " D data/processed/attack_pools/pilot/fabricated_fresh_n5.jsonl",
+    " D data/processed/attack_pools/pilot/future_date_n1.jsonl",
+    " D data/processed/attack_pools/pilot/future_date_n2.jsonl",
+    " D data/processed/attack_pools/pilot/future_date_n5.jsonl",
+    " D data/processed/attack_pools/pilot/pilot_pools_manifest.json",
+    " M data/processed/attack_sources/streamingqa_attack_pilot.jsonl",
+    " M data/processed/attack_sources/streamingqa_pilot_fabricated_payloads.jsonl",
+    " D data/processed/attack_sources/streamingqa_pilot_poison_payloads.jsonl",
+    " D data/processed/attack_sources/streamingqa_week5_attack_manifest.jsonl",
+    " M docs/week4_closure.md",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n1__E1.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n1__E2.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n1__E3.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n1__E4.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n2__E1.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n2__E2.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n2__E3.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n2__E4.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n5__E1.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n5__E2.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n5__E3.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_0d_control_n5__E4.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n1__E1.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n1__E2.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n1__E3.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n1__E4.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n2__E1.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n2__E2.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n2__E3.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n2__E4.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n5__E1.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n5__E2.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n5__E3.jsonl",
+    " D logs/pilot_attacks/correct_content_wrong_date_30d_n5__E4.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n1__E1.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n1__E2.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n1__E3.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n1__E4.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n2__E1.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n2__E2.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n2__E3.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n2__E4.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n5__E1.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n5__E2.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n5__E3.jsonl",
+    " D logs/pilot_attacks/duplicate_fresh_n5__E4.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n1__E1.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n1__E2.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n1__E3.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n1__E4.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n2__E1.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n2__E2.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n2__E3.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n2__E4.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n5__E1.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n5__E2.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n5__E3.jsonl",
+    " D logs/pilot_attacks/fabricated_fresh_n5__E4.jsonl",
+    " D logs/pilot_attacks/future_date_n1__E1.jsonl",
+    " D logs/pilot_attacks/future_date_n1__E2.jsonl",
+    " D logs/pilot_attacks/future_date_n1__E3.jsonl",
+    " D logs/pilot_attacks/future_date_n1__E4.jsonl",
+    " D logs/pilot_attacks/future_date_n2__E1.jsonl",
+    " D logs/pilot_attacks/future_date_n2__E2.jsonl",
+    " D logs/pilot_attacks/future_date_n2__E3.jsonl",
+    " D logs/pilot_attacks/future_date_n2__E4.jsonl",
+    " D logs/pilot_attacks/future_date_n5__E1.jsonl",
+    " D logs/pilot_attacks/future_date_n5__E2.jsonl",
+    " D logs/pilot_attacks/future_date_n5__E3.jsonl",
+    " D logs/pilot_attacks/future_date_n5__E4.jsonl",
+    " D results/pilot_attack_rows.csv",
+    " M results/pilot_attack_validation.json",
+    " D results/pilot_djokovic_review.csv",
+    " D results/pilot_harm_review.csv",
+    " M results/pilot_pool_check.json",
+    " D results/pilot_vulnerability_summary.csv",
+    " M scripts/build_pilot_attack_pools.py",
+    " M scripts/check_pilot_pools.py",
+    " M scripts/postprocess_pilot_attacks.py",
+    " M scripts/run_baseline_streamingqa.py",
+    " M scripts/run_dense_streamingqa.py",
+    " M scripts/run_hybrid_reranker_streamingqa.py",
+    " M scripts/run_hybrid_streamingqa.py",
+    " M scripts/run_pilot_attacks_kaggle.py",
+    " M scripts/summarize_pilot_attacks.py",
+    " M scripts/validate_pilot_attacks.py",
+    " M src/attacks/attack_pool.py",
+    " M src/eval/config_loader.py",
+    " M src/generation/generate.py",
+    " M src/retrieval/dense.py",
+    " M src/retrieval/reranker.py",
+    " M tests/test_attack_pool.py",
+    " M tests/test_attack_pool_poison_counts.py",
+    " M tests/test_attack_pool_regressions.py",
+    " M tests/test_attack_pool_week5_additions.py",
+    "?? configs/model_revisions.yaml",
+    "?? data/processed/attack_pools/legacy/",
+    "?? data/processed/attack_pools/pilot_v2_nested/",
+    "?? data/processed/attack_sources/legacy/",
+    "?? docs/week4_post_freeze_validation.md",
+    "?? docs/week5_pilot_validation_report.md",
+    "?? docs/week6_judging_protocol.md",
+    "?? logs/legacy/",
+    "?? results/legacy/",
+    "?? scripts/fix_pilot_identity.py",
+    "?? scripts/judge_legacy_pilot_v1.py",
+    "?? scripts/smoke_test_e2_e4_post_freeze.py",
+    "?? src/attacks/identity.py",
+    "?? src/attacks/pilot_protocol.py",
+    "?? src/eval/answer_judge.py",
+    "?? src/eval/run_metadata.py",
+    "?? tests/test_answer_judge.py",
+    "?? tests/test_identity_and_nesting.py",
+    "?? tests/test_pilot_postprocess_summary.py",
+    "?? tests/test_run_metadata.py"
+  ],
+  "checker_sha256_lf": "8735bd6a7a976d9e669d714e5a841abe35fb182cb9b4ec9c12624e84eeed9d2f",
   "clean_pilot_file": "data/processed/attack_sources/streamingqa_attack_pilot.jsonl",
-  "clean_pilot_sha256_lf": "beedf666ea97cf990b141f8ee0a680a50be8db55445a2d424f37631980b3c376",
+  "clean_pilot_sha256_lf": "fbfedc730149147580aa98318b708144f53bb1487c8c34ee70da4ad56d23ff05",
+  "pool_dir": "data/processed/attack_pools/pilot_v2_nested",
   "n_pool_files": 15,
   "n_records_checked": 45,
   "files": [
@@ -13,102 +143,110 @@
       "file": "correct_content_wrong_date_0d_control_n1.jsonl",
       "n_records": 3,
       "expected_poison_count": 1,
-      "sha256_lf": "5769840831b0f752579517362cd5b9912d2943c0bca9a97d09603c91f2baf1d5"
+      "sha256_lf": "a59a0f1269c7a319dd7baf859cf47d4260cdba368c4242247dc9f33e393adf95"
     },
     {
       "file": "correct_content_wrong_date_0d_control_n2.jsonl",
       "n_records": 3,
       "expected_poison_count": 2,
-      "sha256_lf": "363162e1baa9f769202ac145910f9161e59f8051cf6eb3e7092bcebd067e7fa5"
+      "sha256_lf": "103a66c7ff4ce8e3f7ace90111aec43c33495bbe733c4d2e6499daf071147e7b"
     },
     {
       "file": "correct_content_wrong_date_0d_control_n5.jsonl",
       "n_records": 3,
       "expected_poison_count": 5,
-      "sha256_lf": "3eee1be66f3804d8bc56157e098168a83cca441b687476de4a1707ce394e33b3"
+      "sha256_lf": "73c16cd426b56e9ed92333688aae3edb3dce7476cfe14b9e631428db963997a7"
     },
     {
       "file": "correct_content_wrong_date_30d_n1.jsonl",
       "n_records": 3,
       "expected_poison_count": 1,
-      "sha256_lf": "069062f0555f091429de0a294401d628c8328002ea506b9fa5aaf7d52f18e7c0"
+      "sha256_lf": "12df3232b52cb6962102c878626c73df9b893bc8935f1a15e9621d1300fea492"
     },
     {
       "file": "correct_content_wrong_date_30d_n2.jsonl",
       "n_records": 3,
       "expected_poison_count": 2,
-      "sha256_lf": "26c50aa31d64de31a8000b39092ef552b85defcbdaf0ea08ba4f34856378c79a"
+      "sha256_lf": "9e01f073219b94d03e8dc09151b0346da9c797db3b380b816e348d82578339fc"
     },
     {
       "file": "correct_content_wrong_date_30d_n5.jsonl",
       "n_records": 3,
       "expected_poison_count": 5,
-      "sha256_lf": "c10ceb3e7b8cee636335b774e84b9fa60422546252dc72f85af28e799eeeecb1"
+      "sha256_lf": "ad00258dfbc0199fd0d3e3cc4f7d22a7e5634a5e6ebcb2487e977bc83d99c9fd"
     },
     {
       "file": "duplicate_fresh_n1.jsonl",
       "n_records": 3,
       "expected_poison_count": 1,
-      "sha256_lf": "7308519be4ed777c53ddb4272d0e98abb4548d4e3ec67bea98debd643480d5e4"
+      "sha256_lf": "9c167d6bb729bbab19fbc1ab8687bed1030d4d019b0757a3adaf4efece576dc2"
     },
     {
       "file": "duplicate_fresh_n2.jsonl",
       "n_records": 3,
       "expected_poison_count": 2,
-      "sha256_lf": "ca36826947989a010e569cbc25b3a88cf6c3e505ad763a391fffede744511963"
+      "sha256_lf": "f79a86cd4771630a92e39ddaffa9a994e30744e75a4039f16bc45c8fda4ac009"
     },
     {
       "file": "duplicate_fresh_n5.jsonl",
       "n_records": 3,
       "expected_poison_count": 5,
-      "sha256_lf": "d30e9afe5068456a95a6ee668921179edf3e02c3d306b943dabbfb9f71f26643"
+      "sha256_lf": "2b42d1b94e5adb8f43cc781d61a790f8a4eb7b59c6efbebd1efe788f70cdbe12"
     },
     {
       "file": "fabricated_fresh_n1.jsonl",
       "n_records": 3,
       "expected_poison_count": 1,
-      "sha256_lf": "6c9bb208c95e179e844eb39794df12f99a70f13ee7690d196945295df81c8d53"
+      "sha256_lf": "e52a5952d580aa8852cba06dee2f167a910b8823c6a56bdf0dacef6c87e141a6"
     },
     {
       "file": "fabricated_fresh_n2.jsonl",
       "n_records": 3,
       "expected_poison_count": 2,
-      "sha256_lf": "147b22bbca753540764c23ad1552f528567ef1d6213c728f561ed876c39a8e9e"
+      "sha256_lf": "8824752152da37cb7585170f380ffdb4335c96dc3c6ed6a3f1ee2450b93bfba4"
     },
     {
       "file": "fabricated_fresh_n5.jsonl",
       "n_records": 3,
       "expected_poison_count": 5,
-      "sha256_lf": "7f843dc00d674d8e7d26c6b49aa4d44090ea5535b9f1dba98cc86d6376d92ba0"
+      "sha256_lf": "5f6fb33f3ba76c4fe1357ddefe2c6a1bc2ea874e11d7c35a76ffed99eeddeaad"
     },
     {
       "file": "future_date_n1.jsonl",
       "n_records": 3,
       "expected_poison_count": 1,
-      "sha256_lf": "169b8d997127d3ff4048283c595de48306f365334f54c368450babb1ee9a70f9"
+      "sha256_lf": "5804d35525c3a458fd9ca945cfef797f183b326ca02afab8a21b47a821a5037a"
     },
     {
       "file": "future_date_n2.jsonl",
       "n_records": 3,
       "expected_poison_count": 2,
-      "sha256_lf": "35b3e82f82b39f8bc3b1d9f5c4e1993da0ca1f3c67aa05ccd6c850d97a1df90d"
+      "sha256_lf": "700918ef15a54c6ffe439245a7c739eca5c7158663e6614e51963226433bc43c"
     },
     {
       "file": "future_date_n5.jsonl",
       "n_records": 3,
       "expected_poison_count": 5,
-      "sha256_lf": "dbad94e8f1c82714b1bdf05bdde231845ff12e4716affe9faee7d0290aac5644"
+      "sha256_lf": "09fdb8e0a900dddd3b9162f480bf2ab13cb3c41380d0edcab7d4c6b2982a7baa"
     }
   ],
   "checks_performed": [
+    "records matched to the clean pilot by source_qa_id (not position)",
     "query, gold_answer, gold_aliases, question_ts, gold_chunk_ids unchanged",
     "candidate doc_id list identical to clean (constant count)",
     "changed slots exactly equal target_indices (implies unique slots)",
+    "target_doc_ids equal the doc_ids of the target slots",
     "no target slot is gold",
     "no target slot flagged is_source_document",
+    "fabricated_fresh slots carry a payload with the record's source_qa_id",
     "fabricated_fresh timestamps before question",
     "future_date timestamps after question",
-    "number of targets equals poison count in file name (added check)"
+    "number of targets equals poison count in file name and record",
+    "attack_condition and attack_protocol_version recorded on every record",
+    "poison counts nested: n=1 subset of n=2 subset of n=5 per question and condition",
+    "30d attack and 0d control use identical slots",
+    "pool file sha256 matches the build manifest",
+    "no stale_evidence pool (no reviewed stale evidence)"
   ],
   "result": "ALL OK",
   "failures": []

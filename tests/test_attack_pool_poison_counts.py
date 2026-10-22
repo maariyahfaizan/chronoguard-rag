@@ -9,6 +9,7 @@ ATTACK_TYPES = [
 ]
 PAYLOAD = {
     'payload_id': 'count-test-payload',
+    'source_qa_id': 'test-qa-001',
     'text': 'A deliberately fabricated test claim about Rangers.',
     'timestamp': '2025-02-10T12:00:00Z',
 }
@@ -37,6 +38,7 @@ def make_record():
             'is_source_document': True,
         })
     return {
+        'source_qa_id': 'test-qa-001',
         'query': 'What is the current Rangers football team position?',
         'gold_answer': 'Rangers are in the test position.',
         'gold_aliases': ['Rangers test position'],

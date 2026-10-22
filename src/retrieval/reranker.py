@@ -5,9 +5,9 @@ from sentence_transformers import CrossEncoder
 MODEL_NAME = "BAAI/bge-reranker-base"
 
 
-def load_reranker(model_name: str = MODEL_NAME):
+def load_reranker(model_name: str = MODEL_NAME, revision: str | None = None):
     """
-    Load the BGE cross-encoder reranker.
+    Load the BGE cross-encoder reranker (revision: pinned Hub commit, or None).
     """
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -17,7 +17,8 @@ def load_reranker(model_name: str = MODEL_NAME):
 
     model = CrossEncoder(
         model_name,
-        device=device
+        device=device,
+        revision=revision,
     )
 
     return model, device

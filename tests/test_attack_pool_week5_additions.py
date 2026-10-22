@@ -84,7 +84,8 @@ class TestMetadata(unittest.TestCase):
                 full_record(),
                 attack_type="fabricated_fresh",
                 seed=1,
-                poison_payload={"text": "x", "timestamp": "not a date"},
+                poison_payload={"source_qa_id": "test-qa-001", "text": "x",
+                                "timestamp": "not a date"},
             )
 
     def test_wrong_date_days_zero_is_the_duplication_only_control(self):

@@ -1,0 +1,29 @@
+# Pinned Hugging Face model revisions for every run from the Week-5 v2 pilot
+# rerun onward (supervisor pre-Week-6 item 6).
+#
+# Each value is the full commit SHA that the Hub served as `main` when it was
+# verified on 2026-10-21 via https://huggingface.co/api/models/<repo>/revision/<sha>
+# (sha resolved, config.json downloadable at that revision, and it was the
+# newest commit on main).
+#
+# The frozen Week-4 baselines did NOT record model revisions; they loaded each
+# model by name only. These pins are not claimed to be the revisions those runs
+# used. Do not edit configs/streamingqa_eval_config.yaml or any Week-4 result to
+# imply otherwise.
+#
+# Loaded by src/eval/config_loader.py:model_revisions(). Changing a value
+# changes the run config hash recorded in every log row.
+
+models:
+  mistralai/Mistral-7B-Instruct-v0.2:
+    role: generator (E1-E4)
+    revision: 63a8b081895390a26e140280378bc85ec8bce07a
+    hub_commit_date: 2025-07-24
+  facebook/contriever:
+    role: dense retriever (E2-E4)
+    revision: 2bd46a25019aeea091fd42d1f0fd4801675cf699
+    hub_commit_date: 2022-01-19
+  BAAI/bge-reranker-base:
+    role: cross-encoder reranker (E4)
+    revision: 2cfc18c9415c912f9d8155881c133215df768a70
+    hub_commit_date: 2024-06-24

@@ -13,6 +13,7 @@ from src.retrieval.reranker import load_reranker, rerank
 from src.generation.generate import load_model, generate_answer, build_prompt
 from src.eval.evaluator import evaluate_query, aggregate_metrics, aggregate_metrics_by_group
 from src.eval.config_loader import experiment_params
+from src.eval.run_metadata import attack_log_fields
 
 # StreamingQA-specific driver for E4 (hybrid RRF + BGE cross-encoder
 # reranker). See run_baseline_streamingqa.py's header comment for the
@@ -24,6 +25,14 @@ from src.eval.config_loader import experiment_params
 # CANDIDATE_TOP_K/FUSED_TOP_K/FINAL_TOP_K/RRF_K/RERANKER_MODEL/generator
 # model now come from configs/streamingqa_eval_config.yaml via
 # experiment_params("E4"), not hardcoded here.
+
+# NOTE ON THIS REVISION (pre-Week-6 item 6): each log row now records the
+# pool's real attack_condition (and source_qa_id, poison slots, attack seed)
+# via attack_log_fields(row) instead of a hardcoded "clean". Clean input rows
+# have no attack fields, so they still log attack_condition "clean" exactly as
+# before. An optional run_metadata dict (model revisions, config/pool hashes,
+# git commit, seeds, environment) is stored on every row when the caller passes
+# it; the frozen Week-4 baseline invocations pass none.
 
 _CFG = experiment_params("E4")
 INPUT_PATH = _CFG["input_path"]
@@ -49,6 +58,7 @@ def run_hybrid_cross_encoder_streamingqa(
     fused_top_k=FUSED_TOP_K,
     final_top_k=FINAL_TOP_K,
     rrf_k=RRF_K,
+    run_metadata=None,
 ):
     if model is None or tokenizer is None:
         model, tokenizer = load_model(GENERATOR_MODEL)
@@ -61,7 +71,7 @@ def run_hybrid_cross_encoder_streamingqa(
 
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
 
-    with open(input_path, "r") as f:
+    with open(input_path, "r", encoding="utf-8") as f:
         rows = [json.loads(line) for line in f]
 
     results = []
@@ -157,8 +167,9 @@ def run_hybrid_cross_encoder_streamingqa(
                 "latency_seconds": latency,
                 "input_token_count": input_token_count,
                 "output_token_count": output_token_count,
-                "attack_condition": "clean",
+                **attack_log_fields(row),
                 **metrics,
+                **({"run_metadata": run_metadata} if run_metadata is not None else {}),
             }
 
             log_file.write(json.dumps(record) + "\n")

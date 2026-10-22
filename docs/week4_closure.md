@@ -1,7 +1,7 @@
 # Week 4 Closure Note: ChronoGuard-RAG
 
 **Student:** Maariyah Anjum Faizan
-**Date:** `<FILL: date of closure>`
+**Date:** 2026-10-12 (closure note committed in `5203ed7`; the `week4-frozen` tag was created on 2026-10-11)
 **Scope:** Clean baselines E1-E4 on StreamingQA (primary), FreshQA and TriviaQA (secondary / control)
 
 ## 1. Freeze record
@@ -51,12 +51,12 @@ These values were verified against `results/summary.json`.
 
 | ID | Item | Status | Evidence |
 |---|---|---|---|
-| W4-F1 | E2, E3, E4 config-driven smoke tests | `OPEN` | `DONE` |
-| W4-F2 | Third A1 manual-review case (Colm O'Rourke), Option A | WAIVED by supervisor | `DONE` |
+| W4-F1 | E2, E3, E4 config-driven smoke tests | OPEN (post-freeze validation, not yet run) | Script ready: `scripts/smoke_test_e2_e4_post_freeze.py`; results will be recorded in `docs/week4_post_freeze_validation.md` |
+| W4-F2 | Third A1 manual-review case (Colm O'Rourke), Option A | WAIVED by supervisor | Supervisor waiver (see A1 note below) |
 | W4-F3 | `make_summary.py` on a clean tree; summary committed for all three datasets | DONE | Commit `18edada` |
 | W4-F4 | README complete (placeholders removed, environment, reproduction commands, status) | DONE | `README.md` |
 | W4-F5 | Freeze commit and tag `week4-frozen` | DONE | Section 1 (commit `d995f83`, tag pushed to origin) |
-| W4-F6 | This closure note | DONE once committed | `docs/week4_closure.md` |
+| W4-F6 | This closure note | DONE | Commit `5203ed7` (`docs/week4_closure.md`) |
 
 **A1 manual review (Option A, document only):** Ferne McCann and Germany were judged answer-bearing on manual reading. Colm O'Rourke: not reviewed (waived by the supervisor). Frozen labels are not altered and the 97/100 lexically validated basis is unchanged; no E1-E4 rerun was performed.
 
@@ -75,3 +75,12 @@ These values were verified against `results/summary.json`.
 - Redefinition of the timestamp-only attacks (future date, wrong date) as metadata negative controls / ChronoGuard attacks, or as a separate date-visible baseline.
 - Three-question development pilot across E1-E4 and a preliminary vulnerability matrix, before touching the held-out benchmark.
 - ChronoGuard defense work has not started, as required.
+
+## 7. Post-freeze corrections (2026-10-21)
+
+These edits correct the wording of this note only. They do not change the frozen Week-4 baseline, its results, its logs, its configs or the `week4-frozen` tag (still annotated tag `f26a389` on commit `d995f83`), and no Week-4 rerun was done.
+
+- The closure-date placeholder was replaced with the date of the closure-note commit.
+- W4-F1 previously showed Status `OPEN` and Evidence `DONE`, which contradicted each other. The E2-E4 config-driven smoke tests have not been run. W4-F1 is OPEN, and the smoke tests will run as **post-freeze validation**: they cannot change the frozen baseline. See `docs/week4_post_freeze_validation.md`.
+- The W4-F2 and W4-F6 evidence cells now name the evidence instead of saying `DONE`.
+- Model revisions: the frozen runs did not record them, and this is not changed retrospectively. From the Week-5 v2 pilot rerun onward, revisions are pinned in `configs/model_revisions.yaml` and recorded in every run log. The pins are the Hub's current commits, verified on 2026-10-21. They are not claimed to be the revisions the Week-4 runs used.

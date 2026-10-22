@@ -28,6 +28,7 @@ QUERY = "What is the current Rangers football team position?"
 
 PAYLOAD = {
     "payload_id": "test-poison-001",
+    "source_qa_id": "test-qa-001",
     "text": (
         "A deliberately fabricated test claim about the Rangers football "
         "team and its current league position."
@@ -78,6 +79,7 @@ def filler(n):
 
 def make_record(candidates, gold_ids=("gold-001",)):
     return {
+        "source_qa_id": "test-qa-001",
         "query": QUERY,
         "gold_answer": "Rangers are in the test position.",
         "gold_aliases": ["Rangers test position"],
@@ -150,14 +152,15 @@ class TestIneligibleCases(unittest.TestCase):
                 record,
                 attack_type="fabricated_fresh",
                 seed=1,
-                poison_payload={"timestamp": "2025-02-10T12:00:00Z"},
+                poison_payload={"source_qa_id": "test-qa-001",
+                                "timestamp": "2025-02-10T12:00:00Z"},
             )
         with self.assertRaises(ValueError):
             apply_attack(
                 record,
                 attack_type="fabricated_fresh",
                 seed=1,
-                poison_payload={"text": "x"},
+                poison_payload={"source_qa_id": "test-qa-001", "text": "x"},
             )
 
 

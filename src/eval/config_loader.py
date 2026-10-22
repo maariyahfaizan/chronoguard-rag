@@ -37,6 +37,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[2]  # src/eval -> src -> repo root
 EVAL_CONFIG_PATH = REPO_ROOT / "configs" / "streamingqa_eval_config.yaml"
+MODEL_REVISIONS_PATH = REPO_ROOT / "configs" / "model_revisions.yaml"
 
 
 def _get(d: dict, dotted_path: str):
@@ -121,3 +122,24 @@ def experiment_params(experiment_key: str, path: Path = EVAL_CONFIG_PATH) -> dic
         params["reranker_model"] = reranker["model"]
 
     return params
+
+def model_revisions(path: Path = MODEL_REVISIONS_PATH) -> dict:
+    """Map model name -> pinned Hugging Face commit SHA (pre-Week-6 item 6).
+
+    Fails loud if the file is missing or a revision is not a full 40-character
+    commit SHA, so a run can never fall back to whatever the Hub serves.
+    Kept in its own file so the frozen Week-4 eval config is not edited.
+    """
+    with open(path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+
+    revisions = {}
+    for name, entry in cfg["models"].items():
+        rev = str(entry.get("revision", ""))
+        if len(rev) != 40 or any(ch not in "0123456789abcdef" for ch in rev):
+            raise ValueError(
+                f"{path.name}: revision for {name} must be a full 40-character "
+                f"commit SHA, got {rev!r}."
+            )
+        revisions[name] = rev
+    return revisions

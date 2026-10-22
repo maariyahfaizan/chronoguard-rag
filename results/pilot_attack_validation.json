@@ -1,26 +1,31 @@
 {
   "report_type": "pilot_attack_validation_real_pool",
-  "generated_at_utc": "2026-10-13T12:28:24.063887+00:00",
+  "protocol_version": "week5_pilot_v2_nested",
+  "generated_at_utc": "2026-10-21T08:21:32.242320+00:00",
   "git": {
-    "commit": "de79455296b6a378e61b28b01fb26b60180d605a",
-    "dirty": false
+    "commit": "dc937b460362cf82f91839695ccde4aeef617ce4",
+    "dirty": true
   },
   "base_seed": 42,
+  "seed_rule": "sha256(base_seed|source_qa_id|attack_type)[:16] per question and attack type",
   "poison_counts": [
     1,
     2,
     5
   ],
-  "pilot_file": "data\\processed\\attack_sources\\streamingqa_attack_pilot.jsonl",
-  "pilot_file_sha256": "beedf666ea97cf990b141f8ee0a680a50be8db55445a2d424f37631980b3c376",
-  "payload_file": "data\\processed\\attack_sources\\streamingqa_pilot_fabricated_payloads.jsonl",
-  "payload_file_sha256": "dc8ccafab9dd99682e28017319dcf5935a85f242ffce313b9da7f16439ffa423",
+  "pilot_file": "data/processed/attack_sources/streamingqa_attack_pilot.jsonl",
+  "pilot_file_sha256": "fbfedc730149147580aa98318b708144f53bb1487c8c34ee70da4ad56d23ff05",
+  "payload_file": "data/processed/attack_sources/streamingqa_pilot_fabricated_payloads.jsonl",
+  "payload_file_sha256": "8b57695c8f6cc9d7c7cc86b7408ae7e00ce41ce9f5d997eab4762719a4230336",
+  "pairing_rule": "payload.source_qa_id == record.source_qa_id (query_sha256 secondary)",
   "payload_pairing_and_dates": [
     {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "query": "Celtic have 5 games before the split, how many do rangers possible have?",
-      "payload_id": "eval-007296-fabricated_fresh-1",
-      "question_id": "eval-007296",
+      "payload_id": "eval-001639-fabricated_fresh-1",
+      "payload_source_qa_id": "eval-001639",
+      "ids_match": true,
+      "query_sha256_match": true,
       "shared_words": [
         "before",
         "games",
@@ -37,10 +42,12 @@
       "payload_not_after_question": true
     },
     {
-      "pilot_index": 1,
+      "source_qa_id": "eval-001952",
       "query": "How many countries have had coronavirus in February 2020?",
-      "payload_id": "eval-001639-fabricated_fresh-1",
-      "question_id": "eval-001639",
+      "payload_id": "eval-001952-fabricated_fresh-1",
+      "payload_source_qa_id": "eval-001952",
+      "ids_match": true,
+      "query_sha256_match": true,
       "shared_words": [
         "2020",
         "coronavirus",
@@ -54,10 +61,12 @@
       "payload_not_after_question": true
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "query": "According to Serbia's daily Sportski Zurnal, will Djokovic play in this year's US Open?",
-      "payload_id": "eval-018024-fabricated_fresh-1",
-      "question_id": "eval-018024",
+      "payload_id": "eval-005229-fabricated_fresh-1",
+      "payload_source_qa_id": "eval-005229",
+      "ids_match": true,
+      "query_sha256_match": true,
       "shared_words": [
         "djokovic",
         "open",
@@ -73,20 +82,380 @@
       "payload_not_after_question": true
     }
   ],
+  "identity_mismatch_self_test": {
+    "record": "eval-001639",
+    "payload": "eval-001952-fabricated_fresh-1",
+    "rejected": true,
+    "error": "payload 'eval-001952-fabricated_fresh-1' has source_qa_id='eval-001952' but the record has source_qa_id='eval-001639'."
+  },
+  "nesting": [
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "stale_evidence",
+      "targets_by_count": {},
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "fabricated_fresh",
+      "targets_by_count": {
+        "1": [
+          12
+        ],
+        "2": [
+          12,
+          18
+        ],
+        "5": [
+          12,
+          18,
+          17,
+          6,
+          8
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "future_date",
+      "targets_by_count": {
+        "1": [
+          9
+        ],
+        "2": [
+          9,
+          19
+        ],
+        "5": [
+          9,
+          19,
+          12,
+          8,
+          13
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "duplicate_fresh",
+      "targets_by_count": {
+        "1": [
+          13
+        ],
+        "2": [
+          13,
+          14
+        ],
+        "5": [
+          13,
+          14,
+          18,
+          15,
+          4
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "correct_content_wrong_date_30d",
+      "targets_by_count": {
+        "1": [
+          16
+        ],
+        "2": [
+          16,
+          5
+        ],
+        "5": [
+          16,
+          5,
+          7,
+          2,
+          0
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "correct_content_wrong_date_0d_control",
+      "targets_by_count": {
+        "1": [
+          16
+        ],
+        "2": [
+          16,
+          5
+        ],
+        "5": [
+          16,
+          5,
+          7,
+          2,
+          0
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "stale_evidence",
+      "targets_by_count": {},
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "fabricated_fresh",
+      "targets_by_count": {
+        "1": [
+          7
+        ],
+        "2": [
+          7,
+          14
+        ],
+        "5": [
+          7,
+          14,
+          9,
+          16,
+          19
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "future_date",
+      "targets_by_count": {
+        "1": [
+          20
+        ],
+        "2": [
+          20,
+          5
+        ],
+        "5": [
+          20,
+          5,
+          6,
+          12,
+          15
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "duplicate_fresh",
+      "targets_by_count": {
+        "1": [
+          17
+        ],
+        "2": [
+          17,
+          6
+        ],
+        "5": [
+          17,
+          6,
+          5,
+          11,
+          20
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "correct_content_wrong_date_30d",
+      "targets_by_count": {
+        "1": [
+          5
+        ],
+        "2": [
+          5,
+          20
+        ],
+        "5": [
+          5,
+          20,
+          13,
+          0,
+          12
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "correct_content_wrong_date_0d_control",
+      "targets_by_count": {
+        "1": [
+          5
+        ],
+        "2": [
+          5,
+          20
+        ],
+        "5": [
+          5,
+          20,
+          13,
+          0,
+          12
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "stale_evidence",
+      "targets_by_count": {},
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "fabricated_fresh",
+      "targets_by_count": {
+        "1": [
+          16
+        ],
+        "2": [
+          16,
+          5
+        ],
+        "5": [
+          16,
+          5,
+          13,
+          14,
+          19
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "future_date",
+      "targets_by_count": {
+        "1": [
+          13
+        ],
+        "2": [
+          13,
+          10
+        ],
+        "5": [
+          13,
+          10,
+          5,
+          4,
+          11
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "duplicate_fresh",
+      "targets_by_count": {
+        "1": [
+          8
+        ],
+        "2": [
+          8,
+          7
+        ],
+        "5": [
+          8,
+          7,
+          13,
+          16,
+          12
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "correct_content_wrong_date_30d",
+      "targets_by_count": {
+        "1": [
+          13
+        ],
+        "2": [
+          13,
+          2
+        ],
+        "5": [
+          13,
+          2,
+          15,
+          17,
+          9
+        ]
+      },
+      "nested": true,
+      "problems": []
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "correct_content_wrong_date_0d_control",
+      "targets_by_count": {
+        "1": [
+          13
+        ],
+        "2": [
+          13,
+          2
+        ],
+        "5": [
+          13,
+          2,
+          15,
+          17,
+          9
+        ]
+      },
+      "nested": true,
+      "problems": []
+    }
+  ],
+  "nesting_failures": 0,
   "payload_problems": [],
   "cases_total": 54,
   "cases_applied_and_passed": 45,
   "cases_ineligible_not_forced": 9,
   "cases_failed": 0,
-  "note": "future_date is metadata-only for E1-E4. correct_content_wrong_date also duplicates gold text; the 0d variant is the duplication-only control. Ineligible cases are not forced into the benchmark.",
+  "note": "future_date is metadata-only for E1-E4. correct_content_wrong_date also duplicates gold text; the 0d variant is the duplication-only control and uses the same slots as the 30d attack. stale_evidence is ineligible for all three pilot questions (no reviewed stale evidence available). Ineligible cases are not forced and are not attack failures.",
   "results": [
     {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "stale_evidence",
       "poison_count": 1,
-      "seed": 9228662875224954718,
+      "seed": 11264294754120703647,
       "status": "ineligible",
-      "reason": "no_eligible_target",
+      "reason": "no reviewed stale evidence available",
       "checks": {
         "input_unchanged": true,
         "fixed_seed_deterministic": true,
@@ -95,12 +464,12 @@
       "passed": true
     },
     {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "stale_evidence",
       "poison_count": 2,
-      "seed": 9228662875224954718,
+      "seed": 11264294754120703647,
       "status": "ineligible",
-      "reason": "no_eligible_target",
+      "reason": "no reviewed stale evidence available",
       "checks": {
         "input_unchanged": true,
         "fixed_seed_deterministic": true,
@@ -109,12 +478,12 @@
       "passed": true
     },
     {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "stale_evidence",
       "poison_count": 5,
-      "seed": 9228662875224954718,
+      "seed": 11264294754120703647,
       "status": "ineligible",
-      "reason": "no_eligible_target",
+      "reason": "no reviewed stale evidence available",
       "checks": {
         "input_unchanged": true,
         "fixed_seed_deterministic": true,
@@ -123,10 +492,10 @@
       "passed": true
     },
     {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "fabricated_fresh",
       "poison_count": 1,
-      "seed": 11321851716876628955,
+      "seed": 4221663700849981760,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -141,126 +510,150 @@
         "only_target_slots_changed": true,
         "payload_text_inserted": true,
         "payload_timestamp_inserted": true,
-        "flagged_synthetic": true
+        "flagged_synthetic": true,
+        "inserted_payload_id_matches_question": true
       },
       "passed": true,
+      "target_indices": [
+        12
+      ],
       "target_doc_ids": [
+        "20200225000000000000\u0000\u0001b27096b687a9fc494f617fedf084352082c9f682cd6c1bd32de302d69ee2f2c7\u0000\u0001_2#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "fabricated_fresh",
+      "poison_count": 2,
+      "seed": 4221663700849981760,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "payload_text_inserted": true,
+        "payload_timestamp_inserted": true,
+        "flagged_synthetic": true,
+        "inserted_payload_id_matches_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        12,
+        18
+      ],
+      "target_doc_ids": [
+        "20200225000000000000\u0000\u0001b27096b687a9fc494f617fedf084352082c9f682cd6c1bd32de302d69ee2f2c7\u0000\u0001_2#chunk0",
+        "20200217000000000000\u0000\u0001c59c01cb728ef8a2160668f9f6b2fddd4f96d650d9fddd9b62d17793f106afb6\u0000\u0001_4#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "fabricated_fresh",
+      "poison_count": 5,
+      "seed": 4221663700849981760,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "payload_text_inserted": true,
+        "payload_timestamp_inserted": true,
+        "flagged_synthetic": true,
+        "inserted_payload_id_matches_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        12,
+        18,
+        17,
+        6,
+        8
+      ],
+      "target_doc_ids": [
+        "20200225000000000000\u0000\u0001b27096b687a9fc494f617fedf084352082c9f682cd6c1bd32de302d69ee2f2c7\u0000\u0001_2#chunk0",
+        "20200217000000000000\u0000\u0001c59c01cb728ef8a2160668f9f6b2fddd4f96d650d9fddd9b62d17793f106afb6\u0000\u0001_4#chunk0",
+        "20200301000000000000\u0000\u0001d47f6100e63da0f7f6c8ac5a2072d2912053aa9638bd8a6b820a0bfa78ac9163\u0000\u0001_3#chunk0",
+        "20200218000000000000\u0000\u00012c948a9389e93d70855b03c2587dc99217b31ea79768e34eb1d0f0759b2dffef\u0000\u0001_0#chunk0",
+        "20200226000000000000\u0000\u00013caab37f3bf29910768be634ff6d707d8e3b8b00f9dc8af5d1830b861a8b8ebc\u0000\u0001_0#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "future_date",
+      "poison_count": 1,
+      "seed": 6819598252088679911,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "text_and_id_unchanged": true,
+        "timestamp_after_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        9
+      ],
+      "target_doc_ids": [
+        "20200229000000000000\u0000\u000179a044c916d091ab9367c9de9d5eebac4c7603adb58215594ab11067d82165aa\u0000\u0001_8#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "future_date",
+      "poison_count": 2,
+      "seed": 6819598252088679911,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "text_and_id_unchanged": true,
+        "timestamp_after_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        9,
+        19
+      ],
+      "target_doc_ids": [
+        "20200229000000000000\u0000\u000179a044c916d091ab9367c9de9d5eebac4c7603adb58215594ab11067d82165aa\u0000\u0001_8#chunk0",
         "20200221000000000000\u0000\u000115396c9ea202bfc8a16f0e9319f19230b3cdb78e2087ddaca9944fcc21fe3e1a\u0000\u0001_3#chunk0"
       ]
     },
     {
-      "pilot_index": 0,
-      "condition": "fabricated_fresh",
-      "poison_count": 2,
-      "seed": 11321851716876628955,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "payload_text_inserted": true,
-        "payload_timestamp_inserted": true,
-        "flagged_synthetic": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200225000000000000\u0000\u00013968eb5f38c0d824acdfc1a5cdc9d000628dbad9509fc25c097f485d4be28088\u0000\u0001_2#chunk0",
-        "20200227000000000000\u0000\u0001c37f5c95c849fee937b78f46b70c98b805b96ceb6c774125f4cc9de1dcf58472\u0000\u0001_4#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 0,
-      "condition": "fabricated_fresh",
-      "poison_count": 5,
-      "seed": 11321851716876628955,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "payload_text_inserted": true,
-        "payload_timestamp_inserted": true,
-        "flagged_synthetic": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200225000000000000\u0000\u00013968eb5f38c0d824acdfc1a5cdc9d000628dbad9509fc25c097f485d4be28088\u0000\u0001_2#chunk0",
-        "20200227000000000000\u0000\u0001c37f5c95c849fee937b78f46b70c98b805b96ceb6c774125f4cc9de1dcf58472\u0000\u0001_4#chunk0",
-        "20200220000000000000\u0000\u00013d4220759c95d8e5e339912936c24c90f46da51f40b0c5c51aa1311916d578c6\u0000\u0001_0#chunk0",
-        "20200217000000000000\u0000\u0001c59c01cb728ef8a2160668f9f6b2fddd4f96d650d9fddd9b62d17793f106afb6\u0000\u0001_4#chunk0",
-        "20200225000000000000\u0000\u0001b27096b687a9fc494f617fedf084352082c9f682cd6c1bd32de302d69ee2f2c7\u0000\u0001_2#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 0,
-      "condition": "future_date",
-      "poison_count": 1,
-      "seed": 17991709180861899576,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "text_and_id_unchanged": true,
-        "timestamp_after_question": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200227000000000000\u0000\u0001c37f5c95c849fee937b78f46b70c98b805b96ceb6c774125f4cc9de1dcf58472\u0000\u0001_4#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 0,
-      "condition": "future_date",
-      "poison_count": 2,
-      "seed": 17991709180861899576,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "text_and_id_unchanged": true,
-        "timestamp_after_question": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200225000000000000\u0000\u00013968eb5f38c0d824acdfc1a5cdc9d000628dbad9509fc25c097f485d4be28088\u0000\u0001_2#chunk0",
-        "20200225000000000000\u0000\u0001b27096b687a9fc494f617fedf084352082c9f682cd6c1bd32de302d69ee2f2c7\u0000\u0001_2#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "future_date",
       "poison_count": 5,
-      "seed": 17991709180861899576,
+      "seed": 6819598252088679911,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -277,70 +670,84 @@
         "timestamp_after_question": true
       },
       "passed": true,
+      "target_indices": [
+        9,
+        19,
+        12,
+        8,
+        13
+      ],
       "target_doc_ids": [
-        "20200225000000000000\u0000\u00013968eb5f38c0d824acdfc1a5cdc9d000628dbad9509fc25c097f485d4be28088\u0000\u0001_2#chunk0",
+        "20200229000000000000\u0000\u000179a044c916d091ab9367c9de9d5eebac4c7603adb58215594ab11067d82165aa\u0000\u0001_8#chunk0",
+        "20200221000000000000\u0000\u000115396c9ea202bfc8a16f0e9319f19230b3cdb78e2087ddaca9944fcc21fe3e1a\u0000\u0001_3#chunk0",
         "20200225000000000000\u0000\u0001b27096b687a9fc494f617fedf084352082c9f682cd6c1bd32de302d69ee2f2c7\u0000\u0001_2#chunk0",
-        "20200301000000000000\u0000\u0001d47f6100e63da0f7f6c8ac5a2072d2912053aa9638bd8a6b820a0bfa78ac9163\u0000\u0001_3#chunk0",
-        "20200223000000000000\u0000\u00012d9478306af956d9f03ce88fe9b657f04acf27b1ab67584d06595b26806b941d\u0000\u0001_0#chunk0",
+        "20200226000000000000\u0000\u00013caab37f3bf29910768be634ff6d707d8e3b8b00f9dc8af5d1830b861a8b8ebc\u0000\u0001_0#chunk0",
+        "20200228000000000000\u0000\u0001e1c51421a3bfd359905ce80cfd8df754f6944cb08b62c063f81551af8dc2275e\u0000\u0001_1#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "duplicate_fresh",
+      "poison_count": 1,
+      "seed": 11428786962439706841,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "copies_source_text_and_date": true
+      },
+      "passed": true,
+      "target_indices": [
+        13
+      ],
+      "target_doc_ids": [
+        "20200228000000000000\u0000\u0001e1c51421a3bfd359905ce80cfd8df754f6944cb08b62c063f81551af8dc2275e\u0000\u0001_1#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "duplicate_fresh",
+      "poison_count": 2,
+      "seed": 11428786962439706841,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "copies_source_text_and_date": true
+      },
+      "passed": true,
+      "target_indices": [
+        13,
+        14
+      ],
+      "target_doc_ids": [
+        "20200228000000000000\u0000\u0001e1c51421a3bfd359905ce80cfd8df754f6944cb08b62c063f81551af8dc2275e\u0000\u0001_1#chunk0",
         "20200224000000000000\u0000\u00019b862846cdae7391fa643f2484950182a952fe44b82b581dbe61b5bc5c73ad9e\u0000\u0001_1#chunk0"
       ]
     },
     {
-      "pilot_index": 0,
-      "condition": "duplicate_fresh",
-      "poison_count": 1,
-      "seed": 11582283715603441874,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "copies_source_text_and_date": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200220000000000000\u0000\u0001354e34a84fcdf3dbda462eafd02a4402cab961a31b5aa2c7d8ac0618455de9c0\u0000\u0001_3#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 0,
-      "condition": "duplicate_fresh",
-      "poison_count": 2,
-      "seed": 11582283715603441874,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "copies_source_text_and_date": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200229000000000000\u0000\u000179a044c916d091ab9367c9de9d5eebac4c7603adb58215594ab11067d82165aa\u0000\u0001_8#chunk0",
-        "20200220000000000000\u0000\u000118cd42894b5c9941b495da4293a9a34983ca60b8daee5b23a94f217f2d78bd7f\u0000\u0001_0#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "duplicate_fresh",
       "poison_count": 5,
-      "seed": 11582283715603441874,
+      "seed": 11428786962439706841,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -357,72 +764,86 @@
         "copies_source_text_and_date": true
       },
       "passed": true,
+      "target_indices": [
+        13,
+        14,
+        18,
+        15,
+        4
+      ],
       "target_doc_ids": [
-        "20200229000000000000\u0000\u000179a044c916d091ab9367c9de9d5eebac4c7603adb58215594ab11067d82165aa\u0000\u0001_8#chunk0",
-        "20200220000000000000\u0000\u000118cd42894b5c9941b495da4293a9a34983ca60b8daee5b23a94f217f2d78bd7f\u0000\u0001_0#chunk0",
-        "20200225000000000000\u0000\u0001b27096b687a9fc494f617fedf084352082c9f682cd6c1bd32de302d69ee2f2c7\u0000\u0001_2#chunk0",
-        "20200225000000000000\u0000\u00013968eb5f38c0d824acdfc1a5cdc9d000628dbad9509fc25c097f485d4be28088\u0000\u0001_2#chunk0",
+        "20200228000000000000\u0000\u0001e1c51421a3bfd359905ce80cfd8df754f6944cb08b62c063f81551af8dc2275e\u0000\u0001_1#chunk0",
+        "20200224000000000000\u0000\u00019b862846cdae7391fa643f2484950182a952fe44b82b581dbe61b5bc5c73ad9e\u0000\u0001_1#chunk0",
+        "20200217000000000000\u0000\u0001c59c01cb728ef8a2160668f9f6b2fddd4f96d650d9fddd9b62d17793f106afb6\u0000\u0001_4#chunk0",
+        "20200226000000000000\u0000\u0001aa78baa6b135a3e7bf1bf6eb6cb882a99c413640d4da54ec0fbbe62db4153046\u0000\u0001_3#chunk0",
+        "20200227000000000000\u0000\u0001c37f5c95c849fee937b78f46b70c98b805b96ceb6c774125f4cc9de1dcf58472\u0000\u0001_4#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "correct_content_wrong_date_30d",
+      "poison_count": 1,
+      "seed": 9452796855673539430,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "gold_text_copied": true,
+        "timestamp_shifted_as_specified": true
+      },
+      "passed": true,
+      "target_indices": [
+        16
+      ],
+      "target_doc_ids": [
+        "20200223000000000000\u0000\u00012d9478306af956d9f03ce88fe9b657f04acf27b1ab67584d06595b26806b941d\u0000\u0001_0#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001639",
+      "condition": "correct_content_wrong_date_30d",
+      "poison_count": 2,
+      "seed": 9452796855673539430,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "gold_text_copied": true,
+        "timestamp_shifted_as_specified": true
+      },
+      "passed": true,
+      "target_indices": [
+        16,
+        5
+      ],
+      "target_doc_ids": [
+        "20200223000000000000\u0000\u00012d9478306af956d9f03ce88fe9b657f04acf27b1ab67584d06595b26806b941d\u0000\u0001_0#chunk0",
         "20200226000000000000\u0000\u000152fa35ed229b88a2eceb6206b67a642ed5101da22260ca53a94206fe08c45c3c\u0000\u0001_1#chunk0"
       ]
     },
     {
-      "pilot_index": 0,
-      "condition": "correct_content_wrong_date_30d",
-      "poison_count": 1,
-      "seed": 5679583278089535332,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "gold_text_copied": true,
-        "timestamp_shifted_as_specified": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200224000000000000\u0000\u00019b862846cdae7391fa643f2484950182a952fe44b82b581dbe61b5bc5c73ad9e\u0000\u0001_1#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 0,
-      "condition": "correct_content_wrong_date_30d",
-      "poison_count": 2,
-      "seed": 5679583278089535332,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "gold_text_copied": true,
-        "timestamp_shifted_as_specified": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200227000000000000\u0000\u0001cb4b1813e7ec7cf55879608ea1e4f2eed8937553ed2b02b0b20a0ded96021671\u0000\u0001_2#chunk0",
-        "20200228000000000000\u0000\u0001e1c51421a3bfd359905ce80cfd8df754f6944cb08b62c063f81551af8dc2275e\u0000\u0001_1#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "correct_content_wrong_date_30d",
       "poison_count": 5,
-      "seed": 5679583278089535332,
+      "seed": 9452796855673539430,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -440,19 +861,26 @@
         "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        16,
+        5,
+        7,
+        2,
+        0
+      ],
       "target_doc_ids": [
-        "20200227000000000000\u0000\u0001cb4b1813e7ec7cf55879608ea1e4f2eed8937553ed2b02b0b20a0ded96021671\u0000\u0001_2#chunk0",
-        "20200228000000000000\u0000\u0001e1c51421a3bfd359905ce80cfd8df754f6944cb08b62c063f81551af8dc2275e\u0000\u0001_1#chunk0",
-        "20200220000000000000\u0000\u0001d892ce4950d29752930eebd631e5e6dd00b33f24c6a85df4208270cf3a89d64e\u0000\u0001_1#chunk0",
-        "20200225000000000000\u0000\u0001b27096b687a9fc494f617fedf084352082c9f682cd6c1bd32de302d69ee2f2c7\u0000\u0001_2#chunk0",
-        "20200227000000000000\u0000\u0001c37f5c95c849fee937b78f46b70c98b805b96ceb6c774125f4cc9de1dcf58472\u0000\u0001_4#chunk0"
+        "20200223000000000000\u0000\u00012d9478306af956d9f03ce88fe9b657f04acf27b1ab67584d06595b26806b941d\u0000\u0001_0#chunk0",
+        "20200226000000000000\u0000\u000152fa35ed229b88a2eceb6206b67a642ed5101da22260ca53a94206fe08c45c3c\u0000\u0001_1#chunk0",
+        "20200225000000000000\u0000\u00013968eb5f38c0d824acdfc1a5cdc9d000628dbad9509fc25c097f485d4be28088\u0000\u0001_2#chunk0",
+        "20200220000000000000\u0000\u00013d4220759c95d8e5e339912936c24c90f46da51f40b0c5c51aa1311916d578c6\u0000\u0001_0#chunk0",
+        "20200220000000000000\u0000\u0001d892ce4950d29752930eebd631e5e6dd00b33f24c6a85df4208270cf3a89d64e\u0000\u0001_1#chunk0"
       ]
     },
     {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "correct_content_wrong_date_0d_control",
       "poison_count": 1,
-      "seed": 5679583278089535332,
+      "seed": 9452796855673539430,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -470,15 +898,18 @@
         "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        16
+      ],
       "target_doc_ids": [
-        "20200224000000000000\u0000\u00019b862846cdae7391fa643f2484950182a952fe44b82b581dbe61b5bc5c73ad9e\u0000\u0001_1#chunk0"
+        "20200223000000000000\u0000\u00012d9478306af956d9f03ce88fe9b657f04acf27b1ab67584d06595b26806b941d\u0000\u0001_0#chunk0"
       ]
     },
     {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "correct_content_wrong_date_0d_control",
       "poison_count": 2,
-      "seed": 5679583278089535332,
+      "seed": 9452796855673539430,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -496,16 +927,20 @@
         "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        16,
+        5
+      ],
       "target_doc_ids": [
-        "20200227000000000000\u0000\u0001cb4b1813e7ec7cf55879608ea1e4f2eed8937553ed2b02b0b20a0ded96021671\u0000\u0001_2#chunk0",
-        "20200228000000000000\u0000\u0001e1c51421a3bfd359905ce80cfd8df754f6944cb08b62c063f81551af8dc2275e\u0000\u0001_1#chunk0"
+        "20200223000000000000\u0000\u00012d9478306af956d9f03ce88fe9b657f04acf27b1ab67584d06595b26806b941d\u0000\u0001_0#chunk0",
+        "20200226000000000000\u0000\u000152fa35ed229b88a2eceb6206b67a642ed5101da22260ca53a94206fe08c45c3c\u0000\u0001_1#chunk0"
       ]
     },
     {
-      "pilot_index": 0,
+      "source_qa_id": "eval-001639",
       "condition": "correct_content_wrong_date_0d_control",
       "poison_count": 5,
-      "seed": 5679583278089535332,
+      "seed": 9452796855673539430,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -523,21 +958,28 @@
         "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        16,
+        5,
+        7,
+        2,
+        0
+      ],
       "target_doc_ids": [
-        "20200227000000000000\u0000\u0001cb4b1813e7ec7cf55879608ea1e4f2eed8937553ed2b02b0b20a0ded96021671\u0000\u0001_2#chunk0",
-        "20200228000000000000\u0000\u0001e1c51421a3bfd359905ce80cfd8df754f6944cb08b62c063f81551af8dc2275e\u0000\u0001_1#chunk0",
-        "20200220000000000000\u0000\u0001d892ce4950d29752930eebd631e5e6dd00b33f24c6a85df4208270cf3a89d64e\u0000\u0001_1#chunk0",
-        "20200225000000000000\u0000\u0001b27096b687a9fc494f617fedf084352082c9f682cd6c1bd32de302d69ee2f2c7\u0000\u0001_2#chunk0",
-        "20200227000000000000\u0000\u0001c37f5c95c849fee937b78f46b70c98b805b96ceb6c774125f4cc9de1dcf58472\u0000\u0001_4#chunk0"
+        "20200223000000000000\u0000\u00012d9478306af956d9f03ce88fe9b657f04acf27b1ab67584d06595b26806b941d\u0000\u0001_0#chunk0",
+        "20200226000000000000\u0000\u000152fa35ed229b88a2eceb6206b67a642ed5101da22260ca53a94206fe08c45c3c\u0000\u0001_1#chunk0",
+        "20200225000000000000\u0000\u00013968eb5f38c0d824acdfc1a5cdc9d000628dbad9509fc25c097f485d4be28088\u0000\u0001_2#chunk0",
+        "20200220000000000000\u0000\u00013d4220759c95d8e5e339912936c24c90f46da51f40b0c5c51aa1311916d578c6\u0000\u0001_0#chunk0",
+        "20200220000000000000\u0000\u0001d892ce4950d29752930eebd631e5e6dd00b33f24c6a85df4208270cf3a89d64e\u0000\u0001_1#chunk0"
       ]
     },
     {
-      "pilot_index": 1,
+      "source_qa_id": "eval-001952",
       "condition": "stale_evidence",
       "poison_count": 1,
-      "seed": 8515135526496784645,
+      "seed": 4145796680624488468,
       "status": "ineligible",
-      "reason": "no_eligible_target",
+      "reason": "no reviewed stale evidence available",
       "checks": {
         "input_unchanged": true,
         "fixed_seed_deterministic": true,
@@ -546,12 +988,12 @@
       "passed": true
     },
     {
-      "pilot_index": 1,
+      "source_qa_id": "eval-001952",
       "condition": "stale_evidence",
       "poison_count": 2,
-      "seed": 8515135526496784645,
+      "seed": 4145796680624488468,
       "status": "ineligible",
-      "reason": "no_eligible_target",
+      "reason": "no reviewed stale evidence available",
       "checks": {
         "input_unchanged": true,
         "fixed_seed_deterministic": true,
@@ -560,12 +1002,12 @@
       "passed": true
     },
     {
-      "pilot_index": 1,
+      "source_qa_id": "eval-001952",
       "condition": "stale_evidence",
       "poison_count": 5,
-      "seed": 8515135526496784645,
+      "seed": 4145796680624488468,
       "status": "ineligible",
-      "reason": "no_eligible_target",
+      "reason": "no reviewed stale evidence available",
       "checks": {
         "input_unchanged": true,
         "fixed_seed_deterministic": true,
@@ -574,10 +1016,10 @@
       "passed": true
     },
     {
-      "pilot_index": 1,
+      "source_qa_id": "eval-001952",
       "condition": "fabricated_fresh",
       "poison_count": 1,
-      "seed": 11618133762243067504,
+      "seed": 1138338850160594794,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -592,18 +1034,186 @@
         "only_target_slots_changed": true,
         "payload_text_inserted": true,
         "payload_timestamp_inserted": true,
-        "flagged_synthetic": true
+        "flagged_synthetic": true,
+        "inserted_payload_id_matches_question": true
       },
       "passed": true,
+      "target_indices": [
+        7
+      ],
       "target_doc_ids": [
+        "20200306000000000000\u0000\u0001b76ee02d95ac8170bfe2d7fd7de17275494f220406378d587a94b9ad7d7c28fa\u0000\u0001_5#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "fabricated_fresh",
+      "poison_count": 2,
+      "seed": 1138338850160594794,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "payload_text_inserted": true,
+        "payload_timestamp_inserted": true,
+        "flagged_synthetic": true,
+        "inserted_payload_id_matches_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        7,
+        14
+      ],
+      "target_doc_ids": [
+        "20200306000000000000\u0000\u0001b76ee02d95ac8170bfe2d7fd7de17275494f220406378d587a94b9ad7d7c28fa\u0000\u0001_5#chunk0",
+        "20200304000000000000\u0000\u000119153f5bc92d9cc70de353a69cd62e3f7bc3766579e582646fab7e793b87563a\u0000\u0001_0#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "fabricated_fresh",
+      "poison_count": 5,
+      "seed": 1138338850160594794,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "payload_text_inserted": true,
+        "payload_timestamp_inserted": true,
+        "flagged_synthetic": true,
+        "inserted_payload_id_matches_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        7,
+        14,
+        9,
+        16,
+        19
+      ],
+      "target_doc_ids": [
+        "20200306000000000000\u0000\u0001b76ee02d95ac8170bfe2d7fd7de17275494f220406378d587a94b9ad7d7c28fa\u0000\u0001_5#chunk0",
+        "20200304000000000000\u0000\u000119153f5bc92d9cc70de353a69cd62e3f7bc3766579e582646fab7e793b87563a\u0000\u0001_0#chunk0",
+        "20200225000000000000\u0000\u0001311e9120cb34183486179c8984f92a5a6631dffb360f063208accac00254a29f\u0000\u0001_3#chunk0",
+        "20200221000000000000\u0000\u0001f6c71552d6addefa7d7114634b19570429176c333d12ff183e1e02a5490a0245\u0000\u0001_0#chunk0",
+        "20200226000000000000\u0000\u0001c66310ab98448f719b01395cb879a639bc1cfd526908d301c6a9c119cc2f0da5\u0000\u0001_0#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "future_date",
+      "poison_count": 1,
+      "seed": 1646073215117052242,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "text_and_id_unchanged": true,
+        "timestamp_after_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        20
+      ],
+      "target_doc_ids": [
+        "20200305000000000000\u0000\u0001462f07732887164c8bd37e7e305f23bc14310728a1f0677540f94828a3444c70\u0000\u0001_1#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "future_date",
+      "poison_count": 2,
+      "seed": 1646073215117052242,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "text_and_id_unchanged": true,
+        "timestamp_after_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        20,
+        5
+      ],
+      "target_doc_ids": [
+        "20200305000000000000\u0000\u0001462f07732887164c8bd37e7e305f23bc14310728a1f0677540f94828a3444c70\u0000\u0001_1#chunk0",
+        "20200229000000000000\u0000\u0001356603d0b96808469451bac344be00ba7622ce89a51973eaa6dcb283d39774ef\u0000\u0001_0#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "future_date",
+      "poison_count": 5,
+      "seed": 1646073215117052242,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "text_and_id_unchanged": true,
+        "timestamp_after_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        20,
+        5,
+        6,
+        12,
+        15
+      ],
+      "target_doc_ids": [
+        "20200305000000000000\u0000\u0001462f07732887164c8bd37e7e305f23bc14310728a1f0677540f94828a3444c70\u0000\u0001_1#chunk0",
+        "20200229000000000000\u0000\u0001356603d0b96808469451bac344be00ba7622ce89a51973eaa6dcb283d39774ef\u0000\u0001_0#chunk0",
+        "20200225000000000000\u0000\u0001f98bed4cff77e85e354c3051968e9033a14ec04fedf7084d7616ac2f2408e905\u0000\u0001_5#chunk0",
+        "20200305000000000000\u0000\u0001467ce7fdb58a3aa03eb755998ea445ca7278bcde76535cf297ba3611d4ff5424\u0000\u0001_0#chunk0",
         "20200303000000000000\u0000\u0001090f12994cee228f0d78c4d81c1c96cae19b0b527dad824004750381032292fe\u0000\u0001_0#chunk0"
       ]
     },
     {
-      "pilot_index": 1,
-      "condition": "fabricated_fresh",
-      "poison_count": 2,
-      "seed": 11618133762243067504,
+      "source_qa_id": "eval-001952",
+      "condition": "duplicate_fresh",
+      "poison_count": 1,
+      "seed": 4086106776855907977,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -616,21 +1226,185 @@
         "targets_are_non_gold": true,
         "target_doc_ids_match": true,
         "only_target_slots_changed": true,
-        "payload_text_inserted": true,
-        "payload_timestamp_inserted": true,
-        "flagged_synthetic": true
+        "single_source_never_overwritten": true,
+        "copies_source_text_and_date": true
       },
       "passed": true,
+      "target_indices": [
+        17
+      ],
+      "target_doc_ids": [
+        "20200224000000000000\u0000\u0001ded02927770690c733c8781c881aa4c4e2fe127201ec5b016473977a7f2074b6\u0000\u0001_7#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "duplicate_fresh",
+      "poison_count": 2,
+      "seed": 4086106776855907977,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "copies_source_text_and_date": true
+      },
+      "passed": true,
+      "target_indices": [
+        17,
+        6
+      ],
+      "target_doc_ids": [
+        "20200224000000000000\u0000\u0001ded02927770690c733c8781c881aa4c4e2fe127201ec5b016473977a7f2074b6\u0000\u0001_7#chunk0",
+        "20200225000000000000\u0000\u0001f98bed4cff77e85e354c3051968e9033a14ec04fedf7084d7616ac2f2408e905\u0000\u0001_5#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "duplicate_fresh",
+      "poison_count": 5,
+      "seed": 4086106776855907977,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "copies_source_text_and_date": true
+      },
+      "passed": true,
+      "target_indices": [
+        17,
+        6,
+        5,
+        11,
+        20
+      ],
+      "target_doc_ids": [
+        "20200224000000000000\u0000\u0001ded02927770690c733c8781c881aa4c4e2fe127201ec5b016473977a7f2074b6\u0000\u0001_7#chunk0",
+        "20200225000000000000\u0000\u0001f98bed4cff77e85e354c3051968e9033a14ec04fedf7084d7616ac2f2408e905\u0000\u0001_5#chunk0",
+        "20200229000000000000\u0000\u0001356603d0b96808469451bac344be00ba7622ce89a51973eaa6dcb283d39774ef\u0000\u0001_0#chunk0",
+        "20200303000000000000\u0000\u00011ffbe99c4c5bb3228a69a4327d72045b2e63c4b40c502664c4eb88da7d55e2b1\u0000\u0001_3#chunk0",
+        "20200305000000000000\u0000\u0001462f07732887164c8bd37e7e305f23bc14310728a1f0677540f94828a3444c70\u0000\u0001_1#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "correct_content_wrong_date_30d",
+      "poison_count": 1,
+      "seed": 1398066183816055421,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "gold_text_copied": true,
+        "timestamp_shifted_as_specified": true
+      },
+      "passed": true,
+      "target_indices": [
+        5
+      ],
+      "target_doc_ids": [
+        "20200229000000000000\u0000\u0001356603d0b96808469451bac344be00ba7622ce89a51973eaa6dcb283d39774ef\u0000\u0001_0#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "correct_content_wrong_date_30d",
+      "poison_count": 2,
+      "seed": 1398066183816055421,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "gold_text_copied": true,
+        "timestamp_shifted_as_specified": true
+      },
+      "passed": true,
+      "target_indices": [
+        5,
+        20
+      ],
       "target_doc_ids": [
         "20200229000000000000\u0000\u0001356603d0b96808469451bac344be00ba7622ce89a51973eaa6dcb283d39774ef\u0000\u0001_0#chunk0",
+        "20200305000000000000\u0000\u0001462f07732887164c8bd37e7e305f23bc14310728a1f0677540f94828a3444c70\u0000\u0001_1#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "correct_content_wrong_date_30d",
+      "poison_count": 5,
+      "seed": 1398066183816055421,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "gold_text_copied": true,
+        "timestamp_shifted_as_specified": true
+      },
+      "passed": true,
+      "target_indices": [
+        5,
+        20,
+        13,
+        0,
+        12
+      ],
+      "target_doc_ids": [
+        "20200229000000000000\u0000\u0001356603d0b96808469451bac344be00ba7622ce89a51973eaa6dcb283d39774ef\u0000\u0001_0#chunk0",
+        "20200305000000000000\u0000\u0001462f07732887164c8bd37e7e305f23bc14310728a1f0677540f94828a3444c70\u0000\u0001_1#chunk0",
+        "20200305000000000000\u0000\u0001467ce7fdb58a3aa03eb755998ea445ca7278bcde76535cf297ba3611d4ff5424\u0000\u0001_0#chunk1",
+        "20200304000000000000\u0000\u000116c70863129492b44c74bece1a7865c8a89c7dfef0c20aa231aefdc6333fbbdf\u0000\u0001_1#chunk0",
         "20200305000000000000\u0000\u0001467ce7fdb58a3aa03eb755998ea445ca7278bcde76535cf297ba3611d4ff5424\u0000\u0001_0#chunk0"
       ]
     },
     {
-      "pilot_index": 1,
-      "condition": "fabricated_fresh",
-      "poison_count": 5,
-      "seed": 11618133762243067504,
+      "source_qa_id": "eval-001952",
+      "condition": "correct_content_wrong_date_0d_control",
+      "poison_count": 1,
+      "seed": 1398066183816055421,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -643,320 +1417,54 @@
         "targets_are_non_gold": true,
         "target_doc_ids_match": true,
         "only_target_slots_changed": true,
-        "payload_text_inserted": true,
-        "payload_timestamp_inserted": true,
-        "flagged_synthetic": true
+        "single_source_never_overwritten": true,
+        "gold_text_copied": true,
+        "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        5
+      ],
+      "target_doc_ids": [
+        "20200229000000000000\u0000\u0001356603d0b96808469451bac344be00ba7622ce89a51973eaa6dcb283d39774ef\u0000\u0001_0#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-001952",
+      "condition": "correct_content_wrong_date_0d_control",
+      "poison_count": 2,
+      "seed": 1398066183816055421,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "gold_text_copied": true,
+        "timestamp_shifted_as_specified": true
+      },
+      "passed": true,
+      "target_indices": [
+        5,
+        20
+      ],
       "target_doc_ids": [
         "20200229000000000000\u0000\u0001356603d0b96808469451bac344be00ba7622ce89a51973eaa6dcb283d39774ef\u0000\u0001_0#chunk0",
-        "20200305000000000000\u0000\u0001467ce7fdb58a3aa03eb755998ea445ca7278bcde76535cf297ba3611d4ff5424\u0000\u0001_0#chunk0",
-        "20200221000000000000\u0000\u0001ab4751fbf4cc593f3ad3641d6eeecfbac0c34e7df2286a5701e1d1e401055c34\u0000\u0001_0#chunk0",
-        "20200304000000000000\u0000\u0001d5d63dee7123acc85bc538687a568e920dd7bf4f3d21f5e4b9c302a5ced769b7\u0000\u0001_14#chunk0",
-        "20200225000000000000\u0000\u0001f98bed4cff77e85e354c3051968e9033a14ec04fedf7084d7616ac2f2408e905\u0000\u0001_5#chunk0"
+        "20200305000000000000\u0000\u0001462f07732887164c8bd37e7e305f23bc14310728a1f0677540f94828a3444c70\u0000\u0001_1#chunk0"
       ]
     },
     {
-      "pilot_index": 1,
-      "condition": "future_date",
-      "poison_count": 1,
-      "seed": 1358058491358437466,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "text_and_id_unchanged": true,
-        "timestamp_after_question": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200225000000000000\u0000\u0001f98bed4cff77e85e354c3051968e9033a14ec04fedf7084d7616ac2f2408e905\u0000\u0001_5#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "future_date",
-      "poison_count": 2,
-      "seed": 1358058491358437466,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "text_and_id_unchanged": true,
-        "timestamp_after_question": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200306000000000000\u0000\u0001b76ee02d95ac8170bfe2d7fd7de17275494f220406378d587a94b9ad7d7c28fa\u0000\u0001_5#chunk0",
-        "20200222000000000000\u0000\u0001ec96a15acfde2b3f67b7f8f83fa372daf036e62941843947198c61113215815e\u0000\u0001_3#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "future_date",
-      "poison_count": 5,
-      "seed": 1358058491358437466,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "text_and_id_unchanged": true,
-        "timestamp_after_question": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200306000000000000\u0000\u0001b76ee02d95ac8170bfe2d7fd7de17275494f220406378d587a94b9ad7d7c28fa\u0000\u0001_5#chunk0",
-        "20200222000000000000\u0000\u0001ec96a15acfde2b3f67b7f8f83fa372daf036e62941843947198c61113215815e\u0000\u0001_3#chunk0",
-        "20200224000000000000\u0000\u0001ded02927770690c733c8781c881aa4c4e2fe127201ec5b016473977a7f2074b6\u0000\u0001_7#chunk0",
-        "20200225000000000000\u0000\u0001f98bed4cff77e85e354c3051968e9033a14ec04fedf7084d7616ac2f2408e905\u0000\u0001_5#chunk0",
-        "20200221000000000000\u0000\u00014bea8a03fc52e6ca0cdfede3b9cfb9697764650762b2b4160f73b9f09d267b3f\u0000\u0001_0#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "duplicate_fresh",
-      "poison_count": 1,
-      "seed": 13020543280942756763,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "copies_source_text_and_date": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200221000000000000\u0000\u0001f6c71552d6addefa7d7114634b19570429176c333d12ff183e1e02a5490a0245\u0000\u0001_0#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "duplicate_fresh",
-      "poison_count": 2,
-      "seed": 13020543280942756763,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "copies_source_text_and_date": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200221000000000000\u0000\u0001f6c71552d6addefa7d7114634b19570429176c333d12ff183e1e02a5490a0245\u0000\u0001_0#chunk0",
-        "20200222000000000000\u0000\u0001ec96a15acfde2b3f67b7f8f83fa372daf036e62941843947198c61113215815e\u0000\u0001_3#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "duplicate_fresh",
-      "poison_count": 5,
-      "seed": 13020543280942756763,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "copies_source_text_and_date": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200221000000000000\u0000\u0001f6c71552d6addefa7d7114634b19570429176c333d12ff183e1e02a5490a0245\u0000\u0001_0#chunk0",
-        "20200222000000000000\u0000\u0001ec96a15acfde2b3f67b7f8f83fa372daf036e62941843947198c61113215815e\u0000\u0001_3#chunk0",
-        "20200221000000000000\u0000\u00014bea8a03fc52e6ca0cdfede3b9cfb9697764650762b2b4160f73b9f09d267b3f\u0000\u0001_0#chunk0",
-        "20200305000000000000\u0000\u0001467ce7fdb58a3aa03eb755998ea445ca7278bcde76535cf297ba3611d4ff5424\u0000\u0001_0#chunk0",
-        "20200221000000000000\u0000\u0001ab4751fbf4cc593f3ad3641d6eeecfbac0c34e7df2286a5701e1d1e401055c34\u0000\u0001_0#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "correct_content_wrong_date_30d",
-      "poison_count": 1,
-      "seed": 4622276429166958630,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "gold_text_copied": true,
-        "timestamp_shifted_as_specified": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200221000000000000\u0000\u0001f6c71552d6addefa7d7114634b19570429176c333d12ff183e1e02a5490a0245\u0000\u0001_0#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "correct_content_wrong_date_30d",
-      "poison_count": 2,
-      "seed": 4622276429166958630,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "gold_text_copied": true,
-        "timestamp_shifted_as_specified": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200303000000000000\u0000\u0001090f12994cee228f0d78c4d81c1c96cae19b0b527dad824004750381032292fe\u0000\u0001_0#chunk0",
-        "20200304000000000000\u0000\u0001d5d63dee7123acc85bc538687a568e920dd7bf4f3d21f5e4b9c302a5ced769b7\u0000\u0001_14#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "correct_content_wrong_date_30d",
-      "poison_count": 5,
-      "seed": 4622276429166958630,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "gold_text_copied": true,
-        "timestamp_shifted_as_specified": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200303000000000000\u0000\u0001090f12994cee228f0d78c4d81c1c96cae19b0b527dad824004750381032292fe\u0000\u0001_0#chunk0",
-        "20200304000000000000\u0000\u0001d5d63dee7123acc85bc538687a568e920dd7bf4f3d21f5e4b9c302a5ced769b7\u0000\u0001_14#chunk0",
-        "20200221000000000000\u0000\u0001ab4751fbf4cc593f3ad3641d6eeecfbac0c34e7df2286a5701e1d1e401055c34\u0000\u0001_0#chunk0",
-        "20200304000000000000\u0000\u000119153f5bc92d9cc70de353a69cd62e3f7bc3766579e582646fab7e793b87563a\u0000\u0001_0#chunk0",
-        "20200305000000000000\u0000\u0001467ce7fdb58a3aa03eb755998ea445ca7278bcde76535cf297ba3611d4ff5424\u0000\u0001_0#chunk1"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "correct_content_wrong_date_0d_control",
-      "poison_count": 1,
-      "seed": 4622276429166958630,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "gold_text_copied": true,
-        "timestamp_shifted_as_specified": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200221000000000000\u0000\u0001f6c71552d6addefa7d7114634b19570429176c333d12ff183e1e02a5490a0245\u0000\u0001_0#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
-      "condition": "correct_content_wrong_date_0d_control",
-      "poison_count": 2,
-      "seed": 4622276429166958630,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "gold_text_copied": true,
-        "timestamp_shifted_as_specified": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200303000000000000\u0000\u0001090f12994cee228f0d78c4d81c1c96cae19b0b527dad824004750381032292fe\u0000\u0001_0#chunk0",
-        "20200304000000000000\u0000\u0001d5d63dee7123acc85bc538687a568e920dd7bf4f3d21f5e4b9c302a5ced769b7\u0000\u0001_14#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 1,
+      "source_qa_id": "eval-001952",
       "condition": "correct_content_wrong_date_0d_control",
       "poison_count": 5,
-      "seed": 4622276429166958630,
+      "seed": 1398066183816055421,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -974,21 +1482,28 @@
         "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        5,
+        20,
+        13,
+        0,
+        12
+      ],
       "target_doc_ids": [
-        "20200303000000000000\u0000\u0001090f12994cee228f0d78c4d81c1c96cae19b0b527dad824004750381032292fe\u0000\u0001_0#chunk0",
-        "20200304000000000000\u0000\u0001d5d63dee7123acc85bc538687a568e920dd7bf4f3d21f5e4b9c302a5ced769b7\u0000\u0001_14#chunk0",
-        "20200221000000000000\u0000\u0001ab4751fbf4cc593f3ad3641d6eeecfbac0c34e7df2286a5701e1d1e401055c34\u0000\u0001_0#chunk0",
-        "20200304000000000000\u0000\u000119153f5bc92d9cc70de353a69cd62e3f7bc3766579e582646fab7e793b87563a\u0000\u0001_0#chunk0",
-        "20200305000000000000\u0000\u0001467ce7fdb58a3aa03eb755998ea445ca7278bcde76535cf297ba3611d4ff5424\u0000\u0001_0#chunk1"
+        "20200229000000000000\u0000\u0001356603d0b96808469451bac344be00ba7622ce89a51973eaa6dcb283d39774ef\u0000\u0001_0#chunk0",
+        "20200305000000000000\u0000\u0001462f07732887164c8bd37e7e305f23bc14310728a1f0677540f94828a3444c70\u0000\u0001_1#chunk0",
+        "20200305000000000000\u0000\u0001467ce7fdb58a3aa03eb755998ea445ca7278bcde76535cf297ba3611d4ff5424\u0000\u0001_0#chunk1",
+        "20200304000000000000\u0000\u000116c70863129492b44c74bece1a7865c8a89c7dfef0c20aa231aefdc6333fbbdf\u0000\u0001_1#chunk0",
+        "20200305000000000000\u0000\u0001467ce7fdb58a3aa03eb755998ea445ca7278bcde76535cf297ba3611d4ff5424\u0000\u0001_0#chunk0"
       ]
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "condition": "stale_evidence",
       "poison_count": 1,
-      "seed": 13816363028834341962,
+      "seed": 1662650071155183159,
       "status": "ineligible",
-      "reason": "no_eligible_target",
+      "reason": "no reviewed stale evidence available",
       "checks": {
         "input_unchanged": true,
         "fixed_seed_deterministic": true,
@@ -997,12 +1512,12 @@
       "passed": true
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "condition": "stale_evidence",
       "poison_count": 2,
-      "seed": 13816363028834341962,
+      "seed": 1662650071155183159,
       "status": "ineligible",
-      "reason": "no_eligible_target",
+      "reason": "no reviewed stale evidence available",
       "checks": {
         "input_unchanged": true,
         "fixed_seed_deterministic": true,
@@ -1011,12 +1526,12 @@
       "passed": true
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "condition": "stale_evidence",
       "poison_count": 5,
-      "seed": 13816363028834341962,
+      "seed": 1662650071155183159,
       "status": "ineligible",
-      "reason": "no_eligible_target",
+      "reason": "no reviewed stale evidence available",
       "checks": {
         "input_unchanged": true,
         "fixed_seed_deterministic": true,
@@ -1025,10 +1540,10 @@
       "passed": true
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "condition": "fabricated_fresh",
       "poison_count": 1,
-      "seed": 9750952575413343983,
+      "seed": 9424776586895100867,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -1043,45 +1558,22 @@
         "only_target_slots_changed": true,
         "payload_text_inserted": true,
         "payload_timestamp_inserted": true,
-        "flagged_synthetic": true
+        "flagged_synthetic": true,
+        "inserted_payload_id_matches_question": true
       },
       "passed": true,
+      "target_indices": [
+        16
+      ],
       "target_doc_ids": [
-        "20200709000000000000\u0000\u00011f47ab0cd79b9597e1731c1aa205ac52db5253e5e8edbc7a50f2c1d539efcd20\u0000\u0001_7#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 2,
-      "condition": "fabricated_fresh",
-      "poison_count": 2,
-      "seed": 9750952575413343983,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "payload_text_inserted": true,
-        "payload_timestamp_inserted": true,
-        "flagged_synthetic": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200706000000000000\u0000\u0001b66dcb450ef20c49e97ea7d884c4176393bdff8379ef179632518733c483404c\u0000\u0001_0#chunk0",
         "20200706000000000000\u0000\u000143f01f9f2671f1eed4c104667b4982cac64df3347494040f17d591ff257bf658\u0000\u0001_6#chunk0"
       ]
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "condition": "fabricated_fresh",
-      "poison_count": 5,
-      "seed": 9750952575413343983,
+      "poison_count": 2,
+      "seed": 9424776586895100867,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -1096,22 +1588,62 @@
         "only_target_slots_changed": true,
         "payload_text_inserted": true,
         "payload_timestamp_inserted": true,
-        "flagged_synthetic": true
+        "flagged_synthetic": true,
+        "inserted_payload_id_matches_question": true
       },
       "passed": true,
+      "target_indices": [
+        16,
+        5
+      ],
       "target_doc_ids": [
-        "20200706000000000000\u0000\u0001b66dcb450ef20c49e97ea7d884c4176393bdff8379ef179632518733c483404c\u0000\u0001_0#chunk0",
         "20200706000000000000\u0000\u000143f01f9f2671f1eed4c104667b4982cac64df3347494040f17d591ff257bf658\u0000\u0001_6#chunk0",
-        "20200713000000000000\u0000\u000121a3947fe3eb07a2b082c1effdbe05ac9deb4703067cd5c68ec675a8990c0ab5\u0000\u0001_0#chunk0",
-        "20200704000000000000\u0000\u00016be04b8a0f5883ed9af85bfaabc3c67ece537a88ece57d3ad636c6b97b413b85\u0000\u0001_0#chunk0",
-        "20200708000000000000\u0000\u0001f156201a8913d121dbb3cf14ff71bda688d8e6cd3f97605edc6695a4538c9735\u0000\u0001_2#chunk0"
+        "20200713000000000000\u0000\u000121a3947fe3eb07a2b082c1effdbe05ac9deb4703067cd5c68ec675a8990c0ab5\u0000\u0001_0#chunk0"
       ]
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
+      "condition": "fabricated_fresh",
+      "poison_count": 5,
+      "seed": 9424776586895100867,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "payload_text_inserted": true,
+        "payload_timestamp_inserted": true,
+        "flagged_synthetic": true,
+        "inserted_payload_id_matches_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        16,
+        5,
+        13,
+        14,
+        19
+      ],
+      "target_doc_ids": [
+        "20200706000000000000\u0000\u000143f01f9f2671f1eed4c104667b4982cac64df3347494040f17d591ff257bf658\u0000\u0001_6#chunk0",
+        "20200713000000000000\u0000\u000121a3947fe3eb07a2b082c1effdbe05ac9deb4703067cd5c68ec675a8990c0ab5\u0000\u0001_0#chunk0",
+        "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0",
+        "20200702000000000000\u0000\u00013fa30e1cbe2f9d3f08d8e33aae9e12c37df082232ce4c0bb272fb0534563d658\u0000\u0001_0#chunk0",
+        "20200704000000000000\u0000\u00016be04b8a0f5883ed9af85bfaabc3c67ece537a88ece57d3ad636c6b97b413b85\u0000\u0001_0#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-005229",
       "condition": "future_date",
       "poison_count": 1,
-      "seed": 15045592944625111503,
+      "seed": 1068664993120369591,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -1128,15 +1660,18 @@
         "timestamp_after_question": true
       },
       "passed": true,
+      "target_indices": [
+        13
+      ],
       "target_doc_ids": [
         "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0"
       ]
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "condition": "future_date",
       "poison_count": 2,
-      "seed": 15045592944625111503,
+      "seed": 1068664993120369591,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -1153,96 +1688,56 @@
         "timestamp_after_question": true
       },
       "passed": true,
+      "target_indices": [
+        13,
+        10
+      ],
       "target_doc_ids": [
-        "20200715000000000000\u0000\u00014544fb1515d099815dad8223c50f848bb34e900b996b78df895a21dc913b80a4\u0000\u0001_3#chunk0",
-        "20200709000000000000\u0000\u00019c9f7146d0699bd135bbf7ace6d45d6ec9a342d1ee527cd6e52e786abf330fb2\u0000\u0001_3#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 2,
-      "condition": "future_date",
-      "poison_count": 5,
-      "seed": 15045592944625111503,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "text_and_id_unchanged": true,
-        "timestamp_after_question": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200715000000000000\u0000\u00014544fb1515d099815dad8223c50f848bb34e900b996b78df895a21dc913b80a4\u0000\u0001_3#chunk0",
-        "20200709000000000000\u0000\u00019c9f7146d0699bd135bbf7ace6d45d6ec9a342d1ee527cd6e52e786abf330fb2\u0000\u0001_3#chunk0",
         "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0",
-        "20200708000000000000\u0000\u0001f156201a8913d121dbb3cf14ff71bda688d8e6cd3f97605edc6695a4538c9735\u0000\u0001_2#chunk0",
-        "20200705000000000000\u0000\u0001034f4e5d21dd56ecba79f7f96e039d7f72c4bafcf98018651c606db2f5dadc1f\u0000\u0001_2#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 2,
-      "condition": "duplicate_fresh",
-      "poison_count": 1,
-      "seed": 15194157084156927538,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "copies_source_text_and_date": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200702000000000000\u0000\u00014ab6c6fa68c5d8fa3633087d4ac099238114b9189f785c3675a91c29d4901305\u0000\u0001_1#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 2,
-      "condition": "duplicate_fresh",
-      "poison_count": 2,
-      "seed": 15194157084156927538,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "copies_source_text_and_date": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200712000000000000\u0000\u000142a98b7029a6d96b9bab2673855934480ca2e3fffb8f569b6f29d30218334818\u0000\u0001_0#chunk0",
         "20200708000000000000\u0000\u0001f156201a8913d121dbb3cf14ff71bda688d8e6cd3f97605edc6695a4538c9735\u0000\u0001_2#chunk0"
       ]
     },
     {
-      "pilot_index": 2,
-      "condition": "duplicate_fresh",
+      "source_qa_id": "eval-005229",
+      "condition": "future_date",
       "poison_count": 5,
-      "seed": 15194157084156927538,
+      "seed": 1068664993120369591,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "text_and_id_unchanged": true,
+        "timestamp_after_question": true
+      },
+      "passed": true,
+      "target_indices": [
+        13,
+        10,
+        5,
+        4,
+        11
+      ],
+      "target_doc_ids": [
+        "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0",
+        "20200708000000000000\u0000\u0001f156201a8913d121dbb3cf14ff71bda688d8e6cd3f97605edc6695a4538c9735\u0000\u0001_2#chunk0",
+        "20200713000000000000\u0000\u000121a3947fe3eb07a2b082c1effdbe05ac9deb4703067cd5c68ec675a8990c0ab5\u0000\u0001_0#chunk0",
+        "20200709000000000000\u0000\u00013a136234f552d388d1bb4d9d6271a5956832338d3fd5af63f12b75a7855d4677\u0000\u0001_1#chunk0",
+        "20200702000000000000\u0000\u000193a42e02fb361a3c275a049256b1e7773dbfe75acd050761f2c8fa97b8dd8595\u0000\u0001_3#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "duplicate_fresh",
+      "poison_count": 1,
+      "seed": 8265502418122034020,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -1259,19 +1754,84 @@
         "copies_source_text_and_date": true
       },
       "passed": true,
+      "target_indices": [
+        8
+      ],
       "target_doc_ids": [
-        "20200712000000000000\u0000\u000142a98b7029a6d96b9bab2673855934480ca2e3fffb8f569b6f29d30218334818\u0000\u0001_0#chunk0",
-        "20200708000000000000\u0000\u0001f156201a8913d121dbb3cf14ff71bda688d8e6cd3f97605edc6695a4538c9735\u0000\u0001_2#chunk0",
-        "20200705000000000000\u0000\u0001034f4e5d21dd56ecba79f7f96e039d7f72c4bafcf98018651c606db2f5dadc1f\u0000\u0001_2#chunk0",
-        "20200709000000000000\u0000\u00019c9f7146d0699bd135bbf7ace6d45d6ec9a342d1ee527cd6e52e786abf330fb2\u0000\u0001_3#chunk0",
         "20200715000000000000\u0000\u00014544fb1515d099815dad8223c50f848bb34e900b996b78df895a21dc913b80a4\u0000\u0001_3#chunk0"
       ]
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
+      "condition": "duplicate_fresh",
+      "poison_count": 2,
+      "seed": 8265502418122034020,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "copies_source_text_and_date": true
+      },
+      "passed": true,
+      "target_indices": [
+        8,
+        7
+      ],
+      "target_doc_ids": [
+        "20200715000000000000\u0000\u00014544fb1515d099815dad8223c50f848bb34e900b996b78df895a21dc913b80a4\u0000\u0001_3#chunk0",
+        "20200712000000000000\u0000\u0001c226e9bde35d1fa19010ea4b5390cbd3a08df622c67e908e8934ba9d6b59bd4c\u0000\u0001_2#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "duplicate_fresh",
+      "poison_count": 5,
+      "seed": 8265502418122034020,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "copies_source_text_and_date": true
+      },
+      "passed": true,
+      "target_indices": [
+        8,
+        7,
+        13,
+        16,
+        12
+      ],
+      "target_doc_ids": [
+        "20200715000000000000\u0000\u00014544fb1515d099815dad8223c50f848bb34e900b996b78df895a21dc913b80a4\u0000\u0001_3#chunk0",
+        "20200712000000000000\u0000\u0001c226e9bde35d1fa19010ea4b5390cbd3a08df622c67e908e8934ba9d6b59bd4c\u0000\u0001_2#chunk0",
+        "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0",
+        "20200706000000000000\u0000\u000143f01f9f2671f1eed4c104667b4982cac64df3347494040f17d591ff257bf658\u0000\u0001_6#chunk0",
+        "20200712000000000000\u0000\u000142a98b7029a6d96b9bab2673855934480ca2e3fffb8f569b6f29d30218334818\u0000\u0001_0#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-005229",
       "condition": "correct_content_wrong_date_30d",
       "poison_count": 1,
-      "seed": 10222577179727164124,
+      "seed": 2134534602697076342,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -1289,72 +1849,86 @@
         "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        13
+      ],
       "target_doc_ids": [
+        "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "correct_content_wrong_date_30d",
+      "poison_count": 2,
+      "seed": 2134534602697076342,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "gold_text_copied": true,
+        "timestamp_shifted_as_specified": true
+      },
+      "passed": true,
+      "target_indices": [
+        13,
+        2
+      ],
+      "target_doc_ids": [
+        "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0",
+        "20200706000000000000\u0000\u000149517fb0ef90d3c056062129a5a630542d1e5ad2fc6e1cb3457c16e636987e05\u0000\u0001_4#chunk0"
+      ]
+    },
+    {
+      "source_qa_id": "eval-005229",
+      "condition": "correct_content_wrong_date_30d",
+      "poison_count": 5,
+      "seed": 2134534602697076342,
+      "status": "applied",
+      "checks": {
+        "input_unchanged": true,
+        "fixed_seed_deterministic": true,
+        "candidate_count_preserved": true,
+        "protected_fields_preserved": true,
+        "gold_candidates_unchanged": true,
+        "doc_id_set_unchanged": true,
+        "poison_count_correct": true,
+        "targets_are_non_gold": true,
+        "target_doc_ids_match": true,
+        "only_target_slots_changed": true,
+        "single_source_never_overwritten": true,
+        "gold_text_copied": true,
+        "timestamp_shifted_as_specified": true
+      },
+      "passed": true,
+      "target_indices": [
+        13,
+        2,
+        15,
+        17,
+        9
+      ],
+      "target_doc_ids": [
+        "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0",
+        "20200706000000000000\u0000\u000149517fb0ef90d3c056062129a5a630542d1e5ad2fc6e1cb3457c16e636987e05\u0000\u0001_4#chunk0",
+        "20200709000000000000\u0000\u00011f47ab0cd79b9597e1731c1aa205ac52db5253e5e8edbc7a50f2c1d539efcd20\u0000\u0001_7#chunk0",
+        "20200702000000000000\u0000\u00014ab6c6fa68c5d8fa3633087d4ac099238114b9189f785c3675a91c29d4901305\u0000\u0001_1#chunk0",
         "20200709000000000000\u0000\u00019c9f7146d0699bd135bbf7ace6d45d6ec9a342d1ee527cd6e52e786abf330fb2\u0000\u0001_3#chunk0"
       ]
     },
     {
-      "pilot_index": 2,
-      "condition": "correct_content_wrong_date_30d",
-      "poison_count": 2,
-      "seed": 10222577179727164124,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "gold_text_copied": true,
-        "timestamp_shifted_as_specified": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200711000000000000\u0000\u00012f7cbc345a62c9e17f8c654006afb7c09ad19a7c965741e66e9744c98a85123d\u0000\u0001_6#chunk0",
-        "20200702000000000000\u0000\u00014ab6c6fa68c5d8fa3633087d4ac099238114b9189f785c3675a91c29d4901305\u0000\u0001_1#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 2,
-      "condition": "correct_content_wrong_date_30d",
-      "poison_count": 5,
-      "seed": 10222577179727164124,
-      "status": "applied",
-      "checks": {
-        "input_unchanged": true,
-        "fixed_seed_deterministic": true,
-        "candidate_count_preserved": true,
-        "protected_fields_preserved": true,
-        "gold_candidates_unchanged": true,
-        "doc_id_set_unchanged": true,
-        "poison_count_correct": true,
-        "targets_are_non_gold": true,
-        "target_doc_ids_match": true,
-        "only_target_slots_changed": true,
-        "single_source_never_overwritten": true,
-        "gold_text_copied": true,
-        "timestamp_shifted_as_specified": true
-      },
-      "passed": true,
-      "target_doc_ids": [
-        "20200711000000000000\u0000\u00012f7cbc345a62c9e17f8c654006afb7c09ad19a7c965741e66e9744c98a85123d\u0000\u0001_6#chunk0",
-        "20200702000000000000\u0000\u00014ab6c6fa68c5d8fa3633087d4ac099238114b9189f785c3675a91c29d4901305\u0000\u0001_1#chunk0",
-        "20200713000000000000\u0000\u000121a3947fe3eb07a2b082c1effdbe05ac9deb4703067cd5c68ec675a8990c0ab5\u0000\u0001_0#chunk0",
-        "20200706000000000000\u0000\u000143f01f9f2671f1eed4c104667b4982cac64df3347494040f17d591ff257bf658\u0000\u0001_6#chunk0",
-        "20200705000000000000\u0000\u0001034f4e5d21dd56ecba79f7f96e039d7f72c4bafcf98018651c606db2f5dadc1f\u0000\u0001_2#chunk0"
-      ]
-    },
-    {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "condition": "correct_content_wrong_date_0d_control",
       "poison_count": 1,
-      "seed": 10222577179727164124,
+      "seed": 2134534602697076342,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -1372,15 +1946,18 @@
         "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        13
+      ],
       "target_doc_ids": [
-        "20200709000000000000\u0000\u00019c9f7146d0699bd135bbf7ace6d45d6ec9a342d1ee527cd6e52e786abf330fb2\u0000\u0001_3#chunk0"
+        "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0"
       ]
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "condition": "correct_content_wrong_date_0d_control",
       "poison_count": 2,
-      "seed": 10222577179727164124,
+      "seed": 2134534602697076342,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -1398,16 +1975,20 @@
         "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        13,
+        2
+      ],
       "target_doc_ids": [
-        "20200711000000000000\u0000\u00012f7cbc345a62c9e17f8c654006afb7c09ad19a7c965741e66e9744c98a85123d\u0000\u0001_6#chunk0",
-        "20200702000000000000\u0000\u00014ab6c6fa68c5d8fa3633087d4ac099238114b9189f785c3675a91c29d4901305\u0000\u0001_1#chunk0"
+        "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0",
+        "20200706000000000000\u0000\u000149517fb0ef90d3c056062129a5a630542d1e5ad2fc6e1cb3457c16e636987e05\u0000\u0001_4#chunk0"
       ]
     },
     {
-      "pilot_index": 2,
+      "source_qa_id": "eval-005229",
       "condition": "correct_content_wrong_date_0d_control",
       "poison_count": 5,
-      "seed": 10222577179727164124,
+      "seed": 2134534602697076342,
       "status": "applied",
       "checks": {
         "input_unchanged": true,
@@ -1425,12 +2006,19 @@
         "timestamp_shifted_as_specified": true
       },
       "passed": true,
+      "target_indices": [
+        13,
+        2,
+        15,
+        17,
+        9
+      ],
       "target_doc_ids": [
-        "20200711000000000000\u0000\u00012f7cbc345a62c9e17f8c654006afb7c09ad19a7c965741e66e9744c98a85123d\u0000\u0001_6#chunk0",
+        "20200713000000000000\u0000\u000153e514eac5de39bf7aba108af1c8648cc502a4b45b206783aebe3552ea3cd1f8\u0000\u0001_3#chunk0",
+        "20200706000000000000\u0000\u000149517fb0ef90d3c056062129a5a630542d1e5ad2fc6e1cb3457c16e636987e05\u0000\u0001_4#chunk0",
+        "20200709000000000000\u0000\u00011f47ab0cd79b9597e1731c1aa205ac52db5253e5e8edbc7a50f2c1d539efcd20\u0000\u0001_7#chunk0",
         "20200702000000000000\u0000\u00014ab6c6fa68c5d8fa3633087d4ac099238114b9189f785c3675a91c29d4901305\u0000\u0001_1#chunk0",
-        "20200713000000000000\u0000\u000121a3947fe3eb07a2b082c1effdbe05ac9deb4703067cd5c68ec675a8990c0ab5\u0000\u0001_0#chunk0",
-        "20200706000000000000\u0000\u000143f01f9f2671f1eed4c104667b4982cac64df3347494040f17d591ff257bf658\u0000\u0001_6#chunk0",
-        "20200705000000000000\u0000\u0001034f4e5d21dd56ecba79f7f96e039d7f72c4bafcf98018651c606db2f5dadc1f\u0000\u0001_2#chunk0"
+        "20200709000000000000\u0000\u00019c9f7146d0699bd135bbf7ace6d45d6ec9a342d1ee527cd6e52e786abf330fb2\u0000\u0001_3#chunk0"
       ]
     }
   ]
