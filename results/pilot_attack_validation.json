@@ -1,10 +1,10 @@
 {
   "report_type": "pilot_attack_validation_real_pool",
   "protocol_version": "week5_pilot_v2_nested",
-  "generated_at_utc": "2026-10-21T08:21:32.242320+00:00",
+  "generated_at_utc": "2026-10-22T14:02:54.791687+00:00",
   "git": {
-    "commit": "dc937b460362cf82f91839695ccde4aeef617ce4",
-    "dirty": true
+    "commit": "5675baaca12a6d67a89cc7f5d6d66cc85cef6cdc",
+    "dirty": false
   },
   "base_seed": 42,
   "seed_rule": "sha256(base_seed|source_qa_id|attack_type)[:16] per question and attack type",
