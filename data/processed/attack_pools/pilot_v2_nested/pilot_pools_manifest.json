@@ -1,9 +1,9 @@
 {
   "protocol_version": "week5_pilot_v2_nested",
-  "generated_at_utc": "2026-10-21T08:21:33.276245+00:00",
+  "generated_at_utc": "2026-10-22T14:04:14.138499+00:00",
   "git": {
-    "commit": "dc937b460362cf82f91839695ccde4aeef617ce4",
-    "dirty": true
+    "commit": "08f5277406356f5e4af58b5a52af206c8b417763",
+    "dirty": false
   },
   "base_seed": 42,
   "seed_rule": "sha256(base_seed|source_qa_id|attack_type)[:16] per question and attack type",
@@ -11,7 +11,7 @@
   "pilot_file_sha256": "fbfedc730149147580aa98318b708144f53bb1487c8c34ee70da4ad56d23ff05",
   "payload_file": "data/processed/attack_sources/streamingqa_pilot_fabricated_payloads.jsonl",
   "payload_file_sha256": "8b57695c8f6cc9d7c7cc86b7408ae7e00ce41ce9f5d997eab4762719a4230336",
-  "validation_report_generated_at": "2026-10-21T08:21:32.242320+00:00",
+  "validation_report_generated_at": "2026-10-22T14:02:54.791687+00:00",
   "not_generated": [
     {
       "condition": "stale_evidence",
