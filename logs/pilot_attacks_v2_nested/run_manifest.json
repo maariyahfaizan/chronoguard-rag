@@ -1,0 +1,716 @@
+{
+  "protocol_version": "week5_pilot_v2_nested",
+  "git": {
+    "commit": "cc7d6fff8641f3b82112278a477df180e1af6b2f",
+    "dirty": true
+  },
+  "environment": {
+    "python": "3.12.13",
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.35",
+    "packages": {
+      "torch": "2.10.0+cu128",
+      "transformers": "5.0.0",
+      "sentence-transformers": "5.4.1",
+      "rank-bm25": "0.2.2",
+      "bitsandbytes": "0.50.2",
+      "accelerate": "1.13.0",
+      "numpy": "2.0.2",
+      "PyYAML": "6.0.3"
+    },
+    "cuda": "12.8",
+    "cuda_available": true,
+    "gpu": "Tesla T4"
+  },
+  "model_revisions_pinned": {
+    "mistralai/Mistral-7B-Instruct-v0.2": "63a8b081895390a26e140280378bc85ec8bce07a",
+    "facebook/contriever": "2bd46a25019aeea091fd42d1f0fd4801675cf699",
+    "BAAI/bge-reranker-base": "2cfc18c9415c912f9d8155881c133215df768a70"
+  },
+  "model_revisions_loaded": {
+    "mistralai/Mistral-7B-Instruct-v0.2": "63a8b081895390a26e140280378bc85ec8bce07a",
+    "facebook/contriever": "2bd46a25019aeea091fd42d1f0fd4801675cf699",
+    "BAAI/bge-reranker-base": "2cfc18c9415c912f9d8155881c133215df768a70"
+  },
+  "torch_seed": 0,
+  "attack_base_seed": 42,
+  "clean_logs_reused_not_rerun": {
+    "E1": {
+      "path": "logs/pilot_attacks/clean__E1.jsonl",
+      "sha256": "68085d4eb1a71d95b9ed5517c2851fa72e9f0ebffd54dea60a6fc245f6328468"
+    },
+    "E2": {
+      "path": "logs/pilot_attacks/clean__E2.jsonl",
+      "sha256": "07dd1ce127a2d81b84826dccbefceaee10c08e1551fd99806d7a913762f90a90"
+    },
+    "E3": {
+      "path": "logs/pilot_attacks/clean__E3.jsonl",
+      "sha256": "20ac1e141f258914407a37dc85390650ee9c93d47b62afa9efdbe9adfed15e7a"
+    },
+    "E4": {
+      "path": "logs/pilot_attacks/clean__E4.jsonl",
+      "sha256": "8d1edb921a4f1fe38b1b45f5ae494c17af385c362f9ffd604b91a51814d4313c"
+    }
+  },
+  "runs": [
+    {
+      "pool": "correct_content_wrong_date_0d_control_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "a59a0f1269c7a319dd7baf859cf47d4260cdba368c4242247dc9f33e393adf95",
+      "log_sha256": "559e7d69433981995c2b3f42e44de90b80c7a0b3d85f63b43da400e1c0b6f1db",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "a59a0f1269c7a319dd7baf859cf47d4260cdba368c4242247dc9f33e393adf95",
+      "log_sha256": "492fb76ef07c9a649ad03f6b0888cfe2717fd01096ef243e38589daf9999679b",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "a59a0f1269c7a319dd7baf859cf47d4260cdba368c4242247dc9f33e393adf95",
+      "log_sha256": "ab169a2f6644406c4633f4e6ee4c354d06888814d16243b3d9c4fbd7694ec5b0",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "a59a0f1269c7a319dd7baf859cf47d4260cdba368c4242247dc9f33e393adf95",
+      "log_sha256": "ca51171b049e72ddaec29e567a028bbba4c6e751ce0ecca8d31c8382c6fde3a5",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "103a66c7ff4ce8e3f7ace90111aec43c33495bbe733c4d2e6499daf071147e7b",
+      "log_sha256": "6e79c702d1eab7b5c5122172fb4e1295040e86887ede9b23a2f0082c5680a5e5",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "103a66c7ff4ce8e3f7ace90111aec43c33495bbe733c4d2e6499daf071147e7b",
+      "log_sha256": "a45e71ec855213cba478d9adfdb1bd8cc7d61b18d61000cecc2c871b19b00814",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "103a66c7ff4ce8e3f7ace90111aec43c33495bbe733c4d2e6499daf071147e7b",
+      "log_sha256": "93103b502c47e484517319289843079a2fe57e9be08a36311e30688342eb6478",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "103a66c7ff4ce8e3f7ace90111aec43c33495bbe733c4d2e6499daf071147e7b",
+      "log_sha256": "3cc15daf7a353714b45c6f507026bc3b8e199312072133d781b9110cfa746fd0",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "73c16cd426b56e9ed92333688aae3edb3dce7476cfe14b9e631428db963997a7",
+      "log_sha256": "4842754716edc1b51dc335b415f2d186dffc8f56740802b9adf442cbce7b66e5",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "73c16cd426b56e9ed92333688aae3edb3dce7476cfe14b9e631428db963997a7",
+      "log_sha256": "f501f6c526034e91a6c0def8bc3c8380a1b02110f266464451dc3f6fa0d6d80e",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "73c16cd426b56e9ed92333688aae3edb3dce7476cfe14b9e631428db963997a7",
+      "log_sha256": "ae55cce136ec110525af16de93d4882e63e477f7e7c87db8af8d95df1f725953",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "correct_content_wrong_date_0d_control_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_0d_control_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_0d_control_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "73c16cd426b56e9ed92333688aae3edb3dce7476cfe14b9e631428db963997a7",
+      "log_sha256": "0c364341f14f27e788fd7b45fe24f01dd14f98425c3d18c6dd8b84e5620689e8",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "12df3232b52cb6962102c878626c73df9b893bc8935f1a15e9621d1300fea492",
+      "log_sha256": "245fe3154bd01698249d579073134a1fc1bfbe5856ad401cfb6964500b6fa9fd",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "12df3232b52cb6962102c878626c73df9b893bc8935f1a15e9621d1300fea492",
+      "log_sha256": "26a1c4cc1e6ebb30d554e559bb170440c0b6f29598172300965a2b6cbfeb518f",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "12df3232b52cb6962102c878626c73df9b893bc8935f1a15e9621d1300fea492",
+      "log_sha256": "18d40f502d7316f7f4a1412c0d537de16905a31c0f20fca451304b337ef3b3da",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "12df3232b52cb6962102c878626c73df9b893bc8935f1a15e9621d1300fea492",
+      "log_sha256": "6fe60a3a4b981738c368809af87354dcaef6f932e6c38ae098c1114cd8ee629f",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "9e01f073219b94d03e8dc09151b0346da9c797db3b380b816e348d82578339fc",
+      "log_sha256": "92bdd1afb793350f43e6ff8968ce902f71c1fd3d541f19008c6b8afee33c5d9b",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "9e01f073219b94d03e8dc09151b0346da9c797db3b380b816e348d82578339fc",
+      "log_sha256": "f46fd44edd977388771b6a486d9ba7b198f07eb272a900ef7ab05b257f08f51c",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "9e01f073219b94d03e8dc09151b0346da9c797db3b380b816e348d82578339fc",
+      "log_sha256": "73b3b63f4d4bd36333e88184e64ddd4b63f3296011b8550c5ccabd3a8034dd19",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "9e01f073219b94d03e8dc09151b0346da9c797db3b380b816e348d82578339fc",
+      "log_sha256": "097eba28b5914f29560c582b9a25de37857efdb99cc30b30c1767db397406ee8",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "ad00258dfbc0199fd0d3e3cc4f7d22a7e5634a5e6ebcb2487e977bc83d99c9fd",
+      "log_sha256": "6ee001ef33cf29ced4f11f559a466911daf6a86b8e51a9a15c30c289f9ecbae8",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "ad00258dfbc0199fd0d3e3cc4f7d22a7e5634a5e6ebcb2487e977bc83d99c9fd",
+      "log_sha256": "d36387baeca3edf8f98b835e9785e57b4fbf403ccb8043f331abef57907c7919",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "ad00258dfbc0199fd0d3e3cc4f7d22a7e5634a5e6ebcb2487e977bc83d99c9fd",
+      "log_sha256": "63e01426f40509cc939365a76f68909a1343bb0912e5399d7c53978da735f38c",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "correct_content_wrong_date_30d_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/correct_content_wrong_date_30d_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/correct_content_wrong_date_30d_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "ad00258dfbc0199fd0d3e3cc4f7d22a7e5634a5e6ebcb2487e977bc83d99c9fd",
+      "log_sha256": "27e7528391913b628faf33ec19c08f4b9ade442e71340e5772f06fe9ffa3ceee",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "duplicate_fresh_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "9c167d6bb729bbab19fbc1ab8687bed1030d4d019b0757a3adaf4efece576dc2",
+      "log_sha256": "b9ce05a5a56e8fc330d6b67760a8cb642f86954ad15600fafe5235b4b0c84bb0",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "duplicate_fresh_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "9c167d6bb729bbab19fbc1ab8687bed1030d4d019b0757a3adaf4efece576dc2",
+      "log_sha256": "85f1c9fe8c023327b73bec8550b1c3c3c7d5d30051d650846d5de124db5f6e40",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "duplicate_fresh_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "9c167d6bb729bbab19fbc1ab8687bed1030d4d019b0757a3adaf4efece576dc2",
+      "log_sha256": "e80039c116b58706f0a8945ca59b9143fdb20f540258ab089720269a7acadcfa",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "duplicate_fresh_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "9c167d6bb729bbab19fbc1ab8687bed1030d4d019b0757a3adaf4efece576dc2",
+      "log_sha256": "bac97e595e51890e113707cf411c15b05d8464494211761a42b6481ad3ed3425",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "duplicate_fresh_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "f79a86cd4771630a92e39ddaffa9a994e30744e75a4039f16bc45c8fda4ac009",
+      "log_sha256": "af5761c2e4e8a9ec976f7818dca7a28b1de303c5b6354504841bdcabf7e2da99",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "duplicate_fresh_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "f79a86cd4771630a92e39ddaffa9a994e30744e75a4039f16bc45c8fda4ac009",
+      "log_sha256": "fe069fab91abac854456cb518ea8dc0cdc067fbf155e8feb9564ce95b61058f7",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "duplicate_fresh_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "f79a86cd4771630a92e39ddaffa9a994e30744e75a4039f16bc45c8fda4ac009",
+      "log_sha256": "edd71a666931b03050859e62ff22968cb0524cacf58f22c133e4e5e0d6346444",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "duplicate_fresh_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "f79a86cd4771630a92e39ddaffa9a994e30744e75a4039f16bc45c8fda4ac009",
+      "log_sha256": "8617aa5fe037b585570754d9258cd2cfde23a9af226df1bb7b129973fe4e36e2",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "duplicate_fresh_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "2b42d1b94e5adb8f43cc781d61a790f8a4eb7b59c6efbebd1efe788f70cdbe12",
+      "log_sha256": "c9041c1cada01518f36cfe5c645ffe6860f371f80a0fadaa74fd13fe730fbb91",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "duplicate_fresh_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "2b42d1b94e5adb8f43cc781d61a790f8a4eb7b59c6efbebd1efe788f70cdbe12",
+      "log_sha256": "3d849e5b467edbe6dd28ff7c69d0043720e3e25790657cda19277b7c1115ab8e",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "duplicate_fresh_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "2b42d1b94e5adb8f43cc781d61a790f8a4eb7b59c6efbebd1efe788f70cdbe12",
+      "log_sha256": "c460f58457f2fc8f37571de2100ad602db14620d7bb77cd63fbf6b6a5d2bd6e3",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "duplicate_fresh_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/duplicate_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/duplicate_fresh_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "2b42d1b94e5adb8f43cc781d61a790f8a4eb7b59c6efbebd1efe788f70cdbe12",
+      "log_sha256": "8bd24815f6dd0b40858add14b86fd68a987f6081a9b0b5e9bcb5d58fc96ce610",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "fabricated_fresh_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "e52a5952d580aa8852cba06dee2f167a910b8823c6a56bdf0dacef6c87e141a6",
+      "log_sha256": "e3140fcc4585a368465942b1a6c67650b12d2b1a90dbdeae4ffa8ed1a45faf97",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "fabricated_fresh_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "e52a5952d580aa8852cba06dee2f167a910b8823c6a56bdf0dacef6c87e141a6",
+      "log_sha256": "7bc8cc895cfc967fa537b154caf5bacc8baac762594b1d4f3c57198364c89a5d",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "fabricated_fresh_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "e52a5952d580aa8852cba06dee2f167a910b8823c6a56bdf0dacef6c87e141a6",
+      "log_sha256": "9ce00af803e54bc1b3cacee2cdae4a8fd180fab58c774834a551128b34fdb23e",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "fabricated_fresh_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "e52a5952d580aa8852cba06dee2f167a910b8823c6a56bdf0dacef6c87e141a6",
+      "log_sha256": "e3882eb7f66b64c3894286005fedf703d903aa4f9b7b6e75b07a80803d4e1180",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "fabricated_fresh_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "8824752152da37cb7585170f380ffdb4335c96dc3c6ed6a3f1ee2450b93bfba4",
+      "log_sha256": "cb46002f6f5c532e9e58937738e0694ab8e0f5932ce35820611f18a6c752ab16",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "fabricated_fresh_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "8824752152da37cb7585170f380ffdb4335c96dc3c6ed6a3f1ee2450b93bfba4",
+      "log_sha256": "18721a516955ab1576372ab2625e59773969e5c4c246f4c9c04d73f467df6e51",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "fabricated_fresh_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "8824752152da37cb7585170f380ffdb4335c96dc3c6ed6a3f1ee2450b93bfba4",
+      "log_sha256": "eb8038a6663e879d359f4a81098fdde36cacdd01f191d5b9802934375b21a4e2",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "fabricated_fresh_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "8824752152da37cb7585170f380ffdb4335c96dc3c6ed6a3f1ee2450b93bfba4",
+      "log_sha256": "49ea4cac5b913674eaacf7dbabb215c8a60a02ec0d13d81556f7bef4b357be44",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "fabricated_fresh_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "5f6fb33f3ba76c4fe1357ddefe2c6a1bc2ea874e11d7c35a76ffed99eeddeaad",
+      "log_sha256": "cdaad20f6fc06470a3587487de108fccb0d7b5fc685712323721df19b381b2a1",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "fabricated_fresh_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "5f6fb33f3ba76c4fe1357ddefe2c6a1bc2ea874e11d7c35a76ffed99eeddeaad",
+      "log_sha256": "3cf1eee974c9ae8ccb469aaf131e07641e90b5528b05792fd3f0e416dc04c030",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "fabricated_fresh_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "5f6fb33f3ba76c4fe1357ddefe2c6a1bc2ea874e11d7c35a76ffed99eeddeaad",
+      "log_sha256": "9cfb17dcecd6bf47f254edb0e329f41ebdfc007c6e1c38e6dc8382e58d5aa5f9",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "fabricated_fresh_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/fabricated_fresh_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/fabricated_fresh_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "5f6fb33f3ba76c4fe1357ddefe2c6a1bc2ea874e11d7c35a76ffed99eeddeaad",
+      "log_sha256": "a26572d43abe230757792c0cd46bbc6d414b49e4bef48bc947fe2724fa72a892",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "future_date_n1",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n1__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "5804d35525c3a458fd9ca945cfef797f183b326ca02afab8a21b47a821a5037a",
+      "log_sha256": "b316c18249b610a5f8edda1435aa6008a30c0320f892727cf271f08794244c06",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "future_date_n1",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n1__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "5804d35525c3a458fd9ca945cfef797f183b326ca02afab8a21b47a821a5037a",
+      "log_sha256": "8ee6e884adad2712d9282d0f536c32ec5ed5f1017579e3787c843c25978867c6",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "future_date_n1",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n1__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "5804d35525c3a458fd9ca945cfef797f183b326ca02afab8a21b47a821a5037a",
+      "log_sha256": "6ef1a909d6926569a3337ea9963afdca18e7967add84f43008728e375e3869c4",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "future_date_n1",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n1.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n1__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "5804d35525c3a458fd9ca945cfef797f183b326ca02afab8a21b47a821a5037a",
+      "log_sha256": "eaf9cb3ac6746e54604ff694d669450c20300719765dfa73c538c73573a77bb3",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "future_date_n2",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n2__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "700918ef15a54c6ffe439245a7c739eca5c7158663e6614e51963226433bc43c",
+      "log_sha256": "6ef202c63c73697b282bc9081b9c850343126279bbe736defe448702d0cbc801",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "future_date_n2",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n2__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "700918ef15a54c6ffe439245a7c739eca5c7158663e6614e51963226433bc43c",
+      "log_sha256": "7f2103420681543a1352eba2af503139cb3ca0b64712dd16b89f1b3395d42201",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "future_date_n2",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n2__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "700918ef15a54c6ffe439245a7c739eca5c7158663e6614e51963226433bc43c",
+      "log_sha256": "0e286e8bda73e4f64628291afb0d686ed09bf84d0170008e3c1d1dd8d7cef4cd",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "future_date_n2",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n2.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n2__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "700918ef15a54c6ffe439245a7c739eca5c7158663e6614e51963226433bc43c",
+      "log_sha256": "8962020206d3b152811b4b57e51d390f773d351b643e756068b794bcc32b763f",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    },
+    {
+      "pool": "future_date_n5",
+      "experiment": "E1",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n5__E1.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "09fdb8e0a900dddd3b9162f480bf2ab13cb3c41380d0edcab7d4c6b2982a7baa",
+      "log_sha256": "f554795a23c6f57498fafc7769af43e5f93b1423b84e9374f566ccd96b076926",
+      "config_hash": "591589e369f2607029a16eea93d28b8a3342255a17a3ef088ac0d6504fbdc3a0"
+    },
+    {
+      "pool": "future_date_n5",
+      "experiment": "E2",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n5__E2.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "09fdb8e0a900dddd3b9162f480bf2ab13cb3c41380d0edcab7d4c6b2982a7baa",
+      "log_sha256": "9f559145f3f8a1f154024535cdf3047ae9b5c5b63b19d94bb902bbaa2b6c06ab",
+      "config_hash": "37fc1b54378e30f80ba5f4f407b82cd97e5f9c1610dd7628b805e9cb72b9f7aa"
+    },
+    {
+      "pool": "future_date_n5",
+      "experiment": "E3",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n5__E3.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "09fdb8e0a900dddd3b9162f480bf2ab13cb3c41380d0edcab7d4c6b2982a7baa",
+      "log_sha256": "958388c1f1d38a56ea3b2aed1ba7d7d16e1ffb718b1b81ccbf7f5288da9f5860",
+      "config_hash": "6cc33a0d3e9defeaf1baa70e625a0224a27e691455534eed839d221af501405a"
+    },
+    {
+      "pool": "future_date_n5",
+      "experiment": "E4",
+      "input": "data/processed/attack_pools/pilot_v2_nested/future_date_n5.jsonl",
+      "log": "logs/pilot_attacks_v2_nested/future_date_n5__E4.jsonl",
+      "n_records": 3,
+      "n_log_lines": 3,
+      "pool_sha256": "09fdb8e0a900dddd3b9162f480bf2ab13cb3c41380d0edcab7d4c6b2982a7baa",
+      "log_sha256": "1f9f79dc98612edbb4c2dd942eeb9ba19c8dafab74956b3b443665f5b3c8dd56",
+      "config_hash": "05ee9e12e3372b6f9e37136508216bab371c2758ba919cc66027e2a3379862df"
+    }
+  ]
+}
