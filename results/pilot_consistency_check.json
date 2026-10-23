@@ -1,0 +1,13 @@
+{
+  "protocol_version": "week5_pilot_v2_nested",
+  "generated_at_utc": "2026-10-23T05:08:33.613348+00:00",
+  "judge_rubric_version": "answer_judge_v1",
+  "n_rows": 180,
+  "expected_rows": 180,
+  "log_problems": [],
+  "future_date_rows_differing_from_clean": [],
+  "ccwd_30d_vs_0d_control_mismatches": [],
+  "n_needs_review": 1,
+  "note": "future_date is metadata-only for E1-E4, so any difference from clean would be run-to-run drift between the earlier clean session and this session. A 30d vs 0d difference is the only evidence that the wrong date itself had an effect.",
+  "result": "OK"
+}
