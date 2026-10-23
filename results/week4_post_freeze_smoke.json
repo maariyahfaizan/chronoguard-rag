@@ -1,0 +1,144 @@
+{
+  "purpose": "W4-F1 post-freeze validation using preloaded notebook models; does not change the frozen Week-4 baseline",
+  "generated_at_utc": "2026-10-23T05:26:15.853325+00:00",
+  "git": {
+    "commit": "78d3181526b0b5eda6008dcbb6850aedbf63021a",
+    "dirty": true
+  },
+  "frozen_tag": "week4-frozen",
+  "frozen_pool": "data/processed/streamingqa_control_pools_chunked.jsonl",
+  "frozen_pool_sha256": "b4eede5c1ed4b06808fe44754cc04ee5036d3a572088de61dd6dff1f77174ddd",
+  "subset": "logs/week4_post_freeze_smoke/frozen_pool_first_5.jsonl",
+  "subset_sha256": "3a878db309def1b83c730bcef781a81a48b98da2619b96bca544cfdffd734891",
+  "n_queries": 5,
+  "configured_model_revisions": {
+    "mistralai/Mistral-7B-Instruct-v0.2": "63a8b081895390a26e140280378bc85ec8bce07a",
+    "facebook/contriever": "2bd46a25019aeea091fd42d1f0fd4801675cf699",
+    "BAAI/bge-reranker-base": "2cfc18c9415c912f9d8155881c133215df768a70"
+  },
+  "note": "The validator reuses model objects supplied by the notebook and does not independently verify their loaded revisions. Frozen Week-4 runs may not have recorded model revisions; comparisons are reported but are not pass criteria.",
+  "environment": {
+    "python": "3.12.13",
+    "platform": "Linux-6.18.48+-x86_64-with-glibc2.35",
+    "packages": {
+      "torch": "2.10.0+cu128",
+      "transformers": "5.0.0",
+      "sentence-transformers": "5.4.1",
+      "rank-bm25": "0.2.2",
+      "bitsandbytes": "0.50.2",
+      "accelerate": "1.13.0",
+      "numpy": "2.0.2",
+      "PyYAML": "6.0.3"
+    },
+    "cuda": "12.8",
+    "cuda_available": true,
+    "gpu": "Tesla T4"
+  },
+  "results": {
+    "E2": {
+      "config_params": {
+        "input_path": "data/processed/streamingqa_control_pools_chunked.jsonl",
+        "top_k": 5,
+        "generator_model": "mistralai/Mistral-7B-Instruct-v0.2",
+        "log_path": "logs/streamingqa_dense_run_chunked.jsonl"
+      },
+      "checks": {
+        "all_rows_logged": true,
+        "retrieved_count_equals_config": true,
+        "logged_top_k_equals_config": true
+      },
+      "passed": true,
+      "same_retrieval_as_frozen_log": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "same_answer_as_frozen_log": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "log": "logs/week4_post_freeze_smoke/E2.jsonl",
+      "log_sha256": "8d254de193ecf2f2f8297b55f79988d1758057252be234fcd97b5ca5c5c7384e"
+    },
+    "E3": {
+      "config_params": {
+        "input_path": "data/processed/streamingqa_control_pools_chunked.jsonl",
+        "top_k": 5,
+        "generator_model": "mistralai/Mistral-7B-Instruct-v0.2",
+        "log_path": "logs/streamingqa_hybrid_run_chunked.jsonl",
+        "candidate_top_k": 20,
+        "rrf_k": 60,
+        "final_top_k": 5
+      },
+      "checks": {
+        "all_rows_logged": true,
+        "retrieved_count_equals_config": true,
+        "logged_candidate_top_k_equals_config": true,
+        "logged_final_top_k_equals_config": true,
+        "logged_rrf_k_equals_config": true
+      },
+      "passed": true,
+      "same_retrieval_as_frozen_log": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "same_answer_as_frozen_log": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "log": "logs/week4_post_freeze_smoke/E3.jsonl",
+      "log_sha256": "9e57323f9ab194d9aa50638a28ba3440869a6f1235231b8ee801c151ad4512d0"
+    },
+    "E4": {
+      "config_params": {
+        "input_path": "data/processed/streamingqa_control_pools_chunked.jsonl",
+        "top_k": 5,
+        "generator_model": "mistralai/Mistral-7B-Instruct-v0.2",
+        "log_path": "logs/streamingqa_hybrid_reranker_run_chunked.jsonl",
+        "candidate_top_k": 20,
+        "fused_top_k": 20,
+        "rrf_k": 60,
+        "final_top_k": 5,
+        "reranker_model": "BAAI/bge-reranker-base"
+      },
+      "checks": {
+        "all_rows_logged": true,
+        "retrieved_count_equals_config": true,
+        "logged_candidate_top_k_equals_config": true,
+        "logged_fused_top_k_equals_config": true,
+        "logged_final_top_k_equals_config": true,
+        "logged_rrf_k_equals_config": true,
+        "logged_reranker_equals_config": true
+      },
+      "passed": true,
+      "same_retrieval_as_frozen_log": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "same_answer_as_frozen_log": [
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "log": "logs/week4_post_freeze_smoke/E4.jsonl",
+      "log_sha256": "9cb3552cf0f84a8a76bba5e3ae881f5043fd93409b23441f5048bf1062656f47"
+    }
+  },
+  "result": "PASS"
+}
