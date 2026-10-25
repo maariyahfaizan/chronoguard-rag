@@ -2,7 +2,8 @@
 
 **Student:** Maariyah Anjum Faizan
 **Date:** 2026-10-21
-**Status:** the corrected pools are built and validated. The E1-E4 rerun on the corrected pools has **not** been run yet (it needs a Kaggle GPU). Sections 7-8 list what is still pending.
+**Last updated:** 2026-10-25
+**Status:** Corrected Week 5 v2 nested pilot completed and postprocessed. All 60 attack-run artifacts passed integrity checks; 180 attack rows passed metadata checks. Manual adjudication is complete. Results are development-only. Historical dirty-working-tree provenance remains qualified. Week 6 held-out evaluation and defense evaluation have not started.
 
 > **Scope.** The pilot has three questions. It is a **development case study, not a statistical benchmark**. No rate in this report or in the regenerated pilot CSVs supports a general claim. The held-out Week-6 benchmark has not been started.
 
@@ -105,40 +106,245 @@ stale_evidence is **ineligible** for all three pilot questions, with the reason:
 
 Clean inputs still log `attack_condition: "clean"` with no extra fields. Frozen Week-4 logs and results were not altered, and they did not record revisions (documented in `docs/week4_closure.md`, section 7).
 
-## 7. Regenerated artifacts (item 9)
 
-The v1 outputs are kept for comparison and are **not combined** with v2:
-- results: `results/legacy/week5_pilot_v1_nonnested/`
-- pools: `data/processed/attack_pools/legacy/pilot_v1_nonnested/`
-- attacked logs: `logs/legacy/pilot_attacks_v1_nonnested/`
+## 7. Completed artifacts and validation
 
-The clean pilot logs `logs/pilot_attacks/clean__E*.jsonl` are unchanged and are reused (not rerun) as the clean reference.
+The v1 non-nested outputs remain archived and are not combined with v2.
+The corrected v2 attack pools, validation outputs, and E1-E4 attack
+logs are complete.
 
-| Artifact | Status |
-|---|---|
-| `results/pilot_attack_validation.json` | Regenerated. 54 cases: 45 applied and passed, 9 ineligible (stale, not forced), **0 failed**, 0 nesting failures, 0 payload problems; mismatch self-test rejected |
-| `data/processed/attack_pools/pilot_v2_nested/` (15 pools + manifest) | Regenerated; 3 records each, 0 skipped; LF line endings so hashes match on Kaggle |
-| `results/pilot_pool_check.json` | Regenerated. **ALL OK**: 15 files, 45 records, 16 checks (incl. nesting, 30d = 0d slots, payload identity, manifest hashes) |
-| `results/legacy/.../pilot_v1_judge_vs_manual.csv` | New. Rule judge vs the v1 manual labels: 25/26 consistent, 1 flagged NEEDS_REVIEW (development check only) |
-| `results/pilot_attack_rows.csv`, `results/pilot_consistency_check.json`, `results/pilot_judge_review.csv`, `results/pilot_vulnerability_summary.csv` | **Pending the Kaggle rerun.** Scripts are updated and tested end-to-end on synthetic logs |
+- `results/pilot_attack_validation.json`: 54 validation cases,
+  including 45 applied-and-passed cases and 9 ineligible stale cases;
+  no failed applied cases.
+- `results/pilot_pool_check.json`: all 15 pools and 45 pool records
+  passed the recorded checks.
+- `logs/pilot_attacks_v2_nested/`: 60 attack logs, three questions
+  per log, 180 attack rows in total.
+- `results/pilot_attack_rows.csv`: postprocessed attack-level records.
+- `results/pilot_consistency_check.json`: result `OK`.
+- `results/pilot_judge_review.csv`: human adjudication record.
+- `results/pilot_vulnerability_summary.csv`: authoritative detailed
+  pilot summary (72 rows).
 
-All three generated reports record `git.dirty: true`, because the corrections are not committed yet. After committing, rerun the three CPU commands in section 8 on the clean tree and commit the outputs. Pool bytes are deterministic and will not change.
+The four clean pilot logs were reused without rerunning them.
+The original frozen Week 4 outputs were not altered.
 
-## 8. Remaining steps
+## 8. Execution provenance and completion status
 
-1. Commit the code and data corrections. Then on a clean tree run:
-   - `python scripts/validate_pilot_attacks.py`
-   - `python scripts/build_pilot_attack_pools.py`
-   - `python scripts/check_pilot_pools.py`
+### 8.1 Artifact-integrity audit
 
-   Commit the outputs.
-2. On Kaggle, run `python scripts/run_pilot_attacks_kaggle.py` (15 pools × E1-E4 → `logs/pilot_attacks_v2_nested/`) and `python scripts/smoke_test_e2_e4_post_freeze.py` (W4-F1).
-3. Locally, run:
-   - `python scripts/postprocess_pilot_attacks.py`;
-   - label any `NEEDS_REVIEW` rows in `results/pilot_judge_review.csv`;
-   - `python scripts/summarize_pilot_attacks.py`.
-4. Add the v2 results tables to this report (section 9) and record the smoke-test results in `docs/week4_post_freeze_validation.md`.
+A read-only audit verified the SHA-256 hashes of all 60 attack logs
+and their corresponding attack pools against the v2 execution manifest.
+All four reused clean baseline logs also matched their recorded hashes.
+The checked log line counts and first-row metadata agreed with the
+manifest. No issues were found.
 
-## 9. Corrected pilot results
+A second audit compared the recorded experiment, pool, pool hash,
+configuration hash, protocol version, attack base seed, torch seed,
+and Git state against the execution manifest for all 180 attack rows.
+There were zero mismatches.
 
-*To be filled in from `results/pilot_vulnerability_summary.csv` after step 3.* Every quantity goes in its own column: poison selection rate, ASR, conditional ASR, correctness drop, gold displacement rate, mean/median best poison rank, and Δ Recall@5, Δ nDCG@5, Δ valid-evidence Recall@5, Δ TVAA and Δ fraction violating. Undefined values stay blank. n=3 is a development case study, not a statistical benchmark.
+The execution-time hashes of `streamingqa_eval_config.yaml` and
+`pilot_pools_manifest.json` were reconciled against the exact file
+contents stored at Git commit
+`cc7d6fff8641f3b82112278a477df180e1af6b2f`.
+The run manifest records matching pinned and loaded model revisions.
+
+### 8.2 Provenance limitation
+
+The Kaggle runner recorded `git.dirty: true` before beginning the
+attack executions. Its Git-state function records a Boolean derived
+from `git status --porcelain`, but does not preserve the names or
+contents of modified or untracked files.
+
+Consequently, the exact uncommitted execution working tree cannot
+be reconstructed from the recorded metadata. Artifact integrity,
+historical configuration-file hashes, and row-level metadata are
+reconciled; full clean-tree execution reproducibility is **not**
+claimed. The existing pilot is retained with this qualification.
+
+### 8.3 Manual adjudication and consistency
+
+The automatically flagged case
+`fabricated_fresh_n2|E3|eval-005229|attacked`
+was manually labelled `OTHER_WRONG`, not poison adoption.
+The regenerated summary reports E3 fabricated-fresh n=2
+ASR = 0.6667, with zero unresolved reviews.
+
+The consistency report has result `OK`. Its recorded
+`n_needs_review = 1` refers to the initial automatic review flag,
+not to an unresolved case after human adjudication.
+
+The future-date negative control showed zero correctness drop.
+The 30-day wrong-date and paired 0-day controls had identical
+reported poison-selection rates and correctness drops for all
+system/count combinations. A difference from clean in both
+conditions cannot be attributed specifically to the date offset.
+
+### 8.4 Remaining gates before Week 6
+
+- Update `docs/week4_post_freeze_validation.md` and
+  `docs/week4_closure.md` to record the completed Week 4 post-freeze
+  smoke test, including its limitations.
+- Freeze and document the complete Week 6 protocol before any
+  held-out run, including development/held-out separation, attack
+  eligibility, nestedness, controls, metrics, judge validation,
+  model/configuration pins, statistical analysis, and failure taxonomy.
+- Do not start Week 6 held-out experiments or defense evaluation
+  until those prerequisites are complete.
+
+## 9. Corrected development-pilot results
+
+These results cover **three development questions per system and
+eligible condition**, not a statistical benchmark. Percentages and
+rates are descriptive. No confidence or population-level inference
+is warranted from this pilot.
+
+### 9.1 Fabricated-fresh attack outcomes
+
+All fabricated-fresh combinations had three eligible questions,
+poison selection rate 1.0, and zero unresolved reviews.
+
+| n | System | Selection | ASR | Conditional ASR | Correctness drop | Gold displacement |
+|---:|---|---:|---:|---:|---:|---:|
+| 1 | E1 | 1.0000 | 0.3333 | 0.3333 | 0.0000 | 0.0000 |
+| 1 | E2 | 1.0000 | 0.6667 | 0.6667 | 0.6667 | 0.0000 |
+| 1 | E3 | 1.0000 | 0.3333 | 0.3333 | 0.0000 | 0.0000 |
+| 1 | E4 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 0.0000 |
+| 2 | E1 | 1.0000 | 1.0000 | 1.0000 | 0.6667 | 0.0000 |
+| 2 | E2 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 0.0000 |
+| 2 | E3 | 1.0000 | 0.6667 | 0.6667 | 0.6667 | 0.0000 |
+| 2 | E4 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 0.0000 |
+| 5 | E1 | 1.0000 | 1.0000 | 1.0000 | 0.6667 | 0.0000 |
+| 5 | E2 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 0.6667 |
+| 5 | E3 | 1.0000 | 1.0000 | 1.0000 | 0.6667 | 0.0000 |
+| 5 | E4 | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 0.3333 |
+
+ASR counts adoption of the attacker's false answer, not merely
+retrieval of poisoned material or any incorrect answer. For
+E3 at n=2, poison was selected in all three cases but adopted in
+two; the remaining manually reviewed case was `OTHER_WRONG`.
+
+### 9.2 Fabricated-fresh retrieval and temporal diagnostics
+
+| n | System | Mean poison rank | Median poison rank | Delta Recall@5 | Delta nDCG@5 | Delta valid Recall@5 | Delta TVAA | Delta violation fraction |
+|---:|---|---:|---:|---:|---:|---:|---:|---:|
+| 1 | E1 | 1.0000 | 1.0000 | 0.0000 | -0.2252 | 0.0000 | 0.0000 | 0.0000 |
+| 1 | E2 | 1.3330 | 1.0000 | 0.0000 | -0.2044 | 0.0000 | -0.6667 | 0.0000 |
+| 1 | E3 | 1.0000 | 1.0000 | 0.0000 | -0.2252 | 0.0000 | -0.3333 | 0.0000 |
+| 1 | E4 | 2.0000 | 2.0000 | 0.0000 | -0.1022 | 0.0000 | -0.3333 | 0.0000 |
+| 2 | E1 | 2.0000 | 2.0000 | 0.0000 | 0.0000 | 0.0000 | -0.3333 | 0.0000 |
+| 2 | E2 | 1.3330 | 1.0000 | 0.0000 | -0.2862 | 0.0000 | -0.6667 | -0.0667 |
+| 2 | E3 | 1.6670 | 2.0000 | 0.0000 | -0.0409 | 0.0000 | -0.3333 | 0.0000 |
+| 2 | E4 | 2.0000 | 2.0000 | 0.0000 | -0.1431 | 0.0000 | -0.3333 | -0.0667 |
+| 5 | E1 | 2.0000 | 2.0000 | 0.0000 | 0.0000 | 0.0000 | -0.3333 | 0.0000 |
+| 5 | E2 | 1.3330 | 1.0000 | -0.6667 | -0.6667 | -0.6667 | -0.6667 | -0.0667 |
+| 5 | E3 | 1.6670 | 2.0000 | -0.1667 | -0.1290 | -0.1667 | -0.3333 | 0.0000 |
+| 5 | E4 | 2.0000 | 2.0000 | -0.3333 | -0.3333 | -0.3333 | -0.3333 | -0.0667 |
+
+Diagnostic deltas are reported over the observations for which each metric is defined. The per-metric denominators are recorded in results/pilot_vulnerability_summary.csv and should be consulted when comparing metrics.
+
+The table reports the summary's recorded deltas. Denominators
+for defined metric values, clean and attacked correctness rates,
+and additional fields remain available in the authoritative CSV.
+A zero change in Recall@5 does not imply that the generated
+answer was unaffected.
+
+### 9.3 Negative controls and other conditions
+
+The following conditions do not have a defined false-answer
+adoption ASR in the summary. Their selection and correctness
+metrics must not be interpreted as fabricated-answer ASR.
+
+#### Future-date metadata-only control
+
+| n | System | Selection | Correctness drop |
+|---:|---|---:|---:|
+| 1 | E1 | 0.0000 | 0.0000 |
+| 1 | E2 | 0.0000 | 0.0000 |
+| 1 | E3 | 0.0000 | 0.0000 |
+| 1 | E4 | 0.0000 | 0.0000 |
+| 2 | E1 | 0.0000 | 0.0000 |
+| 2 | E2 | 0.3333 | 0.0000 |
+| 2 | E3 | 0.3333 | 0.0000 |
+| 2 | E4 | 0.6667 | 0.0000 |
+| 5 | E1 | 1.0000 | 0.0000 |
+| 5 | E2 | 0.6667 | 0.0000 |
+| 5 | E3 | 1.0000 | 0.0000 |
+| 5 | E4 | 1.0000 | 0.0000 |
+
+#### Fresh duplication condition
+
+| n | System | Selection | Correctness drop |
+|---:|---|---:|---:|
+| 1 | E1 | 0.0000 | 0.0000 |
+| 1 | E2 | 0.3333 | 0.0000 |
+| 1 | E3 | 0.3333 | 0.0000 |
+| 1 | E4 | 0.6667 | 0.0000 |
+| 2 | E1 | 0.0000 | 0.0000 |
+| 2 | E2 | 0.3333 | 0.0000 |
+| 2 | E3 | 0.3333 | 0.0000 |
+| 2 | E4 | 0.6667 | 0.0000 |
+| 5 | E1 | 0.0000 | 0.0000 |
+| 5 | E2 | 0.3333 | 0.0000 |
+| 5 | E3 | 0.3333 | 0.0000 |
+| 5 | E4 | 0.6667 | 0.0000 |
+
+#### Correct-content wrong-date 30-day condition
+
+| n | System | Selection | Correctness drop |
+|---:|---|---:|---:|
+| 1 | E1 | 0.6667 | 0.0000 |
+| 1 | E2 | 1.0000 | 0.0000 |
+| 1 | E3 | 0.6667 | -0.3333 |
+| 1 | E4 | 1.0000 | 0.0000 |
+| 2 | E1 | 0.6667 | 0.0000 |
+| 2 | E2 | 1.0000 | 0.0000 |
+| 2 | E3 | 0.6667 | -0.3333 |
+| 2 | E4 | 1.0000 | 0.0000 |
+| 5 | E1 | 0.6667 | 0.0000 |
+| 5 | E2 | 1.0000 | 0.0000 |
+| 5 | E3 | 0.6667 | -0.3333 |
+| 5 | E4 | 1.0000 | 0.0000 |
+
+#### Paired 0-day duplication control
+
+| n | System | Selection | Correctness drop |
+|---:|---|---:|---:|
+| 1 | E1 | 0.6667 | 0.0000 |
+| 1 | E2 | 1.0000 | 0.0000 |
+| 1 | E3 | 0.6667 | -0.3333 |
+| 1 | E4 | 1.0000 | 0.0000 |
+| 2 | E1 | 0.6667 | 0.0000 |
+| 2 | E2 | 1.0000 | 0.0000 |
+| 2 | E3 | 0.6667 | -0.3333 |
+| 2 | E4 | 1.0000 | 0.0000 |
+| 5 | E1 | 0.6667 | 0.0000 |
+| 5 | E2 | 1.0000 | 0.0000 |
+| 5 | E3 | 0.6667 | -0.3333 |
+| 5 | E4 | 1.0000 | 0.0000 |
+
+
+The future-date condition produced zero correctness drop across
+all systems and counts. The 30-day and paired 0-day conditions
+had identical reported correctness drops, including E3's
+-0.3333. This does not establish a date-specific correctness effect.
+
+### 9.4 Stale-evidence eligibility
+
+No reviewed eligible stale evidence was available for the three
+pilot questions. The stale-evidence condition has zero eligible
+attacks at n=1, n=2, and n=5 across E1-E4. Its ASR is **undefined**,
+not zero. These cases are ineligible, not successful defenses.
+
+### 9.5 Interpretation and limitations
+
+The development pilot illustrates that fabricated-fresh payloads
+can be retrieved without necessarily being adopted in the answer,
+and that answer-level outcomes can change even when some retrieval
+metrics do not. Observed differences across poison counts and
+systems are descriptive only.
+
+The pilot does not establish population-level attack success,
+stale-evidence robustness, or ChronoGuard defense effectiveness.
+The Week 6 held-out benchmark and defense evaluation have not begun.
