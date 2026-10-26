@@ -1,86 +1,82 @@
-# Week 4 Closure Note: ChronoGuard-RAG
+Week 4 Closure Note: ChronoGuard-RAG
+Student: Maariyah Anjum Faizan
+Date: 2026-10-12 (closure note committed in 5203ed7; the week4-frozen tag was created on 2026-10-11)
+Scope: Clean baselines E1-E4 on StreamingQA (primary), FreshQA and TriviaQA (secondary / control)
 
-**Student:** Maariyah Anjum Faizan
-**Date:** 2026-10-12 (closure note committed in `5203ed7`; the `week4-frozen` tag was created on 2026-10-11)
-**Scope:** Clean baselines E1-E4 on StreamingQA (primary), FreshQA and TriviaQA (secondary / control)
+1. Freeze record
+Item	Value
+Freeze tag	week4-frozen
+Freeze commit	d995f832c6ab81aea9c9fe8da993e1fe8a138914
+Summary commit	18edada ("Week 4: final summary artifacts")
+Summary generated at commit	4e1fc4c (git_dirty: false, partial_run: false)
+results/summary.csv SHA-256	C2F67D284EDF945B51EE5C5F33477376B4E03D5580571ED1C1FD5986895DE0FE
+results/summary.json SHA-256	96F8686F220FFE40B69CD9AB36BEFA49D87D0EB616A2E01FD67572ACEC8A9823
+Local environment	Python 3.13.7; numpy 2.4.6, pandas 3.0.5, scipy 1.18.0 (requirements.local.txt, requirements.local.lock.txt)
+The summary was computed by scripts/make_summary.py from the raw per-query logs only. Config, dataset-snapshot and log SHA-256 hashes are recorded per row in results/summary.json.
 
-## 1. Freeze record
+2. Dataset snapshots
+Dataset	Snapshot / pool	Size	Config used by the summary
+StreamingQA	data/processed/streamingqa_control_pools_chunked.jsonl (chunked 320 BGE-reranker tokens, 64 overlap)	100 queries; 97/100 with validated gold chunks	configs/streamingqa_eval_config.yaml
+FreshQA	data/raw/freshqa.csv, freshqa_clean.csv, freshqa_evidence_snapshot.jsonl	477 TEST questions	configs/freshqa_config.yaml
+TriviaQA	data/processed/triviaqa_control_clean.jsonl	100 queries (seed 42)	configs/baseline_config.yaml
+Snapshot file hashes are in results/summary.json under snapshot_sha256. Chunking scope is StreamingQA only (supervisor-approved); TriviaQA and FreshQA are intentionally not rechunked, and any later cross-dataset attack comparison must document the preprocessing differences.
 
-| Item | Value |
-|---|---|
-| Freeze tag | `week4-frozen` |
-| Freeze commit | `d995f832c6ab81aea9c9fe8da993e1fe8a138914` |
-| Summary commit | `18edada` ("Week 4: final summary artifacts") |
-| Summary generated at commit | `4e1fc4c` (`git_dirty: false`, `partial_run: false`) |
-| `results/summary.csv` SHA-256 | `C2F67D284EDF945B51EE5C5F33477376B4E03D5580571ED1C1FD5986895DE0FE` |
-| `results/summary.json` SHA-256 | `96F8686F220FFE40B69CD9AB36BEFA49D87D0EB616A2E01FD67572ACEC8A9823` |
-| Local environment | Python 3.13.7; numpy 2.4.6, pandas 3.0.5, scipy 1.18.0 (`requirements.local.txt`, `requirements.local.lock.txt`) |
+3. Final clean-baseline decision
+StreamingQA clean reference (post-Gate-A, chunked pool):
 
-The summary was computed by `scripts/make_summary.py` from the raw per-query logs only. Config, dataset-snapshot and log SHA-256 hashes are recorded per row in `results/summary.json`.
+System	EM	F1	Recall@5	nDCG@5	TVAA
+E1 BM25	0.620	0.781	0.930	0.926	0.55
+E2 Contriever	0.610	0.782	0.982	0.992	0.53
+E3 Hybrid RRF	0.590	0.770	0.946	0.952	0.51
+E4 Hybrid + Reranker	0.590	0.776	0.982	0.977	0.53
+These values were verified against results/summary.json.
 
-## 2. Dataset snapshots
+Supported claims
 
-| Dataset | Snapshot / pool | Size | Config used by the summary |
-|---|---|---|---|
-| StreamingQA | `data/processed/streamingqa_control_pools_chunked.jsonl` (chunked 320 BGE-reranker tokens, 64 overlap) | 100 queries; 97/100 with validated gold chunks | `configs/streamingqa_eval_config.yaml` |
-| FreshQA | `data/raw/freshqa.csv`, `freshqa_clean.csv`, `freshqa_evidence_snapshot.jsonl` | 477 TEST questions | `configs/freshqa_config.yaml` |
-| TriviaQA | `data/processed/triviaqa_control_clean.jsonl` | 100 queries (seed 42) | `configs/baseline_config.yaml` |
+Retrieval level only: Contriever (E2) has a robust advantage over BM25 (E1) on Recall@5, nDCG@5 and valid-evidence Recall@5, surviving Holm-Bonferroni correction.
+No generation-level claim (EM, F1, TVAA) is made from the n=100 clean StreamingQA data; those differences do not survive correction.
+FreshQA judging: the headline judge is Qwen2.5-14B-Instruct (revision cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8), validated against blind human labels (112 items) with a second judge comparison; Mistral-7B is development-only. Reported validity threats: Qwen's knowledge cutoff (it can penalise correct fresh answers) and the sample being easier than average. A stronger commercial judge is not a Week 6 blocker.
 
-Snapshot file hashes are in `results/summary.json` under `snapshot_sha256`. Chunking scope is StreamingQA only (supervisor-approved); TriviaQA and FreshQA are intentionally not rechunked, and any later cross-dataset attack comparison must document the preprocessing differences.
+4. Week 4 freeze items (W4-F1 to W4-F6)
+ID	Item	Status	Evidence
+W4-F1	E2, E3, E4 config-driven smoke tests	DONE — PASS (2026-10-23)	results/week4_post_freeze_smoke.json; docs/week4_post_freeze_validation.md; 5/5 matching retrieval and answers per system
+W4-F2	Third A1 manual-review case (Colm O'Rourke), Option A	WAIVED by supervisor	Supervisor waiver (see A1 note below)
+W4-F3	make_summary.py on a clean tree; summary committed for all three datasets	DONE	Commit 18edada
+W4-F4	README complete (placeholders removed, environment, reproduction commands, status)	DONE	README.md
+W4-F5	Freeze commit and tag week4-frozen	DONE	Section 1 (commit d995f83, tag pushed to origin)
+W4-F6	This closure note	DONE	Commit 5203ed7 (docs/week4_closure.md)
+A1 manual review (Option A, document only): Ferne McCann and Germany were judged answer-bearing on manual reading. Colm O'Rourke: not reviewed (waived by the supervisor). Frozen labels are not altered and the 97/100 lexically validated basis is unchanged; no E1-E4 rerun was performed.
 
-## 3. Final clean-baseline decision
+5. Known limitations carried forward
+StreamingQA and TriviaQA clean baselines are n=100 (dev-scale), not yet the 300-500+ scale intended for paper numbers.
+Model revisions for the generator (Mistral-7B-Instruct-v0.2), Contriever and the BGE reranker were not pinned in the configs or recorded in the run logs; only the Qwen judge revision is recorded. Revisions are to be pinned explicitly from Week 5.
+No full lock file is committed for the Kaggle environment (requirements.txt only).
+FreshQA temporal metrics are defined for only a small subset of questions (sparse source_date); StreamingQA carries the temporal analysis.
+FreshQA E2-E4 judged-accuracy ordering depends on the judge; paired tests on FreshQA have not been run. E2 outperforming E4 on FreshQA Recall@5/nDCG@5 is unexplained.
+Judge validity threats as described in the README (section 3.4).
+6. Open items carried to Week 5
+Week 5 corrections W5-1 to W5-7 (stale source/target no-op, duplicate-fresh target selection, tests for all five attacks, committed or reproducible poison payloads, poison counts 1/2/5, stricter stale eligibility, saved attack validation report).
+Redefinition of the timestamp-only attacks (future date, wrong date) as metadata negative controls / ChronoGuard attacks, or as a separate date-visible baseline.
+Three-question development pilot across E1-E4 and a preliminary vulnerability matrix, before touching the held-out benchmark.
+ChronoGuard defense work has not started, as required.
+7. Post-freeze corrections (2026-10-21)
+These edits correct the wording of this note only. They do not change the frozen Week-4 baseline, its results, its logs, its configs or the week4-frozen tag (still annotated tag f26a389 on commit d995f83), and no Week-4 rerun was done.
 
-**StreamingQA clean reference (post-Gate-A, chunked pool):**
+The closure-date placeholder was replaced with the date of the closure-note commit.
+W4-F1 previously showed Status OPEN and Evidence DONE, which contradicted each other. The E2-E4 config-driven smoke tests had not been run as of 2026-10-21. W4-F1 was OPEN at that time, and the tests were planned as post-freeze validation: they could not change the frozen baseline. See docs/week4_post_freeze_validation.md for the subsequent completion.
+The W4-F2 and W4-F6 evidence cells now name the evidence instead of saying DONE.
+Model revisions: the frozen runs did not record them, and this is not changed retrospectively. From the Week-5 v2 pilot rerun onward, revisions are pinned in configs/model_revisions.yaml and recorded in every run log. The pins are the Hub's current commits, verified on 2026-10-21. They are not claimed to be the revisions the Week-4 runs used.
+8. W4-F1 post-freeze validation completion (2026-10-23)
+The E2-E4 configuration-driven smoke test was completed on 2026-10-23 (UTC), after the Week-4 freeze.
 
-| System | EM | F1 | Recall@5 | nDCG@5 | TVAA |
-|---|---:|---:|---:|---:|---:|
-| E1 BM25 | 0.620 | 0.781 | 0.930 | 0.926 | 0.55 |
-| E2 Contriever | 0.610 | 0.782 | 0.982 | 0.992 | 0.53 |
-| E3 Hybrid RRF | 0.590 | 0.770 | 0.946 | 0.952 | 0.51 |
-| E4 Hybrid + Reranker | 0.590 | 0.776 | 0.982 | 0.977 | 0.53 |
+Result: PASS. All recorded configuration and retrieval-count checks passed. E2, E3 and E4 each matched the frozen logs on retrieval and generated answers for all five tested queries.
 
-These values were verified against `results/summary.json`.
+Execution commit: 78d3181526b0b5eda6008dcbb6850aedbf63021a (git.dirty: true).
 
-**Supported claims**
-- Retrieval level only: Contriever (E2) has a robust advantage over BM25 (E1) on Recall@5, nDCG@5 and valid-evidence Recall@5, surviving Holm-Bonferroni correction.
-- No generation-level claim (EM, F1, TVAA) is made from the n=100 clean StreamingQA data; those differences do not survive correction.
+The validator reused notebook-preloaded models and did not independently verify their loaded revisions. Frozen Week-4 model revisions were not recorded. The five-query test therefore provides limited post-freeze validation, not proof of identical execution environments or statistical reproducibility.
 
-**FreshQA judging:** the headline judge is Qwen2.5-14B-Instruct (revision `cf98f3b3bbb457ad9e2bb7baf9a0125b6b88caa8`), validated against blind human labels (112 items) with a second judge comparison; Mistral-7B is development-only. Reported validity threats: Qwen's knowledge cutoff (it can penalise correct fresh answers) and the sample being easier than average. A stronger commercial judge is not a Week 6 blocker.
+The authoritative evidence is results/week4_post_freeze_smoke.json, with details in docs/week4_post_freeze_validation.md.
 
-## 4. Week 4 freeze items (W4-F1 to W4-F6)
+W4-F1 status: DONE. No frozen Week-4 baseline artifacts or tags were changed.
 
-| ID | Item | Status | Evidence |
-|---|---|---|---|
-| W4-F1 | E2, E3, E4 config-driven smoke tests | OPEN (post-freeze validation, not yet run) | Script ready: `scripts/smoke_test_e2_e4_post_freeze.py`; results will be recorded in `docs/week4_post_freeze_validation.md` |
-| W4-F2 | Third A1 manual-review case (Colm O'Rourke), Option A | WAIVED by supervisor | Supervisor waiver (see A1 note below) |
-| W4-F3 | `make_summary.py` on a clean tree; summary committed for all three datasets | DONE | Commit `18edada` |
-| W4-F4 | README complete (placeholders removed, environment, reproduction commands, status) | DONE | `README.md` |
-| W4-F5 | Freeze commit and tag `week4-frozen` | DONE | Section 1 (commit `d995f83`, tag pushed to origin) |
-| W4-F6 | This closure note | DONE | Commit `5203ed7` (`docs/week4_closure.md`) |
-
-**A1 manual review (Option A, document only):** Ferne McCann and Germany were judged answer-bearing on manual reading. Colm O'Rourke: not reviewed (waived by the supervisor). Frozen labels are not altered and the 97/100 lexically validated basis is unchanged; no E1-E4 rerun was performed.
-
-## 5. Known limitations carried forward
-
-- StreamingQA and TriviaQA clean baselines are n=100 (dev-scale), not yet the 300-500+ scale intended for paper numbers.
-- Model revisions for the generator (Mistral-7B-Instruct-v0.2), Contriever and the BGE reranker were not pinned in the configs or recorded in the run logs; only the Qwen judge revision is recorded. Revisions are to be pinned explicitly from Week 5.
-- No full lock file is committed for the Kaggle environment (`requirements.txt` only).
-- FreshQA temporal metrics are defined for only a small subset of questions (sparse `source_date`); StreamingQA carries the temporal analysis.
-- FreshQA E2-E4 judged-accuracy ordering depends on the judge; paired tests on FreshQA have not been run. E2 outperforming E4 on FreshQA Recall@5/nDCG@5 is unexplained.
-- Judge validity threats as described in the README (section 3.4).
-
-## 6. Open items carried to Week 5
-
-- Week 5 corrections W5-1 to W5-7 (stale source/target no-op, duplicate-fresh target selection, tests for all five attacks, committed or reproducible poison payloads, poison counts 1/2/5, stricter stale eligibility, saved attack validation report).
-- Redefinition of the timestamp-only attacks (future date, wrong date) as metadata negative controls / ChronoGuard attacks, or as a separate date-visible baseline.
-- Three-question development pilot across E1-E4 and a preliminary vulnerability matrix, before touching the held-out benchmark.
-- ChronoGuard defense work has not started, as required.
-
-## 7. Post-freeze corrections (2026-10-21)
-
-These edits correct the wording of this note only. They do not change the frozen Week-4 baseline, its results, its logs, its configs or the `week4-frozen` tag (still annotated tag `f26a389` on commit `d995f83`), and no Week-4 rerun was done.
-
-- The closure-date placeholder was replaced with the date of the closure-note commit.
-- W4-F1 previously showed Status `OPEN` and Evidence `DONE`, which contradicted each other. The E2-E4 config-driven smoke tests have not been run. W4-F1 is OPEN, and the smoke tests will run as **post-freeze validation**: they cannot change the frozen baseline. See `docs/week4_post_freeze_validation.md`.
-- The W4-F2 and W4-F6 evidence cells now name the evidence instead of saying `DONE`.
-- Model revisions: the frozen runs did not record them, and this is not changed retrospectively. From the Week-5 v2 pilot rerun onward, revisions are pinned in `configs/model_revisions.yaml` and recorded in every run log. The pins are the Hub's current commits, verified on 2026-10-21. They are not claimed to be the revisions the Week-4 runs used.
+n=5⋮⋮⋮⋮⋮⋮⋮⋮

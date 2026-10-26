@@ -1,0 +1,26 @@
+{
+  "exclusions_sha256": "08b9f6c63c404248b748671c59d2756ac9ae681ae276adacd5bcaa11b5c5f321",
+  "extra_exclusions_sha256": null,
+  "python_version": "3.13.7",
+  "reserve_sha256": "126f4ea1211eca7f8fecd0c2ecb1099768ddf69a3c75ea5ade2c0d5b5d375596",
+  "sampling_algorithm": "sorted qa_id per stratum; Python random.Random(str seed).shuffle, independent per stratum",
+  "seed": 42,
+  "source_sha256": "263826e390cd5b2502463de2f5cd678bb753226f06db93e4145440a2618ba1f4",
+  "stats": {
+    "extra_exclusion_ids": 0,
+    "pilot_ids_all_in_week4_exclusions": true,
+    "raw_count": 36378,
+    "raw_unique_questions": 35732,
+    "remaining_by_stratum": {
+      "past": 16261,
+      "recent": 20016
+    },
+    "remaining_ids": 36277,
+    "total_excluded_ids": 101,
+    "week4_excluded_raw_ids": 101,
+    "week4_unique_questions": 100
+  },
+  "status": "DRAFT_RESERVE_NOT_FINAL_BENCHMARK",
+  "target_per_stratum_proposed": 150,
+  "week4_sha256": "b4eede5c1ed4b06808fe44754cc04ee5036d3a572088de61dd6dff1f77174ddd"
+}
