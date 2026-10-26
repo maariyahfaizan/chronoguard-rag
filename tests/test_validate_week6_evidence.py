@@ -27,3 +27,21 @@ def test_gold_parent_recovery_and_conflict(tmp_path):
     rows = audit(meta, shard, 2010)
     assert rows[0]['conflicting_passage_ids'] == [parent + '_1']
     assert rows[0]['status'] == 'needs_review'
+
+def test_answer_matching_ignores_trailing_punctuation():
+    from scripts.validate_week6_evidence import (
+        answer_appears_in_evidence,
+    )
+
+    evidence = (
+        "Woods, sidelined by back pain for the past "
+        "15 months, will launch his comeback."
+    )
+
+    assert answer_appears_in_evidence("Back pain. ", evidence)
+    assert answer_appears_in_evidence(
+        "Sidelined by back pain.", evidence
+    )
+    assert not answer_appears_in_evidence(
+        "Knee injury", evidence
+    )
