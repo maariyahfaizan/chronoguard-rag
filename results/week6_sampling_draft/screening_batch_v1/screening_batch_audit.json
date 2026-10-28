@@ -1,0 +1,11 @@
+{
+  "batch_sha256": "6be6340522e6b09b3de35e96e8d4d296bac78eb652c6a5053f27a4ff192dda36",
+  "counts": {
+    "past": 200,
+    "recent": 200
+  },
+  "per_stratum": 200,
+  "source_queue_sha256": "117498aea78c9cbf9b329063911ba6a158a3582c802c14f801acb438bfa94ebb",
+  "status": "DRAFT_SCREENING_BATCH_NOT_FINAL_BENCHMARK",
+  "total": 400
+}
