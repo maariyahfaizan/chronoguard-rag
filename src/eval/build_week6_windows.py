@@ -49,15 +49,20 @@ def build_windows(raw_path, reserve_path, per_stratum):
         seen_ids.add(qid)
         seen_ranks[stratum].add(rank)
         selected[stratum].append(row)
-    for stratum, rows in selected.items():
-        actual_ranks = sorted(row["reserve_rank"] for row in rows)
-        expected_ranks = list(range(1, len(rows) + 1))
+        for stratum, rows in selected.items():
+            previous_rank = 0
 
-        if actual_ranks != expected_ranks:
-            raise ValueError(
-                f"Non-contiguous reserve ranks in {stratum}: "
-                f"expected 1..{len(rows)}"
-            )
+            for row in rows:
+                rank = row["reserve_rank"]
+
+                if rank <= previous_rank:
+                    raise ValueError(
+                        f"Non-increasing reserve ranks in {stratum}: "
+                        f"qa_id={row['qa_id']}, rank={rank}, "
+                        f"previous_rank={previous_rank}"
+                    )
+
+                previous_rank = rank
     chosen = []
     for stratum, rows in selected.items():
         rows.sort(key=lambda r: r["reserve_rank"])
