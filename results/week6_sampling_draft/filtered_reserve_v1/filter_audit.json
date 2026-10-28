@@ -1,0 +1,17 @@
+{
+  "excluded_by_stratum": {
+    "past": 5,
+    "recent": 5
+  },
+  "excluded_count": 10,
+  "exposure_exclusions_sha256": "a533f1a36aad4ce608b24781e97d83e18d6b28ae0cde0551f44f70d3a436ddf0",
+  "exposure_record_sha256": "797380ca78bd08ddafafa68b289fb73a93d803d7e720fa3411ba013d931dc11c",
+  "kept_by_stratum": {
+    "past": 16256,
+    "recent": 20011
+  },
+  "kept_count": 36267,
+  "screening_queue_sha256": "117498aea78c9cbf9b329063911ba6a158a3582c802c14f801acb438bfa94ebb",
+  "source_reserve_sha256": "126f4ea1211eca7f8fecd0c2ecb1099768ddf69a3c75ea5ade2c0d5b5d375596",
+  "status": "DRAFT_SCREENING_QUEUE_NOT_FINAL_BENCHMARK"
+}
