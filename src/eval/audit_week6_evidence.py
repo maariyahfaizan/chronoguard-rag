@@ -157,18 +157,21 @@ def validate_audit(audit, year, windows_hash):
         raise ValueError(f"{year}: conflicting content checksum fields")
 
 
-def discover(roots, *, years=YEARS, windows_hash=WINDOWS_SHA256):
+def discover(roots, *, years=YEARS, windows_hash=WINDOWS_SHA256, root_scoped=False):
     """Associate shards with the nearest ancestor's year sidecar, never by mount name.
 
     A .jsonl directory may contain an extracted gzip member with a temporary-looking
     name. Such members are accepted only with a complete compatible sidecar.
     """
+    roots = [Path(r).resolve() for r in roots]
     files = set()
     for root in roots:
         root = Path(root).resolve()
         if not root.is_dir():
             raise ValueError(f"Evidence root is not a directory: {root}")
         files.update(p.resolve() for p in root.rglob("*") if p.is_file())
+    if root_scoped and any(not any(root in p.parents for root in roots) for p in files):
+        raise ValueError("Evidence resolves outside selected dataset roots")
     audits = defaultdict(list)
     for path in sorted(files):
         match = re.fullmatch(r"\.?(\d{4})\.audit\.json(?:\.tmp)?", path.name)
@@ -201,7 +204,18 @@ def discover(roots, *, years=YEARS, windows_hash=WINDOWS_SHA256):
             # Do not mistake sidecars or metadata inside a .jsonl directory for evidence.
             if not re.search(r"\.jsonl(?:\.gz)?(?:\.tmp)?$", path.name):
                 continue
+            if path.stat().st_size == 0:
+                raise ValueError(f"{year}: zero-byte evidence: {path}")
             owners = [(p, r) for p, r in sidecars if p.parent in path.parents]
+            if root_scoped:
+                dataset = next(root for root in roots if root in path.parents)
+                owners = [(p, r) for p, r in owners if dataset in p.parents]
+                if not owners:
+                    # A nested sidecar may describe a sibling payload, but only
+                    # within one explicitly selected dataset, with no ambiguity.
+                    owners = [(p, r) for p, r in sidecars if dataset in p.parents]
+                    if len(owners) > 1:
+                        raise ValueError(f"{year}: ambiguous dataset sidecars for {path}")
             if not owners:
                 raise ValueError(f"{year}: shard without associated sidecar: {path}")
             owner, audit = max(owners, key=lambda pair: len(pair[0].parent.parts))
@@ -209,10 +223,39 @@ def discover(roots, *, years=YEARS, windows_hash=WINDOWS_SHA256):
         if not shards:
             raise ValueError(f"Missing evidence shard for year {year}")
         # Every discovered sidecar must have a payload in its own subtree.
-        if any(not any(p.parent in s["path"].parents for s in shards) for p, _ in sidecars):
+        if any(not any(p == s["audit_path"] for s in shards) for p, _ in sidecars):
             raise ValueError(f"{year}: orphan extraction audit")
         result[year] = shards
     return result
+
+
+def dataset_selection(roots, selected):
+    """List excluded directory subtrees without traversing external mounts."""
+    selected = [Path(p).resolve() for p in selected]
+    if len(set(selected)) != len(selected) or any(
+            a in b.parents for a in selected for b in selected if a != b):
+        raise ValueError("Canonical dataset roots must be distinct and non-overlapping")
+    for path in selected:
+        if not path.is_dir():
+            raise ValueError(f"Canonical dataset root is not a directory: {path}")
+        if not any(path == root or root in path.parents for root in roots):
+            raise ValueError(f"Canonical dataset root is outside evidence roots: {path}")
+    ignored = set()
+    def visit(path):
+        if path in selected:
+            return
+        if not any(path in p.parents for p in selected):
+            ignored.add(path)
+            return
+        for child in sorted(path.iterdir()):
+            if child.is_dir():
+                visit(child.resolve())
+    for root in roots:
+        visit(root)
+    return {"mode": "explicit_canonical_dataset_roots",
+            "selected_dataset_roots": [str(p) for p in selected],
+            "ignored_external_mounts": [{"path": str(p), "reason": "outside_explicit_selection"}
+                                        for p in sorted(ignored)]}
 
 
 class HashReader(io.RawIOBase):
@@ -371,9 +414,11 @@ def code_provenance():
 
 def run(roots, windows_path=BATCH / "evidence_windows_400.jsonl",
         metadata_path=BATCH / "candidate_metadata_400.jsonl", batch_path=BATCH / "screening_batch_ids.jsonl",
-        out_dir=DEFAULT_OUT, scratch_dir=None, *, expected_sha=WINDOWS_SHA256, per_stratum=200, years=YEARS):
+        out_dir=DEFAULT_OUT, scratch_dir=None, *, expected_sha=WINDOWS_SHA256, per_stratum=200, years=YEARS,
+        dataset_roots=None):
     """Return the report; failed runs remain explicitly rejected, never certified."""
     out_dir = Path(out_dir)
+    roots = [Path(r).resolve() for r in roots]
     # Fail before creating outputs if the output would overlap any read-only input root.
     out = out_dir.resolve()
     for root in roots:
@@ -389,9 +434,19 @@ def run(roots, windows_path=BATCH / "evidence_windows_400.jsonl",
     candidates, inventory, recovered, bad = [], [], defaultdict(list), defaultdict(set)
     failures, warnings = [], []
     try:
+        report["dataset_selection"] = {"mode": "recursive_evidence_roots",
+                                       "selected_dataset_roots": [], "ignored_external_mounts": []}
+        discovery_roots = roots
+        if dataset_roots is not None:
+            report["dataset_selection"]["selected_dataset_roots"] = [str(Path(p).resolve()) for p in dataset_roots]
+            if not dataset_roots:
+                raise ValueError("Canonical dataset selection must not be empty")
+            report["dataset_selection"] = dataset_selection(roots, dataset_roots)
+            discovery_roots = dataset_roots
         candidates, report["inputs"] = validate_inputs(windows_path, metadata_path, batch_path,
                                                        expected_sha=expected_sha, per_stratum=per_stratum)
-        mounted = discover(roots, years=years, windows_hash=expected_sha)
+        mounted = discover(discovery_roots, years=years, windows_hash=expected_sha,
+                           root_scoped=dataset_roots is not None)
         intervals = retention_intervals(candidates)
         parents = {c["evidence_id"] for c in candidates}
         with (out_dir / "integrity_events.jsonl").open("x", encoding="utf-8", newline="\n") as events:
@@ -449,6 +504,8 @@ def run(roots, windows_path=BATCH / "evidence_windows_400.jsonl",
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--evidence-root", type=Path, action="append", help="Repeatable recursive mount root; default /kaggle/input")
+    parser.add_argument("--dataset-root", type=Path, action="append",
+                        help="Exact canonical dataset root; repeat for every dataset. Restricts discovery and records excluded mounts.")
     parser.add_argument("--windows", type=Path, default=BATCH / "evidence_windows_400.jsonl")
     parser.add_argument("--metadata", type=Path, default=BATCH / "candidate_metadata_400.jsonl")
     parser.add_argument("--batch", type=Path, default=BATCH / "screening_batch_ids.jsonl")
@@ -456,7 +513,7 @@ def main():
     parser.add_argument("--scratch-dir", type=Path, help="Disk for temporary exact duplicate-ID index")
     args = parser.parse_args()
     report = run(args.evidence_root or [Path("/kaggle/input")], args.windows, args.metadata,
-                 args.batch, args.out_dir, args.scratch_dir)
+                 args.batch, args.out_dir, args.scratch_dir, dataset_roots=args.dataset_root)
     print(json.dumps(report["summary"], indent=2))
     raise SystemExit(0 if report["status"] == "complete" else 2)
 

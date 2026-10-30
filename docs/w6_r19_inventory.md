@@ -12,11 +12,35 @@ attached:
 ```bash
 python -m src.eval.audit_week6_evidence \
   --evidence-root /kaggle/input \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2008-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2009-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2010-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2011-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2012-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2013-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2014-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2015-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2016-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2017-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2018-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2019-v1 \
+  --dataset-root /kaggle/input/datasets/maariyahanjum/chronoguard-week6-screening400-2020-canonical-v1 \
+  --out-dir /kaggle/working/w6_r19_inventory_canonical_v1 \
   --scratch-dir /kaggle/working
 ```
 
-`--evidence-root` may be repeated to restrict discovery to selected mounts.
-No particular dataset slug is assumed. Defaults for `--windows`, `--metadata`,
+`--dataset-root` explicitly selects the exact canonical dataset roots. Only those
+roots are recursively searched and their evidence bytes read. Roots must exist,
+be distinct and non-overlapping, and lie under an `--evidence-root`. Excluded
+directory subtrees are enumerated without descending into them. The inventory
+manifest `integrity_provenance.json` records `dataset_selection`, including the
+resolved selected roots and ignored external mounts with reasons. Selection is
+by exact path, never by size, slug heuristics, or apparent validity. A zero-byte
+selected payload fails the audit; an excluded backup is never a fallback.
+
+Without `--dataset-root`, the existing recursive `--evidence-root` discovery
+remains available and rejects invalid duplicate mounts. No particular dataset
+slug is assumed by the code. Defaults for `--windows`, `--metadata`,
 and `--batch` point to `results/week6_sampling_draft/screening_batch_v1/`.
 Outputs default to `results/week6_sampling_draft/w6_r19_inventory/`.
 The output directory must not already exist and must not overlap evidence roots.
@@ -41,6 +65,11 @@ members such as `2020.jsonl/.2020.attempt1.jsonl.gz.tmp`. Gzip magic bytes, not
 the filename extension, determine decompression. A payload must have a complete
 `YEAR.audit.json` (or `.YEAR.audit.json.tmp`) in its nearest applicable ancestor
 directory. A temporary-looking payload is never trusted without that sidecar.
+With explicit dataset roots, a payload lacking an ancestor sidecar may use the
+unique same-year sidecar anywhere within its selected dataset root. This covers
+the 2015 `week6_2015_backup/2015.audit.json` layout. Multiple possible sidecars
+are rejected; sidecars never cross selected dataset boundaries. Unused sidecars
+remain errors, and all existing metadata, count and hash checks still apply.
 Sidecars must use the existing `fetch_week6_wmt_evidence.run_year` schema.
 
 All years 2008–2020 are required. Audit status, canonical windows hash, official

@@ -86,6 +86,70 @@ def read(path):
     return [json.loads(line) for line in path.read_text().splitlines()]
 
 
+def test_explicit_kaggle_selection_all_13_years(tmp_path):
+    cs = [candidate("recent", "recent", "2020-06-20"), candidate("past", "past", "2015-06-20")]
+    w, m, b, digest = inputs(tmp_path, cs)
+    root = tmp_path / "kaggle/input"
+    owner = root / "datasets/maariyahanjum"
+    selected = []
+    for year in range(2008, 2021):
+        suffix = "canonical-v1" if year == 2020 else "v1"
+        dataset = owner / f"chronoguard-week6-screening400-{year}-{suffix}"
+        selected.append(dataset)
+        rows = [passage(c) for c in cs if str(c["evidence_id"]).startswith(str(year))]
+        shard(dataset, year, rows, digest, mode="nested-gzip" if not rows else "nested")
+        if year == 2015:
+            nested = dataset / "week6_2015_backup"
+            nested.mkdir()
+            (dataset / "2015.audit.json").rename(nested / "2015.audit.json")
+    obsolete = owner / "chronoguard-week6-wmt-backup"
+    empty = obsolete / "2009.jsonl/.2009.attempt1.jsonl.gz.tmp"
+    empty.parent.mkdir(parents=True)
+    empty.touch()
+    report = run([root], w, m, b, tmp_path / "out", expected_sha=digest,
+                 per_stratum=1, dataset_roots=selected)
+    assert report["status"] == "complete"
+    selection = report["dataset_selection"]
+    assert selection["selected_dataset_roots"] == [str(p.resolve()) for p in selected]
+    assert selection["ignored_external_mounts"] == [
+        {"path": str(obsolete.resolve()), "reason": "outside_explicit_selection"}]
+    manifest = json.loads((tmp_path / "out/integrity_provenance.json").read_text())
+    assert manifest["dataset_selection"] == selection
+    assert len(read(tmp_path / "out/evidence_inventory.jsonl")) == 13
+    assert all(row["status"] == "recovered_pending_semantic_review"
+               for row in read(tmp_path / "out/recovery_ledger.jsonl"))
+
+
+@pytest.mark.parametrize("failure", ["empty", "missing_sidecar", "conflict", "metadata", "ambiguous"])
+def test_selected_dataset_rejections(tmp_path, failure):
+    cs, root, kw = fixture(tmp_path, mode="nested")
+    selected = sorted(root.iterdir())
+    dataset = root / "private-dataset-2019"
+    payload = next(dataset.rglob("*.tmp"))
+    audit = next(dataset.rglob("*.audit.json"))
+    if failure == "empty":
+        payload.write_bytes(b"")
+    elif failure == "missing_sidecar":
+        audit.unlink()
+    elif failure == "metadata":
+        record = json.loads(audit.read_text())
+        record["deepmind_extraction_sha256"] = "b" * 64
+        dump(audit, record)
+    elif failure == "conflict":
+        shard(dataset / "other", 2019, [passage(cs[1], text="Changed")], kw["expected_sha"])
+    else:
+        record = json.loads(audit.read_text())
+        audit.unlink()
+        dump(dataset / "a/2019.audit.json", record)
+        dump(dataset / "b/2019.audit.json", record)
+    report = run([root], dataset_roots=selected, **kw)
+    assert report["status"] == "rejected"
+    expected = {"empty": "zero-byte evidence", "missing_sidecar": "Missing extraction audit",
+                "conflict": "conflicting duplicate dataset versions",
+                "metadata": "incompatible extraction configurations", "ambiguous": "ambiguous dataset sidecars"}
+    assert expected[failure] in report["summary"]["failures"][0]["message"]
+
+
 @pytest.mark.parametrize("mode", ["gzip", "plain", "nested", "nested-gzip"])
 def test_discovery_and_recovery_formats(tmp_path, mode):
     cs, root, kw = fixture(tmp_path, mode=mode)
