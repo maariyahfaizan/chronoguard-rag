@@ -4,7 +4,6 @@ No legacy audit status, pool construction, gold adjudication, or other years.
 """
 from __future__ import annotations
 
-import argparse
 from contextlib import closing, nullcontext
 from datetime import datetime, timezone
 import gzip
@@ -147,7 +146,7 @@ def _observation(db, artifact, run):
             "contiguous_zero_based_passage_run", "original_document_membership_unverified"))
 
 
-def ingest(db, path, sidecar_path, audit, targets, intervals, *, batch_size, max_line_bytes, sidecar_raw):
+def ingest(db, path, sidecar_path, audit, targets, intervals, *, batch_size, max_line_bytes, sidecar_raw, year=YEAR):
     """Stage target rows; bind occurrence IDs only after successful EOF checks."""
     path, sidecar_path = Path(path), Path(sidecar_path)
     before = path.stat()
@@ -183,7 +182,7 @@ def ingest(db, path, sidecar_path, audit, targets, intervals, *, batch_size, max
                         continue
                     records += 1
                     try:
-                        evidence, parent, index = parse_passage(raw, YEAR, intervals)
+                        evidence, parent, index = parse_passage(raw, year, intervals)
                     except (ValueError, TypeError, UnicodeError) as exc:
                         raise ValueError(f"{path}:{line_no}: {exc}") from exc
                     if parent in targets:
@@ -238,7 +237,7 @@ def ingest(db, path, sidecar_path, audit, targets, intervals, *, batch_size, max
     others = db.execute("SELECT content_sha256,path FROM artifacts WHERE state='verified' AND replica_of IS NULL").fetchall()
     for old_hash, old_path in others:
         if old_hash != decompressed:
-            raise ValueError("conflicting representations of the selected 2008 dataset")
+            raise ValueError(f"conflicting representations of the selected {year} dataset")
         if not _same_stream(old_path, path, decompress=True):
             raise ValueError("decompressed-stream SHA-256 collision")
     if replica:
@@ -274,16 +273,16 @@ def _coverage(candidate, years, *, effective=False):
             "unscanned_configured_years": [y for y in requested if 2008 <= y <= 2020 and y not in years]}
 
 
-def ledger(db, candidates, *, successful):
+def ledger(db, candidates, *, successful, year=YEAR):
     artifacts = db.execute("SELECT count(*),coalesce(min(historical_verified),0) FROM artifacts WHERE state='verified'").fetchone()
     historical = bool(artifacts[0] and artifacts[1])
-    years = {YEAR} if successful else set()
+    years = {year} if successful else set()
     for candidate in candidates:
         parent = candidate["evidence_id"]
         gold_year = int(parent[:4])
-        applicable = gold_year == YEAR
+        applicable = gold_year == year
         source_status = ("verified" if historical else "provisional_historical_equivalence_unverified") if successful else "rejected_or_incomplete"
-        scan = "complete_for_2008_only" if successful and applicable else ("failed_or_interrupted" if not successful and applicable else "not_scanned")
+        scan = f"complete_for_{year}_only" if successful and applicable else ("failed_or_interrupted" if not successful and applicable else "not_scanned")
         variant_count = 0
         records = db.execute("SELECT v.timestamp FROM variants v JOIN aliases a ON a.pid=v.pid "
                              "WHERE a.parent_id=? ORDER BY v.vid", (parent,)) if successful else ()
@@ -305,7 +304,7 @@ def ledger(db, candidates, *, successful):
             availability = "not_determined"
         else:
             availability = "present" if variant_count else (
-                "absent_in_verified_2008_scope" if historical else "absent_in_provisional_2008_scope")
+                f"absent_in_verified_{year}_scope" if historical else f"absent_in_provisional_{year}_scope")
         yield {**candidate, "source_validation": source_status if applicable else "not_scanned",
                "scan_completion": scan, "evidence_availability": availability,
                "rendering_identity": ("ambiguous_passage_variants" if conflict else
@@ -389,8 +388,10 @@ def peak_memory():
 def run_pilot(*, out_dir, sources=None, dataset_root=None, windows_path=BATCH / "evidence_windows_400.jsonl",
               metadata_path=BATCH / "candidate_metadata_400.jsonl", batch_path=BATCH / "screening_batch_ids.jsonl",
               expected_windows_sha=WINDOWS_SHA256, per_stratum=200, batch_size=10000,
-              max_line_bytes=DEFAULT_MAX_LINE, parser_path=None):
-    """Sources are explicit (payload, sidecar) pairs; only year 2008 is supported."""
+              max_line_bytes=DEFAULT_MAX_LINE, parser_path=None, year=YEAR):
+    """Stage one isolated year; the default preserves the Checkpoint 2A API."""
+    if type(year) is not int or not 2008 <= year <= 2020:
+        raise ValueError("year must be a configured archive year")
     if type(batch_size) is not int or batch_size < 1 or type(max_line_bytes) is not int or max_line_bytes < 1:
         raise ValueError("batch_size and max_line_bytes must be positive integers")
     if sources is not None and dataset_root is not None:
@@ -428,19 +429,19 @@ def run_pilot(*, out_dir, sources=None, dataset_root=None, windows_path=BATCH / 
             if root is not None:
                 # Strictly parse sidecars before unchanged discovery can interpret them.
                 for path in root.rglob("*"):
-                    if path.is_file() and re.fullmatch(r"\.?2008\.audit\.json(?:\.tmp)?", path.name):
+                    if path.is_file() and re.fullmatch(rf"\.?{year}\.audit\.json(?:\.tmp)?", path.name):
                         strict_json(path.read_bytes())
-                items = discover([root], years=(YEAR,), root_scoped=True)[YEAR]
+                items = discover([root], years=(year,), root_scoped=True)[year]
                 sources = sorted((i["path"], i["audit_path"]) for i in items)
             if not sources:
-                raise ValueError("missing selected 2008 sources")
+                raise ValueError(f"missing selected {year} sources")
             targets = {c["evidence_id"] for c in candidates}
             intervals = retention_intervals(candidates)
             signature = None
             for path, sidecar in sources:
                 raw = sidecar.read_bytes()
                 audit = strict_json(raw)
-                validate_audit(audit, YEAR, expected_windows_sha)
+                validate_audit(audit, year, expected_windows_sha)
                 for field in ("content_sha256", "decompressed_sha256"):
                     if field in audit and not isinstance(audit[field], str):
                         raise ValueError(f"{field} must be a string")
@@ -457,7 +458,7 @@ def run_pilot(*, out_dir, sources=None, dataset_root=None, windows_path=BATCH / 
                     raise ValueError("incompatible representation sidecars")
                 signature = current
                 ingest(db, path, sidecar, audit, targets, intervals,
-                       batch_size=batch_size, max_line_bytes=max_line_bytes, sidecar_raw=raw)
+                       batch_size=batch_size, max_line_bytes=max_line_bytes, sidecar_raw=raw, year=year)
             # A verified original gzip counterpart independently verifies plain content.
             if db.execute("SELECT 1 FROM artifacts WHERE original_compressed_verified=1").fetchone():
                 db.execute("UPDATE artifacts SET historical_verified=1, verification_basis='verified_gzip_counterpart' "
@@ -485,7 +486,7 @@ def run_pilot(*, out_dir, sources=None, dataset_root=None, windows_path=BATCH / 
         db.execute("UPDATE run SET state=?,error=? WHERE id=1", (
             "validated_manifest_required" if success else state, error))
         db.commit()
-        _write_rows(out / "recovery_ledger.jsonl", ledger(db, candidates, successful=success))
+        _write_rows(out / "recovery_ledger.jsonl", ledger(db, candidates, successful=success, year=year))
         if success:
             export_index(db, out)
         artifacts = [dict(zip([c[0] for c in cursor.description], row)) for cursor in [db.execute(
@@ -503,8 +504,8 @@ def run_pilot(*, out_dir, sources=None, dataset_root=None, windows_path=BATCH / 
     report = {"schema_version": VERSION, "ingestion_profile": PROFILE, "profile_definition": INGESTION_PROFILE,
               "profile_sha256": hashlib.sha256(canonical(INGESTION_PROFILE).encode("ascii")).hexdigest(),
               "identity_schema": identity.SCHEMA_VERSION,
-              "state": state, "scan_completion": "complete_for_2008_only" if success else "incomplete",
-              "target_scope_only": True, "scan_years": [YEAR], "configured_archive_years": list(range(2008, 2021)),
+              "state": state, "scan_completion": f"complete_for_{year}_only" if success else "incomplete",
+              "target_scope_only": True, "scan_years": [year], "configured_archive_years": list(range(2008, 2021)),
               "identity_scope_certified": bool(historical), "original_audit_status_changed": False,
               "annotation_identity": "unresolved", "semantic_support": "not_assessed", "error": error,
               "inputs": inputs, "selected_dataset_root": str(root) if root else None,
@@ -527,19 +528,8 @@ def run_pilot(*, out_dir, sources=None, dataset_root=None, windows_path=BATCH / 
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset-root", type=Path, required=True, help="Exact canonical 2008 dataset root only")
-    parser.add_argument("--out-dir", type=Path, required=True, help="New directory outside all inputs")
-    parser.add_argument("--batch-size", type=int, default=10000)
-    parser.add_argument("--max-line-bytes", type=int, default=DEFAULT_MAX_LINE)
-    args = parser.parse_args()
-    root, out = args.dataset_root.resolve(), args.out_dir.resolve()
-    if out == root or root in out.parents or out in root.parents:
-        parser.error("output and dataset root must not overlap")
-    report = run_pilot(dataset_root=root, out_dir=out,
-                       batch_size=args.batch_size, max_line_bytes=args.max_line_bytes)
-    print(canonical({"state": report["state"], "counts": report["counts"], "out_dir": str(out)}))
-    return 0 if report["state"] == "complete_verified" else (3 if report["state"] == "complete_provisional" else 2)
+    from src.eval.consolidate_week6_target_evidence import main as consolidate_main
+    return consolidate_main()
 
 
 if __name__ == "__main__":

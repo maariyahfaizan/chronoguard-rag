@@ -1,5 +1,9 @@
 # W6-R19 Checkpoint 2A: target-only 2008 evidence pilot
 
+For completed-pilot import and multi-year consolidation, see
+[Checkpoint 2B](w6_r19_target_index_2b.md). This document records the original
+2008 pilot contract; its Python API remains compatible.
+
 This checkpoint implements `src/eval/index_week6_target_evidence.py`, ingestion
 profile `w6-r19-frozen-passages/v1`, and SQLite/output schema
 `w6-r19-target-index/2a-v1`. The Checkpoint-1 identity contract remains
