@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from src.eval import audit_week6_evidence as auditor
 from src.eval.audit_week6_evidence import (
     BATCH, KEYS_MD5, PARSER, WINDOWS_SHA256, discover, run, validate_inputs,
 )
@@ -212,6 +213,39 @@ def test_duplicate_ids_fail_integrity(tmp_path, kind):
     assert len(ledger) == 2
     assert ledger[1]["passage_count"] == 2  # Preserve both original occurrences.
     assert all(r["status"] == "inventory_rejected" for r in ledger)
+
+
+def test_cli_integrity_failure_persists_diagnostics_before_exit(tmp_path, monkeypatch, capsys):
+    """Exercise the real writer and CLI exit using only tiny synthetic shards."""
+    _, root, kw = fixture(tmp_path, duplicate="conflict")
+    real_run = auditor.run
+    monkeypatch.setattr(auditor, "run", lambda *args, **kwargs: real_run([root], **kw))
+    monkeypatch.setattr("sys.argv", ["audit_week6_evidence"])
+    with pytest.raises(SystemExit) as exit_info:
+        auditor.main()
+    assert exit_info.value.code == 2
+    capsys.readouterr()  # All assertions below use files, independent of stdout.
+
+    out = kw["out_dir"]
+    inventory = read(out / "evidence_inventory.jsonl")
+    assert [row["year"] for row in inventory] == [2019, 2020]
+    diagnostics = inventory[0]["primary"]["integrity_diagnostics"]
+    assert diagnostics["failed_predicate_counts"] == {"conflicting_passage_id": 1}
+    assert list(diagnostics["first_failure_by_predicate"]) == ["conflicting_passage_id"]
+    example = diagnostics["first_failure_by_predicate"]["conflicting_passage_id"]
+    assert example["source"]["line"] == 2
+    assert example["observed"]["first_source"]["line"] == 1
+    assert example["observed"]["canonical_json_equal"] is False
+    summary = json.loads((out / "summary.json").read_text())
+    assert summary["status"] == "integrity_failed"
+    assert summary["failures"] == [{"type": "passage_integrity_failure", "year": 2019,
+                                    "failed_predicate_counts": {"conflicting_passage_id": 1}}]
+    assert all(row["status"] == "inventory_rejected" for row in read(out / "recovery_ledger.jsonl"))
+    provenance = json.loads((out / "integrity_provenance.json").read_text())
+    assert provenance["status"] == "integrity_failed"
+    assert provenance["original_hash_verification_complete"] is False
+    for name, digest in provenance["output_sha256"].items():
+        assert hashlib.sha256((out / name).read_bytes()).hexdigest() == digest
 
 
 def test_equivalent_compressed_and_decompressed_replicas(tmp_path):
