@@ -1,5 +1,57 @@
 # W6-R19 evidence inventory and gold recovery
 
+## Investigation of the 13-year integrity failure
+
+The lost Kaggle output prevents attribution to a particular record predicate.
+All 13 `passage_integrity_failure` entries establish that each primary year had
+at least one invalid record; they do not identify the cause. The 400
+`inventory_rejected` outcomes follow from the global fail-closed policy, rather
+than establishing 400 independently corrupt gold articles.
+
+The exact record failure conditions are:
+
+- `archive_year_mismatch`: timestamp year differs from the sidecar year OR
+  parent ID's first four characters differ from that year.
+- `passage_id_publication_day_mismatch`: parent ID's first eight characters
+  differ from the UTC timestamp formatted as YYYYMMDD.
+- `outside_retention_union`: timestamp lies outside every inclusive merged
+  canonical retention interval.
+- `duplicate_passage_id` / `conflicting_passage_id`: the full passage ID was
+  already encountered in a primary representation. Conflict means different
+  SHA-256 hashes of canonical JSON records (including all fields).
+
+Malformed records, bad counts, bad available checksums, incompatible sidecars,
+or unequal replica content reject the audit separately. The checked-in
+DeepMind parser derives both the sorting-key date and publication timestamp
+from the same publication-date field. The extractor writes that timestamp and
+appends a passage index to the sorting key. Those date comparisons are therefore
+compatible; no predicate relaxation is supported by the available evidence.
+
+Gzip detection uses magic bytes, including for temporary names in Kaggle's
+`.jsonl` directories. `output_sha256` hashes the original gzip bytes and is
+checked only against gzip bytes. Plain mounts lacking a previously recorded
+content hash produce `original_hash_unverifiable_after_decompression`, not
+`passage_integrity_failure`. Recompressing a mount or recording its current
+hash cannot retrospectively verify the original artifact.
+
+Duplicate IDs require a separate investigation: the upstream
+`get_deduplicated_wmt_docs` uses set membership in the sorting-key allowlist,
+without a seen-record set. Repeated eligible archive rows can therefore yield
+repeated passage IDs. This is a possible mechanism, not a diagnosis of the lost
+run. Distinct passage suffixes remain distinct IDs; equivalent mounted replicas
+are compared by content and only the primary enters the global duplicate index.
+No duplicates are silently removed or accepted.
+
+The smallest supported correction is diagnostic: year inventory entries now
+include `integrity_diagnostics` with failed-predicate counts and one exact
+expected/observed example per predicate, plus count and hash comparisons.
+`integrity_events.jsonl` includes the predicate evidence for every invalid
+record. Duplicate examples preserve first/current source locations and record
+hashes. Summary year failures include predicate counts. All existing rejection,
+provenance, and incomplete-hash-verification behavior is retained. Use these
+diagnostics to establish the actual data defect before choosing a data or
+extraction correction; a PASS is not justified by the missing historical output.
+
 `src/eval/audit_week6_evidence.py` audits existing mounted evidence. It never
 downloads, extracts, samples, selects final benchmark members, or runs models.
 The existing extraction scripts and frozen Week-4/Week-6 inputs remain unchanged.

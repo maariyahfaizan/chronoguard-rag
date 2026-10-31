@@ -202,6 +202,12 @@ def test_duplicate_ids_fail_integrity(tmp_path, kind):
     inv = read(kw["out_dir"] / "evidence_inventory.jsonl")[0]["primary"]
     assert inv["duplicate_records"] == 1
     assert inv["conflicting_records"] == int(kind == "conflict")
+    issue = "conflicting_passage_id" if kind == "conflict" else "duplicate_passage_id"
+    diagnostic = inv["integrity_diagnostics"]["first_failure_by_predicate"][issue]
+    assert diagnostic["expected"] == {"previous_occurrences": 0}
+    assert diagnostic["observed"]["canonical_json_equal"] == (kind == "identical")
+    assert diagnostic["observed"]["first_source"]["line"] == 1
+    assert diagnostic["source"]["line"] == 2
     ledger = read(kw["out_dir"] / "recovery_ledger.jsonl")
     assert len(ledger) == 2
     assert ledger[1]["passage_count"] == 2  # Preserve both original occurrences.
@@ -215,6 +221,7 @@ def test_equivalent_compressed_and_decompressed_replicas(tmp_path):
     assert report["status"] == "complete"
     inv = read(kw["out_dir"] / "evidence_inventory.jsonl")[0]
     assert len(inv["representations"]) == 2
+    assert inv["primary"]["duplicate_records"] == 0
     assert len(read(kw["out_dir"] / "recovered_gold_passages.jsonl")) == 2
 
 
@@ -376,3 +383,26 @@ def test_orphan_shard_is_rejected(tmp_path):
     dump(orphan, passage(cs[1]))
     with pytest.raises(ValueError, match="without associated sidecar"):
         discover([root], years=kw["years"], windows_hash=kw["expected_sha"])
+
+
+@pytest.mark.parametrize("mode", ["gzip", "nested"])
+def test_failed_predicates_have_expected_observed_values(tmp_path, mode):
+    cs, root, kw = fixture(tmp_path, mode=mode)
+    shard(root / "private-dataset-2019/arbitrary-subdir", 2019,
+          [passage(cs[1], timestamp="2018-01-01T00:00:00+00:00")],
+          kw["expected_sha"], mode=mode)
+    report = run([root], **kw)
+    assert report["status"] == "integrity_failed"
+    inv = read(kw["out_dir"] / "evidence_inventory.jsonl")[0]["primary"]
+    diagnostics = inv["integrity_diagnostics"]
+    expected = {"archive_year_mismatch", "passage_id_publication_day_mismatch", "outside_retention_union"}
+    assert diagnostics["failed_predicate_counts"] == dict.fromkeys(expected, 1)
+    for issue in expected:
+        example = diagnostics["first_failure_by_predicate"][issue]
+        assert example["predicate"] and example["expected"] and example["observed"]
+        assert example["source"]["line"] == 1
+    event = read(kw["out_dir"] / "integrity_events.jsonl")[0]
+    assert {d["issue"] for d in event["failed_predicates"]} == expected
+    assert report["summary"]["failures"][0]["failed_predicate_counts"] == dict.fromkeys(expected, 1)
+    assert diagnostics["compressed_hash"]["evaluated"] == (mode == "gzip")
+    assert all(r["status"] == "inventory_rejected" for r in read(kw["out_dir"] / "recovery_ledger.jsonl"))

@@ -289,7 +289,10 @@ def scan_shard(item, year, parents, db, intervals, emit, recovered, bad_parents,
     content = hashlib.sha256()
     count = 0
     duplicate_count = conflict_count = invalid_count = 0
+    predicate_counts = Counter()
+    predicate_examples = {}
     starts, ends = intervals
+    expected_intervals = [[a.isoformat(), b.isoformat()] for a, b in zip(starts, ends)]
     if primary:
         db.execute("INSERT INTO sources VALUES (?, ?)", (year, str(path)))
     with path.open("rb") as source:
@@ -315,12 +318,23 @@ def scan_shard(item, year, parents, db, intervals, emit, recovered, bad_parents,
                         when = utc(timestamp)
                         slot = bisect_right(starts, when) - 1
                         issues = []
-                        if when.year != year or parent[:4] != str(year):
-                            issues.append("archive_year_mismatch")
-                        if parent[:8] != when.strftime("%Y%m%d"):
-                            issues.append("passage_id_publication_day_mismatch")
-                        if slot < 0 or when > ends[slot]:
-                            issues.append("outside_retention_union")
+                        checks = [
+                            ("archive_year_mismatch", "timestamp.year == archive_year and parent_id[:4] == str(archive_year)",
+                             {"archive_year": year}, {"timestamp_year": when.year, "parent_id_year": parent[:4]},
+                             when.year == year and parent[:4] == str(year)),
+                            ("passage_id_publication_day_mismatch", "parent_id[:8] == timestamp.strftime('%Y%m%d')",
+                             {"publication_day": when.strftime("%Y%m%d")}, {"parent_id_day": parent[:8]},
+                             parent[:8] == when.strftime("%Y%m%d")),
+                            ("outside_retention_union", "exists interval: start <= timestamp <= end",
+                             {"inclusive_intervals": expected_intervals},
+                             {"timestamp": timestamp}, slot >= 0 and when <= ends[slot]),
+                        ]
+                        diagnostics = []
+                        for issue, predicate, expected, observed, passed in checks:
+                            if not passed:
+                                issues.append(issue)
+                                diagnostics.append({"issue": issue, "predicate": predicate,
+                                                    "expected": expected, "observed": observed})
                     except (ValueError, TypeError, KeyError) as exc:
                         raise ValueError(f"{path}:{line_number}: malformed passage: {exc}") from exc
                     ref = {"shard": str(path), "audit": str(item["audit_path"]),
@@ -336,15 +350,26 @@ def scan_shard(item, year, parents, db, intervals, emit, recovered, bad_parents,
                             duplicate_count += 1
                             conflict_count += int(conflict)
                             issues.append("conflicting_passage_id" if conflict else "duplicate_passage_id")
+                            diagnostics.append({"issue": issues[-1], "predicate": "passage_id not in previously scanned primary records",
+                                "expected": {"previous_occurrences": 0},
+                                "observed": {"previous_occurrences_at_least": 1,
+                                    "first_source": {"shard": old[1], "line": old[2]},
+                                    "first_record_sha256": old[0].hex(), "record_sha256": fingerprint.hex(),
+                                    "canonical_json_equal": not conflict}})
                             emit({"type": issues[-1], "doc_id": pid, "source": ref,
                                   "first_source": {"shard": old[1], "line": old[2]}})
                         if count % 50000 == 0:
                             db.commit()
                         if issues:
                             invalid_count += 1
+                            for diagnostic in diagnostics:
+                                issue = diagnostic["issue"]
+                                predicate_counts[issue] += 1
+                                predicate_examples.setdefault(issue, {**diagnostic, "doc_id": pid, "source": ref})
                             if parent in parents:
                                 bad_parents[parent].update(issues)
-                            emit({"type": "passage_integrity", "doc_id": pid, "issues": issues, "source": ref})
+                            emit({"type": "passage_integrity", "doc_id": pid, "issues": issues,
+                                  "failed_predicates": diagnostics, "source": ref})
                         if parent in parents:
                             recovered[parent].append({**passage, "source": ref})
     physical_hash, content_hash = hashed.digest.hexdigest(), content.hexdigest()
@@ -361,7 +386,18 @@ def scan_shard(item, year, parents, db, intervals, emit, recovered, bad_parents,
             "original_compressed_hash_verified": compressed,
             "content_hash_verified_against_sidecar": expected_content is not None,
             "passages": count, "duplicate_records": duplicate_count, "conflicting_records": conflict_count,
-            "invalid_records": invalid_count, "extraction_audit": audit}
+            "invalid_records": invalid_count, "extraction_audit": audit,
+            "integrity_diagnostics": {
+                "failed_predicate_counts": dict(sorted(predicate_counts.items())),
+                "first_failure_by_predicate": predicate_examples,
+                "passage_count": {"predicate": "observed_passages == audit.passages",
+                                  "expected": audit["passages"], "observed": count},
+                "compressed_hash": {"predicate": "physical_sha256 == audit.output_sha256 if gzip",
+                                    "expected": audit["output_sha256"], "observed": physical_hash,
+                                    "evaluated": compressed},
+                "content_hash": {"predicate": "content_sha256 == recorded_content_sha256 if supplied",
+                                 "expected": expected_content, "observed": content_hash,
+                                 "evaluated": expected_content is not None}}}
 
 
 def recovery_ledger(candidates, recovered, bad_parents, *, years=YEARS, blocked=None):
@@ -471,7 +507,8 @@ def run(roots, windows_path=BATCH / "evidence_windows_400.jsonl",
                         if not any(r["original_compressed_hash_verified"] or r["content_hash_verified_against_sidecar"] for r in representations):
                             warnings.append({"type": "original_hash_unverifiable_after_decompression", "year": year})
                         if representations[0]["invalid_records"]:
-                            failures.append({"type": "passage_integrity_failure", "year": year})
+                            failures.append({"type": "passage_integrity_failure", "year": year,
+                                "failed_predicate_counts": representations[0]["integrity_diagnostics"]["failed_predicate_counts"]})
         report["status"] = "integrity_failed" if failures else "complete"
     except (ValueError, KeyError, TypeError, OSError, EOFError, sqlite3.Error, zlib.error) as exc:
         failures.append({"type": "audit_rejected", "message": str(exc)})
