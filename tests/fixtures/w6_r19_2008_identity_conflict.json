@@ -1,0 +1,19 @@
+{
+  "fixture_kind": "transcribed_passage_regression_not_original_artifact",
+  "source_archive": "news-docs.2008.en.filtered.gz",
+  "archive_lines": [204190, 218661],
+  "canonical_extraction_lines_reported": [963005, 998413],
+  "provenance_note": "Passage texts and upstream ID reproduce the locally inspected archive pair. No original artifact digest or byte equivalence with the canonical Kaggle extraction is asserted.",
+  "records": [
+    {
+      "doc_id": "20080922000000000000\u0000\u0001093f96a5453e5e4cd2bdb8844c24792cb63b2948b9ec73e6978929304284dd73\u0000\u0001_5",
+      "text": "\"Until the banks are compelled to reform their business practices, training and risk management and ethics at the business school level isn't going to make a difference,\" he says. The business schools train what the banks want. See the winners and losers of the Wall Street mess here.",
+      "timestamp": "2008-09-22T00:00:00+00:00"
+    },
+    {
+      "doc_id": "20080922000000000000\u0000\u0001093f96a5453e5e4cd2bdb8844c24792cb63b2948b9ec73e6978929304284dd73\u0000\u0001_5",
+      "text": "\"Until the banks are compelled to reform their business practices, training and risk management and ethics at the business school level isn't going to make a difference,\" he says. The business schools train what the banks want.",
+      "timestamp": "2008-09-22T00:00:00+00:00"
+    }
+  ]
+}
