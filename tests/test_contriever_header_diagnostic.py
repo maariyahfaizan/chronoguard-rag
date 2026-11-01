@@ -151,6 +151,49 @@ def test_missing_dependencies_fail_before_import():
         d.load_backend(Path("unused"), {"packages": {}})
 
 
+@pytest.mark.parametrize("unexpected", [set(), {"embeddings.position_ids"}, [], ["embeddings.position_ids"]])
+def test_only_legacy_position_ids_buffer_or_empty_is_accepted(unexpected):
+    info = {"missing_keys": set(), "unexpected_keys": unexpected,
+            "mismatched_keys": set(), "error_msgs": []}
+    original = copy.deepcopy(info)
+    normalized, policy = d.validate_loading_info(info)
+    assert info == original
+    assert normalized["unexpected_keys"] == sorted(unexpected)
+    assert policy["allowed_unexpected_keys"] == ["embeddings.position_ids"]
+    assert policy["accepted_unexpected_keys"] == sorted(unexpected)
+    assert policy["status"] == "passed"
+    # This is the exact backend provenance layout used by the runner.
+    provenance = {"loading_info": normalized, "weight_loading_validation": policy}
+    assert json.loads(d.canonical_jsonl([provenance])) == provenance
+
+
+@pytest.mark.parametrize("unexpected", [
+    {"embeddings.position_ids", "embeddings.word_embeddings.weight"},
+    {"embeddings.word_embeddings.weight"},
+    {"embeddings.position_embeddings.weight"},
+    {"bert.embeddings.position_ids"},
+    {"embeddings.token_type_ids"},
+])
+def test_other_unexpected_keys_rejected(unexpected):
+    with pytest.raises(ValueError, match="incompatible weight loading"):
+        d.validate_loading_info({"unexpected_keys": unexpected})
+
+
+@pytest.mark.parametrize("unexpected", [set(), {"embeddings.position_ids"}])
+@pytest.mark.parametrize("field,value", [
+    ("missing_keys", {"embeddings.word_embeddings.weight"}),
+    ("missing_keys", {"embeddings.position_embeddings.weight"}),
+    ("mismatched_keys", {"encoder.layer.0.attention.self.query.weight"}),
+    ("error_msgs", ["weight loading failed"]),
+    ("missing_keys", {"embeddings.position_ids"}),
+    ("mismatched_keys", {"embeddings.position_ids"}),
+])
+def test_buffer_exception_never_allows_missing_mismatched_or_error_fields(unexpected, field, value):
+    info = {"unexpected_keys": unexpected, field: value}
+    with pytest.raises(ValueError, match="incompatible weight loading"):
+        d.validate_loading_info(info)
+
+
 def test_archive_hashes_and_inventory(tmp_path, monkeypatch):
     prior = tmp_path / "bm25_v1"
     prior.mkdir()

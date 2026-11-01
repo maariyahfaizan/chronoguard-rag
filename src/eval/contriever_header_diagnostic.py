@@ -34,6 +34,7 @@ SOURCES = ("src/eval/contriever_header_diagnostic.py", "src/retrieval/dense.py",
            "src/eval/evidence_identity.py", "src/eval/config_loader.py",
            "configs/model_revisions.yaml", "requirements.txt")
 ATOL = RTOL = 1e-5
+ALLOWED_UNEXPECTED_KEYS = frozenset({"embeddings.position_ids"})
 
 
 def sha(path):
@@ -242,6 +243,26 @@ def reconstruct(query, candidate, score):
     return {"float64_dot": total, "residual": total - score}
 
 
+def validate_loading_info(info):
+    """Allow only the legacy BERT position-index buffer, never learned weights.
+
+    Transformers 5.0.0 rebuilds position_ids as a non-persistent arange buffer.
+    Snapshot authentication and package/model compatibility checks still apply.
+    """
+    unexpected = set(info.get("unexpected_keys", ()))
+    if (unexpected - ALLOWED_UNEXPECTED_KEYS
+            or any(info.get(k) for k in ("missing_keys", "mismatched_keys", "error_msgs"))):
+        raise ValueError(f"incompatible weight loading: {info}")
+    # Transformers 5 can return sets. Keep reported keys, but make provenance
+    # canonical-JSON compatible without mutating the original loading report.
+    normalized = {k: sorted(v) if isinstance(v, (set, frozenset)) else copy.deepcopy(v)
+                  for k, v in info.items()}
+    policy = {"status": "passed", "allowed_unexpected_keys": sorted(ALLOWED_UNEXPECTED_KEYS),
+              "accepted_unexpected_keys": sorted(unexpected),
+              "reason": "legacy non-parameter position_ids buffer; Transformers 5.0.0 regenerates arange indices with persistent=False"}
+    return normalized, policy
+
+
 def load_backend(snapshot, env):
     for name, version in PINS.items():
         if (env["packages"].get(name) or "").split("+")[0] != version:
@@ -259,8 +280,7 @@ def load_backend(snapshot, env):
                                                use_fast=True, trust_remote_code=False)
     model, info = AutoModel.from_pretrained(str(snapshot), local_files_only=True,
                                             trust_remote_code=False, output_loading_info=True)
-    if any(info.get(k) for k in ("missing_keys", "unexpected_keys", "mismatched_keys", "error_msgs")):
-        raise ValueError(f"incompatible weight loading: {info}")
+    info, loading_validation = validate_loading_info(info)
     if (not tokenizer.is_fast or model.config.model_type != "bert"
             or model.config.hidden_size != 768 or len(tokenizer) != model.config.vocab_size):
         raise ValueError("loaded tokenizer/model incompatible")
@@ -275,7 +295,8 @@ def load_backend(snapshot, env):
                   "model_max_length": tokenizer.model_max_length,
                   "special_tokens_map": tokenizer.special_tokens_map,
                   "padding_side": tokenizer.padding_side, "truncation_side": tokenizer.truncation_side,
-                  "model_config": model.config.to_dict(), "loading_info": info}
+                  "model_config": model.config.to_dict(), "loading_info": info,
+                  "weight_loading_validation": loading_validation}
     return model, tokenizer, torch.device("cpu"), provenance
 
 

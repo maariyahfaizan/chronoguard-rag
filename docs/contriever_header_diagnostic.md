@@ -57,9 +57,31 @@ and broken links fail. Missing, extra, or altered files fail. Require all listed
 tokenizer files and exactly one unsharded `pytorch_model.bin` or
 `model.safetensors`; sharded/ambiguous snapshots are deliberately unsupported.
 Configuration must identify a 12-layer, 768-dimensional BERT model. Actual loading
-must have no missing, unexpected, mismatched, or error keys and must produce a
-compatible fast tokenizer and vocabulary size. Compatibility failure stops
+must have no missing keys, mismatched keys, or error messages. Unexpected keys
+must be empty or exactly `embeddings.position_ids`, as explained below. Loading
+must produce a compatible fast tokenizer and vocabulary size. Compatibility failure stops
 before forward inference. There is no alternative model or scoring fallback.
+
+The sole loading exception is the legacy `embeddings.position_ids` buffer.
+[Transformers 4.0.0 BERT source](https://github.com/huggingface/transformers/blob/v4.0.0/src/transformers/models/bert/modeling_bert.py#L156-L180)
+registers position indices as an arange buffer; the
+[5.0.0 implementation](https://github.com/huggingface/transformers/blob/v5.0.0/src/transformers/models/bert/modeling_bert.py#L48-L79)
+recreates that buffer with `persistent=False`. It is not a learned parameter.
+The separate `embeddings.position_embeddings.weight` remains a learned weight
+and has no exception. This permits the authenticated legacy checkpoint's extra
+buffer entry under the pinned Transformers version; it does not permit missing
+or mismatched buffers, any learned-weight discrepancy, prefixed/similar key
+names, or any additional unexpected key. Snapshot/revision authentication and
+all other compatibility checks remain required. Loading warnings are not
+suppressed, and no model state is rewritten by this validation.
+
+The manifest's `backend.loading_info` retains reported key names, converting
+Python sets to sorted JSON lists. `backend.weight_loading_validation` explicitly
+records the allowed key, actually accepted unexpected keys (empty when unused),
+validation status, and compatibility rationale. This exception is not evidence
+of successful inference, semantic freshness preference, or cross-version score
+equivalence. Local tests exercise validation and serialization without loading
+the model or running inference.
 
 Real execution requires the repository pins `torch==2.10.0`,
 `transformers==5.0.0`, and `huggingface-hub==1.11.0` (Torch build suffixes are
