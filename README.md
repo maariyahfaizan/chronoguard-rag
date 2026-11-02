@@ -2,7 +2,9 @@
 
 Clean RAG baselines for a study of freshness poisoning in retrieval-augmented generation: how stale, fabricated-"newer", or timestamp-shifted evidence can override correct evidence, and how a recency-aware verification layer (ChronoGuard-RAG) can defend against it.
 
-**Current phase: Week 5 development pilot.** Weeks 3-4 (clean baselines) produced the frozen clean reference reported below (summary artifacts `results/summary.csv` and `results/summary.json`, generated from the raw logs on a clean tree). The Week 5 development pilot has been run on three development questions: four of the five attack conditions plus a 0-day control (stale evidence is ineligible for the pilot, see section 10). A draft pilot report exists and is awaiting two supervisor decisions. **No attack definition, eligibility rule, metric or protocol is frozen for Week 6; the held-out attack benchmark has not been run; the ChronoGuard defense has not been started.** The pilot has 3 questions, so every pilot number is a case study, not a statistic.
+**Current phase: Week 6 validation and pre-approval preparation.** Weeks 3-4 produced the frozen clean reference below. The corrected Week 5 development pilot is scientifically closable, with three-question case-study results and a documented dirty execution tree. Week 6 main attack experiments and attack analysis remain outstanding; recovery and preliminary screening do not complete Week 6. The 300 provisional priority candidates are not a frozen benchmark. Supervisor approval is pending; see the [supervisor review index](docs/supervisor_review/README.md), which records the missing researcher-supplied authoritative package.
+
+**Research timeline:** Week 5: attack construction, development pilot and initial attack evaluation. Week 6: benchmark validation, main attack experiments and attack analysis. Week 7: ChronoGuard implementation and initial defense evaluation. Week 8: defense experiments, ablations, robustness and comparative evaluation. Defense completion is not a Week 6 exit criterion. Reconstructed evidence does not establish authenticated historical-source equivalence.
 
 **Freeze:** the git tag `week4-frozen` marks the Week 4 freeze commit for the clean baselines and has not been moved. This README has been updated for Week 5 after that tag, so the README at the tag differs from this one. The summary artifacts were committed in `18edada` and generated at commit `4e1fc4c` (`git_dirty: false` in `results/summary.json`).
 
@@ -122,13 +124,13 @@ Chunking applies to StreamingQA only (TriviaQA and FreshQA are control/secondary
 | B-8 tracked artifacts / filenames | Done |
 | B-9 FreshQA judge validation | Done: 112 blind human labels, second judge on the sample and on all 1,908 verdicts (section 3.4) |
 | B-10 frozen summary artifact | Done: `results/summary.csv` and `results/summary.json` (commit `18edada`, generated at `4e1fc4c`, clean tree) |
-| StreamingQA E2-E4 config-driven smoke tests | Open |
+| StreamingQA E2-E4 config-driven smoke tests | Completed post-freeze; limitations in `docs/week4_post_freeze_validation.md` |
 | Scale TriviaQA/StreamingQA beyond n=100 | Planned before paper-level evaluation |
 | Failure analysis (50-100 errors) | Partial |
 | Week 5 attack validation (tests, validator, saved integrity reports) | Done (section 10) |
-| Week 5 development pilot (3 questions, E1-E4) | Run; draft report written; stale evidence ineligible; protocol not frozen (section 10) |
-| Week 6 (held-out attack benchmark) | Not approved, not started |
-| ChronoGuard defense | Not started |
+| Week 5 development pilot (3 questions, E1-E4) | Scientifically closable as development-only; stale evidence ineligible; dirty-tree limitation (section 10) |
+| Week 6 validation and main attacks | Recovery/screening provisional; approval, eligibility validation, main attacks and analysis outstanding |
+| Weeks 7-8 ChronoGuard defense | Implementation and evaluation pending; separate from Week 6 completion |
 
 ## 6. Environments
 
@@ -447,7 +449,7 @@ chronoguard-rag/
 
 ## 10. Week 5: attack development pilot
 
-**Status: pilot run, draft report written, nothing frozen, pending two supervisor decisions.** The pilot covers three development questions (Rangers game count, countries with coronavirus in February 2020, Djokovic and the US Open). It is a development pilot, not a benchmark. The held-out attack benchmark has not been run and the clean baseline above is unchanged.
+**Status: corrected pilot completed and reconciled; scientifically closable as development-only evidence.** The pilot covers three development questions (Rangers game count, countries with coronavirus in February 2020, Djokovic and the US Open). Its dirty-tree provenance limitation remains. Main Week 6 attack experiments and protocol approval are outstanding; the clean baseline above is unchanged. See `docs/week5_pilot_validation_report.md` and the [supervisor review index](docs/supervisor_review/README.md).
 
 **Attack conditions (5 types, poison counts 1, 2, 5)**
 

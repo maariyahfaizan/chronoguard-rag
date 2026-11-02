@@ -4,6 +4,15 @@ __pycache__/
 *.pyo
 *.egg-info/
 .pytest_cache/
+.tmp_review_tests/
+
+# Local credentials and editor temporary files; keep research manifests visible.
+/.env.*
+!/.env.example
+/github_token.txt
+/hugging_face_token.txt
+*.swp
+*.swo
 
 # Environments
 .venv/

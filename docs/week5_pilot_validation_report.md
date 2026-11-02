@@ -181,17 +181,20 @@ reported poison-selection rates and correctness drops for all
 system/count combinations. A difference from clean in both
 conditions cannot be attributed specifically to the date offset.
 
-### 8.4 Remaining gates before Week 6
+### 8.4 Status reconciliation and remaining Week 6 gates
 
-- Update `docs/week4_post_freeze_validation.md` and
-  `docs/week4_closure.md` to record the completed Week 4 post-freeze
-  smoke test, including its limitations.
+- `docs/week4_post_freeze_validation.md` and `docs/week4_closure.md`
+  already record the completed Week 4 post-freeze smoke test and its
+  limitations; the earlier instruction to update them is obsolete.
 - Freeze and document the complete Week 6 protocol before any
   held-out run, including development/held-out separation, attack
   eligibility, nestedness, controls, metrics, judge validation,
   model/configuration pins, statistical analysis, and failure taxonomy.
-- Do not start Week 6 held-out experiments or defense evaluation
-  until those prerequisites are complete.
+- Week 6 main attack experiments and attack analysis remain outstanding.
+  Do not start held-out attacks until the applicable approval and validation
+  gates are satisfied. ChronoGuard implementation and initial evaluation
+  belong to Week 7; defense experiments, ablations, robustness and comparative
+  evaluation belong to Week 8. Defense completion is not a Week 6 gate.
 
 ## 9. Corrected development-pilot results
 
