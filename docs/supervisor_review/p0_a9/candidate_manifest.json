@@ -1,0 +1,220 @@
+{
+  "schema": "chronoguard.p0_a9.review_candidate.v1",
+  "date": "2026-11-03",
+  "git_head": "f67781806f3a83d26c5a830d695cff83330c3696",
+  "rubric": "answer_judge_v2_claim_specific",
+  "implementation_revision": "p0_a8_v2_repair_3",
+  "identified_by_git_head_alone": false,
+  "entry_git_status_porcelain": " M docs/week6_judging_protocol.md\n?? ChronoGuard_RAG_Experiment_Transition_v1.md\n?? docs/supervisor_review/p0_a5/README.md\n?? docs/supervisor_review/p0_a5/blinded_judge_validation_protocol.md\n?? docs/supervisor_review/p0_a5/claim_key_review_protocol.md\n?? docs/supervisor_review/p0_a5/claim_key_review_template.csv\n?? docs/supervisor_review/p0_a5/implementation_integrity_record.md\n?? docs/supervisor_review/p0_a5/judge_approval_decision_sheet.md\n?? docs/supervisor_review/p0_a5/validation_population_feasibility.md\n?? docs/supervisor_review/p0_a8_current_revision_addendum.md\n?? src/eval/answer_judge_v2.py\n?? src/eval/claim_keys.py\n?? src/eval/claim_matching_v2.py\n?? tests/test_answer_judge_v2.py\n",
+  "environment": {
+    "python": "3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]",
+    "executable": "C:\\Users\\mofai\\Projects\\chronoguard-rag\\.venv\\Scripts\\python.exe",
+    "platform": "win32",
+    "unicode_database": "15.1.0",
+    "packages": {
+      "pytest": "9.1.1",
+      "pluggy": "1.6.0",
+      "iniconfig": "2.3.0",
+      "packaging": "26.3",
+      "Pygments": "2.21.0",
+      "colorama": "0.4.6"
+    },
+    "pytest_entry_point_plugins": []
+  },
+  "test_command": "python -B -m pytest -p no:cacheprovider tests/test_answer_judge.py tests/test_answer_judge_v2.py -q",
+  "test_result": "252 passed in 1.06s",
+  "git_diff_check": "exit 0; LF-to-CRLF notice only",
+  "files": [
+    {
+      "path": "src/eval/claim_keys.py",
+      "sha256": "4f83943b1de31ba25cc4d046129024807fe953143706d0a9435ceea1f0357311",
+      "lf_sha256": "644b30a958f37dc540f8c73d54a5ec84b9cbfe1dc8c9ef450151e75d3e09f01e",
+      "bytes": 4387,
+      "git_state": "??",
+      "role": "review candidate"
+    },
+    {
+      "path": "src/eval/claim_matching_v2.py",
+      "sha256": "7e7d4fef58bc2df9aa660f6e1dc7bdfefd14f8ac7d762bd0c31a7039cced6e52",
+      "lf_sha256": "b41f12d5208e7d9c661223293474879d5a3fd747d17ab8eef19f9d6c42045439",
+      "bytes": 2717,
+      "git_state": "??",
+      "role": "review candidate"
+    },
+    {
+      "path": "src/eval/answer_judge_v2.py",
+      "sha256": "700b2d4cf02cede48dde808195c566139d9c2a3e41ce85dc0501c79de6d21a59",
+      "lf_sha256": "56fc89a9ca0d7779e2031220624686af859ec3caee97ef785b9e667b63143eaa",
+      "bytes": 9523,
+      "git_state": "??",
+      "role": "review candidate"
+    },
+    {
+      "path": "src/eval/answer_judge.py",
+      "sha256": "d68da2bc83007af7f3060d41662f68118b66cea3d22c8a0009c9b13698cfd9a5",
+      "lf_sha256": "d68da2bc83007af7f3060d41662f68118b66cea3d22c8a0009c9b13698cfd9a5",
+      "bytes": 13216,
+      "git_state": "tracked unchanged",
+      "role": "review candidate"
+    },
+    {
+      "path": "tests/test_answer_judge.py",
+      "sha256": "25ee5921d0fedb03ca099c8f5fa5e3ce61ff21220828c12cb21ed6ff85f02c92",
+      "lf_sha256": "25ee5921d0fedb03ca099c8f5fa5e3ce61ff21220828c12cb21ed6ff85f02c92",
+      "bytes": 6004,
+      "git_state": "tracked unchanged",
+      "role": "review candidate"
+    },
+    {
+      "path": "tests/test_answer_judge_v2.py",
+      "sha256": "9fbf23af9b3649d2cefe4a8f19a4b8077e1f6d57011671c251083d3133ee2ca0",
+      "lf_sha256": "0cdaf05dba3ecd0260cb919b044903198ade3cd4002688d761686dbe5565cbcb",
+      "bytes": 25298,
+      "git_state": "??",
+      "role": "review candidate"
+    },
+    {
+      "path": "tests/conftest.py",
+      "sha256": "354b9826e4c6a429a61ad84f49f0bcf8e34c735c735a15c39332d09d10ca9c05",
+      "lf_sha256": "707749d49cc939579ee37d101294a2e2c82280edc4fe5a25fad5883c3c4ff56b",
+      "bytes": 90,
+      "git_state": "tracked unchanged",
+      "role": "review candidate"
+    },
+    {
+      "path": "docs/week6_judging_protocol.md",
+      "sha256": "3065876f89ebdcd3ba8455ce9cd4c509cef216d5cd176df8e0423965fc39f424",
+      "lf_sha256": "3065876f89ebdcd3ba8455ce9cd4c509cef216d5cd176df8e0423965fc39f424",
+      "bytes": 27244,
+      "git_state": " M",
+      "role": "review candidate"
+    },
+    {
+      "path": "docs/supervisor_review/p0_a5/blinded_judge_validation_protocol.md",
+      "sha256": "7af721aa65f928f7dfc6aba102f7c88d35088bb6d5bdafda88228ea5745c857f",
+      "lf_sha256": "7af721aa65f928f7dfc6aba102f7c88d35088bb6d5bdafda88228ea5745c857f",
+      "bytes": 9055,
+      "git_state": "??",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/supervisor_review/p0_a5/claim_key_review_protocol.md",
+      "sha256": "870151d7fc27d204d4402d4ce91fe673b2711beca7cf9d2b1105acfcbeda9fc6",
+      "lf_sha256": "870151d7fc27d204d4402d4ce91fe673b2711beca7cf9d2b1105acfcbeda9fc6",
+      "bytes": 4693,
+      "git_state": "??",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/supervisor_review/p0_a5/claim_key_review_template.csv",
+      "sha256": "200f1a7ebbae4fd7cd30331ba9b22e450ad410eb88ad96075e7caf42a8a59777",
+      "lf_sha256": "200f1a7ebbae4fd7cd30331ba9b22e450ad410eb88ad96075e7caf42a8a59777",
+      "bytes": 1248,
+      "git_state": "??",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/supervisor_review/p0_a5/implementation_integrity_record.md",
+      "sha256": "bb6e7781f3250247a85149fd35bf2d2cdb5c58773f04b136d68e901f48765fe3",
+      "lf_sha256": "bb6e7781f3250247a85149fd35bf2d2cdb5c58773f04b136d68e901f48765fe3",
+      "bytes": 7385,
+      "git_state": "??",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/supervisor_review/p0_a5/judge_approval_decision_sheet.md",
+      "sha256": "b6d7ec62c7a9df9535b4f2a40055dca74a747cdd5316e6453961761c40a71165",
+      "lf_sha256": "b6d7ec62c7a9df9535b4f2a40055dca74a747cdd5316e6453961761c40a71165",
+      "bytes": 6652,
+      "git_state": "??",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/supervisor_review/p0_a5/README.md",
+      "sha256": "9b95a865aa7e647c39c386b578604ad7de429fc23cab6c820aa9ddd385747895",
+      "lf_sha256": "9b95a865aa7e647c39c386b578604ad7de429fc23cab6c820aa9ddd385747895",
+      "bytes": 2590,
+      "git_state": "??",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/supervisor_review/p0_a5/validation_population_feasibility.md",
+      "sha256": "3cd62b6238e98a1877801f17670a205330e23dbad02cc3e18fe65160fd428879",
+      "lf_sha256": "3cd62b6238e98a1877801f17670a205330e23dbad02cc3e18fe65160fd428879",
+      "bytes": 5850,
+      "git_state": "??",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/supervisor_review/p0_a8_current_revision_addendum.md",
+      "sha256": "82b68a7fb654b85ea2afa32866ba98213165e8a07c547ebaeb573e6eb11fac31",
+      "lf_sha256": "82b68a7fb654b85ea2afa32866ba98213165e8a07c547ebaeb573e6eb11fac31",
+      "bytes": 10047,
+      "git_state": "??",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/supervisor_review/README.md",
+      "sha256": "7847a7c2be97fb2fddcaadf2ebe55c1c8f53dc926153eb29f50808d7b12a2567",
+      "lf_sha256": "7847a7c2be97fb2fddcaadf2ebe55c1c8f53dc926153eb29f50808d7b12a2567",
+      "bytes": 1381,
+      "git_state": "tracked unchanged",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/supervisor_review/git_a2_validation.md",
+      "sha256": "aae7ee565bafbbae0f5a4e382314eb45690612bd9f806599fbd53dffcf1b4051",
+      "lf_sha256": "aae7ee565bafbbae0f5a4e382314eb45690612bd9f806599fbd53dffcf1b4051",
+      "bytes": 1648,
+      "git_state": "tracked unchanged",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "docs/week6_heldout_protocol.md",
+      "sha256": "2cdff878f7baf306d36ac3736d28a5c2ce03fba1c512e151b272ea8f218c8f5b",
+      "lf_sha256": "2cdff878f7baf306d36ac3736d28a5c2ce03fba1c512e151b272ea8f218c8f5b",
+      "bytes": 6755,
+      "git_state": "tracked unchanged",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "requirements.txt",
+      "sha256": "b733908487269b5aa584b7b86404aa838b3ab35c2ba29d3843a4c7a97cc81ddc",
+      "lf_sha256": "dc463bba05755a51072d34fd4c1bdd6ccd04c3d49c2e2b139037527c692ac004",
+      "bytes": 239,
+      "git_state": "tracked unchanged",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "requirements.local.txt",
+      "sha256": "3f65367a546cb3e8e0c88e1f015dd1f418841f90b59398bc6c77909a7881167d",
+      "lf_sha256": "50b3bd169ff037df0a859263e9cfdbfee8562ab1f039297d4b98f05cd2b6e721",
+      "bytes": 88,
+      "git_state": "tracked unchanged",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": "requirements.local.lock.txt",
+      "sha256": "f3a25c736dc52487312e80909baab7d36a3e24253da28a962d38ab6e43d49a71",
+      "lf_sha256": "a4d944d6333bddd384ea46973766e04fd9cda68f7f828f99b155025135f64993",
+      "bytes": 86,
+      "git_state": "tracked unchanged",
+      "role": "historical proposal or provenance/environment context"
+    },
+    {
+      "path": ".gitattributes",
+      "sha256": "e92f4c4e951f389b5e4402ac023663016e0dac0dcf4476e052af1173575d69a8",
+      "lf_sha256": "be00243a38ca8cab2dda883f004cd31590ce086c4b081244fc1ebd5826b40353",
+      "bytes": 21,
+      "git_state": "tracked unchanged",
+      "role": "historical proposal or provenance/environment context"
+    }
+  ],
+  "missing_authoritative_package": "docs/supervisor_review/ChronoGuard_RAG_Supervisor_Review_Package.md",
+  "external_acceptance_recorded": false,
+  "supervisor_decisions": "D01-D14 UNRECORDED",
+  "protected_inventory_expected": {
+    "count": 279,
+    "sha256": "5bbf880fe638d1c65c82a8fcab0b7625b0648c41288e09dc42da6cf640f9e310"
+  }
+}
