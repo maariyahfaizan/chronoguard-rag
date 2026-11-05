@@ -1,0 +1,1 @@
+{"actual_generator_visibility":"UNKNOWN; no context logs or inference","date_pairs":6,"dense_reranker_generator_token_counts":"UNAVAILABLE","header_pairs":4,"pairs":10,"runtime_availability":{"rank_bm25":true,"tokenizers":false,"torch":false,"transformers":false},"scientific_keys_created":0,"scope":"SYNTHETIC ONLY / NOT APPROVED"}

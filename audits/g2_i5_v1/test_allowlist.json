@@ -1,0 +1,1 @@
+{"fail_fast_and_guard_health_checks":true,"full_suite_allowed":false,"launcher_sha256":"27a4dbd9bcc130653dd427e88e54bbb468874aef15f6718b93e05eb12d37c1cf","paths":["tests/g2_i5/test_canonical_analysis_input.py"],"preflight":"test source imports/fixtures/calls reviewed before execution","test_sha256":"def1116dae65acc8e8914ae5e5a4b58861caf6ba89d249366068e96a60dcbca9"}
