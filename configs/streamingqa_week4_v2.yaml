@@ -1,0 +1,38 @@
+# Opt-in construction only. No existing runner reads this file.
+schema_version: streamingqa_week4_v2_1
+specification_id: streamingqa_week4_v2_spec_1
+enabled_by_default: false
+frame:
+  size: 100
+  ordering: original_sample_jsonl_order
+  sample_path: data/raw/streamingqa_control_sample.jsonl
+  sample_sha256: 4da9ac126e118ae4bedfc8221ad0369c6cc517daad4e2e124384909ce51bcad4
+  raw_eval_path: data/raw/streamingqa_eval.jsonl.gz
+  raw_eval_sha256: 263826e390cd5b2502463de2f5cd678bb753226f06db93e4145440a2618ba1f4
+  parent_pool_path: data/processed/streamingqa_control_pools.jsonl
+  parent_pool_sha256: fb4b3b8eecef861b3cd956922216c0892919c0bbaed102aeef06bd212ed61c2d
+  parent_occurrences_per_question: 20
+systems: [E1, E2, E3, E4]
+chunking:
+  algorithm_id: streamingqa_source_slice_v2_1
+  max_tokens: 320
+  requested_overlap: 64
+  max_chars: 1500
+  normalization: NONE
+  tail_merge: false
+  tokenizer_model: BAAI/bge-reranker-base
+  tokenizer_revision: 2cfc18c9415c912f9d8155881c133215df768a70
+  tokenizer_assets_sha256: null
+  tokenizer_runtime_version: null
+  offset_verification: UNVERIFIED
+reproducibility:
+  proposed_seed: 42
+  actual_runtime: null
+  actual_devices: null
+  deterministic_execution_verified: false
+identity_policy: source_qualified_span_v2
+duplicate_policy: preserve_occurrences_unique_canonical_credit
+relevance_rubric: sqa_child_support_graded_v2_1
+unknown_policy: never_coerce_to_negative_or_drop
+scientific_validation: NOT_VALIDATED
+execution_authorization: NOT_AUTHORIZED_FOR_EXECUTION
