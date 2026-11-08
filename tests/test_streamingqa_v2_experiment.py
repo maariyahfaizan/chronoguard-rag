@@ -3,6 +3,8 @@ from copy import deepcopy
 from pathlib import Path
 import subprocess
 import sys
+from types import SimpleNamespace
+from unittest.mock import Mock
 
 import pytest
 
@@ -86,6 +88,75 @@ def test_synthetic_smoke(bundle, tmp_path, monkeypatch, system, stages):
     assert hashes == {p: persistence.sha(p.read_bytes()) for p in hashes}
     with pytest.raises(FileExistsError):
         adapter.execute(package, "smoke", system, expected_manifest_sha256=digest, backend=backend)
+
+
+def test_execute_production_runtime_metadata(bundle, tmp_path, monkeypatch):
+    # Reproduce torch.torch_version.TorchVersion without importing torch.
+    class TorchVersion(str):
+        pass
+
+    version = TorchVersion("2.5.1+cu124")
+    with pytest.raises(SchemaError, match="UNSUPPORTED_JSON_VALUE"):
+        persistence.encode_json({"runtime": {"torch": version}})
+    torch = SimpleNamespace(
+        __version__=version, version=SimpleNamespace(cuda="12.4"),
+        manual_seed=Mock(),
+        cuda=SimpleNamespace(is_available=Mock(return_value=False), manual_seed_all=Mock()))
+    monkeypatch.setitem(sys.modules, "torch", torch)
+    backend = FakeBackend()
+    factory = Mock(return_value=backend)
+    monkeypatch.setattr(adapter, "ModelBackend", factory)
+    monkeypatch.setattr(adapter, "RESULTS_ROOT", tmp_path / "results")
+    records, frame, kwargs = bundle
+    files, digest = persistence.serialize_package(records, frame, **kwargs)
+    package = dump(tmp_path, files)
+
+    target = adapter.execute(package, "runtime", "E1",
+                             expected_manifest_sha256=digest, limit=1)
+
+    assert (target / "run.json").is_file()
+    metadata = persistence.decode_json((target / "run.json").read_bytes())
+    assert metadata == {
+        "manifest_sha256": digest,
+        "manifest": adapter.load_pool(package, digest)[1],
+        "configuration": adapter.configuration(), "system": "E1", "limit": 1,
+        "backend": "production", "limitations": adapter.LIMITATIONS,
+        "status": "COMPLETE",
+        "runtime": {"torch": "2.5.1+cu124", "cuda": "12.4", "cuda_available": False},
+    }
+    factory.assert_called_once_with(adapter.configuration())
+    torch.manual_seed.assert_called_once_with(metadata["configuration"]["seed"])
+    torch.cuda.manual_seed_all.assert_not_called()
+    assert [call[0] for call in backend.calls] == ["bm25", "generate"]
+    assert (target / "answers.jsonl").is_file()
+    assert (target / "summary.json").is_file()
+
+
+def test_failed_execute_preserves_artifacts_and_retry_uses_new_name(bundle, tmp_path, monkeypatch):
+    class FailingBackend(FakeBackend):
+        def generate(self, query, passages):
+            raise RuntimeError("mock generation failure")
+
+    records, frame, kwargs = bundle
+    files, digest = persistence.serialize_package(records, frame, **kwargs)
+    package = dump(tmp_path, files)
+    root = tmp_path / "results"
+    monkeypatch.setattr(adapter, "RESULTS_ROOT", root)
+    with pytest.raises(RuntimeError, match="mock generation failure"):
+        adapter.execute(package, "failed", "E1", expected_manifest_sha256=digest,
+                        backend=FailingBackend(), limit=1)
+    failed = root / "failed"
+    before = {p: p.read_bytes() for p in failed.iterdir()}
+    assert persistence.decode_json(before[failed / "run.json"])["status"] == "INCOMPLETE"
+    assert before[failed / "answers.jsonl"] == b""
+    assert not (failed / "summary.json").exists()
+    with pytest.raises(FileExistsError):
+        adapter.execute(package, "failed", "E1", expected_manifest_sha256=digest,
+                        backend=FakeBackend(), limit=1)
+    retry = adapter.execute(package, "failed_retry1", "E1", expected_manifest_sha256=digest,
+                            backend=FakeBackend(), limit=1)
+    assert persistence.decode_json((retry / "run.json").read_bytes())["status"] == "COMPLETE"
+    assert before == {p: p.read_bytes() for p in failed.iterdir()}
 
 
 def test_manifest_rejection_and_read_only_cli(bundle, tmp_path):

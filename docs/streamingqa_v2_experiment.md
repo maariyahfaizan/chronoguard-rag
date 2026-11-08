@@ -37,7 +37,29 @@ The runner requires explicit `--execute`, `--system E1|E2|E3|E4`, and a unique
 `--run-name` to run models. Do not use that option without separate experiment
 authorization. Optional `--limit` selects a prefix after complete verification.
 Outputs are confined to `results/week4_v2/<run-name>`; existing directories are
-rejected. Incomplete failures retain an INCOMPLETE run receipt.
+rejected. Failures after the initial metadata write retain an INCOMPLETE run
+receipt; a failure during that first serialization can leave an empty directory.
+
+### Runtime metadata failure and safe retry
+
+The final `run.json` write previously rejected `runtime.torch`: PyTorch's
+`torch.__version__` is a `torch.torch_version.TorchVersion` (a `str` subclass),
+while A14 permits only exact built-in JSON types. The adapter now explicitly
+records that field as a plain string via `str(torch.__version__)`, preserving
+the version text, including any build suffix. The strict serializer is unchanged.
+
+The run directory is created before the initial receipt is encoded. For this
+final-write failure, it already contains the initial INCOMPLETE `run.json`,
+`answers.jsonl`, and `summary.json`; it must not be treated as a completed run.
+Other failures can leave fewer files or partial answers. There is no automatic
+cleanup or resume, and reusing the name raises `FileExistsError`.
+
+Preserve the failed directory and its traceback. Inspect its receipt and files
+read-only, then, when execution is authorized, retry the same package, external
+manifest digest, system, and limit with a fresh unused run name (for example,
+append `_retry1` to the original name). Keep the old artifacts for comparison;
+do not delete, overwrite, or move them to make the original name reusable.
+Confirm the retry's `run.json` says `COMPLETE` before using its outputs.
 
 The adapter reads real keys from A9/A14, preserves the full envelope, and feeds
 the same ordered `child_text` list to every retrieval path. Indices bind to

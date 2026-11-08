@@ -161,7 +161,8 @@ def execute(directory, run_name, system, *, expected_manifest_sha256=A15_SHA256,
         torch.manual_seed(config["seed"])
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(config["seed"])
-        metadata["runtime"] = {"torch": torch.__version__, "cuda": torch.version.cuda,
+        # TorchVersion is a str subclass; A14 requires an exact built-in str.
+        metadata["runtime"] = {"torch": str(torch.__version__), "cuda": torch.version.cuda,
                                "cuda_available": torch.cuda.is_available()}
         backend = ModelBackend(config)
     rows = []
