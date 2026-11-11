@@ -1,0 +1,21 @@
+{
+  "audit": "A18_WEEK4_V2_TEMPORAL_CHRONOLOGY",
+  "status": "MECHANICAL_CHRONOLOGY_AUDIT",
+  "scientific_validation": "NOT_GRANTED",
+  "questions": 100,
+  "child_occurrences": 2072,
+  "chronology_counts": {
+    "PAST": 1983,
+    "FUTURE": 89
+  },
+  "questions_with_future_children": 14,
+  "future_child_occurrences": 89,
+  "parent_linkage_errors": 0,
+  "temporal_validity_labels": {
+    "UNKNOWN": 2072
+  },
+  "source_authentication_labels": {
+    "NOT_AUTHENTICATED": 2072
+  },
+  "interpretation": "Chronology uses unverified raw timestamp values. PAST does not imply valid evidence. FUTURE indicates a chronology inconsistency under the supplied timestamps, not independently authenticated publication history. Source authentication and temporal validity remain separate."
+}

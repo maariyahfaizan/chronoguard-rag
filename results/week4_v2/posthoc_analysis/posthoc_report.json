@@ -1,0 +1,64 @@
+{
+  "source_zip_sha256": "57e8e4d59e79479d114a902dfc22912253092f971b6285853b84cd0274680053",
+  "scope": "100 frozen questions; top-5 final retrieved children from four full_002 runs",
+  "method": "UTC calendar-date comparison of preserved raw question_ts and child publication_time.raw_value; future iff publication date > question date",
+  "caveats": [
+    "Raw publication timestamps are not authenticated.",
+    "FUTURE is not equivalent to maliciousness or verified invalidity.",
+    "PAST_OR_SAME_DAY does not establish evidence validity.",
+    "Unreviewed answer aliases are not independently validated.",
+    "Recall@5 and nDCG@5 are NOT calculated; require independently reviewed relevance and an explicitly defined relevant-item universe.",
+    "Queue is a deduplicated union of top-5 retrieved occurrences, not the full candidate universe."
+  ],
+  "system_summary": [
+    {
+      "system": "E1",
+      "questions": 100,
+      "top5_slots": 500,
+      "future_slots": 13,
+      "future_slot_rate": 0.026,
+      "questions_with_future_top5": 10,
+      "question_exposure_rate": 0.1,
+      "unknown_timestamp_slots": 0,
+      "parseable_timestamp_slots": 500
+    },
+    {
+      "system": "E2",
+      "questions": 100,
+      "top5_slots": 500,
+      "future_slots": 18,
+      "future_slot_rate": 0.036,
+      "questions_with_future_top5": 11,
+      "question_exposure_rate": 0.11,
+      "unknown_timestamp_slots": 0,
+      "parseable_timestamp_slots": 500
+    },
+    {
+      "system": "E3",
+      "questions": 100,
+      "top5_slots": 500,
+      "future_slots": 16,
+      "future_slot_rate": 0.032,
+      "questions_with_future_top5": 10,
+      "question_exposure_rate": 0.1,
+      "unknown_timestamp_slots": 0,
+      "parseable_timestamp_slots": 500
+    },
+    {
+      "system": "E4",
+      "questions": 100,
+      "top5_slots": 500,
+      "future_slots": 12,
+      "future_slot_rate": 0.024,
+      "questions_with_future_top5": 8,
+      "question_exposure_rate": 0.08,
+      "unknown_timestamp_slots": 0,
+      "parseable_timestamp_slots": 500
+    }
+  ],
+  "bounded_annotation_pilot_items": 100,
+  "bounded_pilot_future_items": 33,
+  "pooled_top5_unique_question_child_pairs": 1014,
+  "top5_slots_total": 2000,
+  "future_exposure_question_union": 14
+}

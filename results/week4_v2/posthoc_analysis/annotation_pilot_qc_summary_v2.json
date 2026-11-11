@@ -1,0 +1,47 @@
+{
+  "status": "REVIEWED_CANDIDATE_NOT_INDEPENDENTLY_VALIDATED",
+  "source_sha256": "f2d58f512e9f1e2116972b06935876d46c50e1c3936250370ffc6c297f267209",
+  "rows": 100,
+  "counts": {
+    "UNKNOWN": 6,
+    "RELEVANT": 49,
+    "NOT_RELEVANT": 45
+  },
+  "chronology_by_label": {
+    "FUTURE": {
+      "NOT_RELEVANT": 33
+    },
+    "PAST_OR_SAME_DAY": {
+      "UNKNOWN": 6,
+      "RELEVANT": 49,
+      "NOT_RELEVANT": 12
+    }
+  },
+  "reviewed_flags": [
+    1,
+    4,
+    5,
+    6,
+    10,
+    18,
+    20,
+    27,
+    39,
+    44,
+    63,
+    75
+  ],
+  "changed_labels_from_previous": [
+    10,
+    18,
+    27,
+    75
+  ],
+  "cautions": [
+    "Gold aliases remain unreviewed and sometimes contradictory.",
+    "Pilot is purposively sampled, not representative of all top-5 retrieval pairs.",
+    "No independent second reviewer or adjudicated agreement.",
+    "Cannot compute validated full-dataset Recall@5 or nDCG@5 from 100 sampled pairs.",
+    "Chronology based on unverified timestamps; does not prove poisoning."
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "created_utc": "2026-11-08T08:07:33.353946+00:00",
+  "git_commit": "e83568670626400e275ac5e1d536104861201ca0",
+  "experiment_runs": [
+    "results/week4_v2/week4_v2_e1_full_002",
+    "results/week4_v2/week4_v2_e2_full_002",
+    "results/week4_v2/week4_v2_e3_full_002",
+    "results/week4_v2/week4_v2_e4_full_002"
+  ],
+  "file_count": 31,
+  "files": [
+    {
+      "path": "data/processed/week4_v2/a15_full_roundtrip_v1/configuration.yaml",
+      "size_bytes": 1508,
+      "sha256": "bfa0762b0030fb78236c6d1ee781c449a5b98eeaac85f2b928c1795d21f019f7"
+    },
+    {
+      "path": "data/processed/week4_v2/a15_full_roundtrip_v1/inputs/streamingqa_control_pools.jsonl",
+      "size_bytes": 1948894,
+      "sha256": "fb4b3b8eecef861b3cd956922216c0892919c0bbaed102aeef06bd212ed61c2d"
+    },
+    {
+      "path": "data/processed/week4_v2/a15_full_roundtrip_v1/inputs/streamingqa_control_sample.jsonl",
+      "size_bytes": 76124,
+      "sha256": "4da9ac126e118ae4bedfc8221ad0369c6cc517daad4e2e124384909ce51bcad4"
+    },
+    {
+      "path": "data/processed/week4_v2/a15_full_roundtrip_v1/inputs/streamingqa_eval.jsonl.gz",
+      "size_bytes": 7455358,
+      "sha256": "263826e390cd5b2502463de2f5cd678bb753226f06db93e4145440a2618ba1f4"
+    },
+    {
+      "path": "data/processed/week4_v2/a15_full_roundtrip_v1/manifest.json",
+      "size_bytes": 906791,
+      "sha256": "54bcdb17b8ba086c2a1a2208e0621bdac6713ded619b414a02f8c04b4424ba1a"
+    },
+    {
+      "path": "data/processed/week4_v2/a15_full_roundtrip_v1/pool.jsonl",
+      "size_bytes": 59520323,
+      "sha256": "b44c39f3ad2f7eeb4cf13d3b92445f8897c16b6ccf4abfda8015405d6daa36af"
+    },
+    {
+      "path": "docs/streamingqa_v2_experiment.md",
+      "size_bytes": 5088,
+      "sha256": "0144bd0f0dbfdc410acbc9ecfe3198fa42267612017586da2d66104bcb4e6285"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e1_full_001/answers.jsonl",
+      "size_bytes": 60050340,
+      "sha256": "076f74a5d7eb00750a33f5579aeab42934a63e004c4c028e0b974ee6d3953d7a"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e1_full_001/run.json",
+      "size_bytes": 914971,
+      "sha256": "3f16b386e821703ee87a786b309ba8e0930158ad693dd41998b5255276a7e287"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e1_full_001/summary.json",
+      "size_bytes": 898,
+      "sha256": "cce7bc59e2fd9b69a0812224859d8ee69870e1a7ed7480a66b8a921d2db23712"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e1_full_002/answers.jsonl",
+      "size_bytes": 60050340,
+      "sha256": "076f74a5d7eb00750a33f5579aeab42934a63e004c4c028e0b974ee6d3953d7a"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e1_full_002/run.json",
+      "size_bytes": 915040,
+      "sha256": "99d4a82d4fc4170e03a19c84e569eb5b943f60f1a89fdd94be6ec931c50bbae2"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e1_full_002/summary.json",
+      "size_bytes": 898,
+      "sha256": "cce7bc59e2fd9b69a0812224859d8ee69870e1a7ed7480a66b8a921d2db23712"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e2_full_002/answers.jsonl",
+      "size_bytes": 60051173,
+      "sha256": "2b901a49a4f9d1d406aba9ba18b4f46690b5c80118906456f1e7f183c564a2c1"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e2_full_002/run.json",
+      "size_bytes": 915040,
+      "sha256": "683036329e1196c00328698395b7a03199c5b7343ff4558fe2576b956e90b4fc"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e2_full_002/summary.json",
+      "size_bytes": 899,
+      "sha256": "cc848fd9f325d4bf56da60b7efe7cab27058844a3e599745732fa38c7e9098f7"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e3_full_002/answers.jsonl",
+      "size_bytes": 60672401,
+      "sha256": "9dc0ec932c7ad982022413e15c0ffa3213bbeeb2a4711a5edef87a2cfdc0c728"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e3_full_002/run.json",
+      "size_bytes": 915040,
+      "sha256": "100342220d156917069ac8670c012d9f8bc204edcaf2454171087173b7a62435"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e3_full_002/summary.json",
+      "size_bytes": 898,
+      "sha256": "3db5d32c306e576a6b53dcda092af1f130e3c37d36fdbe8868120b6a1296179e"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e4_full_002/answers.jsonl",
+      "size_bytes": 60988352,
+      "sha256": "9554d697a73203f534260b9abb2a7294174a624def9b27d38f36f9a3efa52d56"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e4_full_002/run.json",
+      "size_bytes": 915040,
+      "sha256": "f3392642473622c81d955d9aa7b8e78f46489aa485de04c9f61393ddbadbe3d6"
+    },
+    {
+      "path": "results/week4_v2/week4_v2_e4_full_002/summary.json",
+      "size_bytes": 899,
+      "sha256": "b6ef70a5a17c483055606f2272cf3812cf15835c9b7d840f667086bdbd111f57"
+    },
+    {
+      "path": "scripts/run_streamingqa_v2.py",
+      "size_bytes": 1541,
+      "sha256": "e735d4c9b14c30ee1d235d6748e40bf418caab6314680532274fd3e08d68261c"
+    },
+    {
+      "path": "src/eval/streamingqa_v2_experiment.py",
+      "size_bytes": 9668,
+      "sha256": "05961f5e856ce4644a01f35349dcb86ec35e7a91bb4f357d1281c78ec133efca"
+    },
+    {
+      "path": "src/eval/streamingqa_v2_persistence.py",
+      "size_bytes": 20969,
+      "sha256": "682edfd2250c911786564b0a579a3236a4fce3b5169247a676f8ed78de37ec22"
+    },
+    {
+      "path": "src/eval/week4_v2_schema.py",
+      "size_bytes": 28320,
+      "sha256": "223c7ed797d7dda92043ae6ce704ac260f012c90ca0258cfc97b174ed6cd801f"
+    },
+    {
+      "path": "src/generation/generate.py",
+      "size_bytes": 2744,
+      "sha256": "3bf8265287887360c56a7bebbcebf3facacde95a93e39452b0c3947f5afde4ab"
+    },
+    {
+      "path": "src/retrieval/dense.py",
+      "size_bytes": 2506,
+      "sha256": "81c78f6978446460406700787d315db04e51aa5ec6549f44055629c29f8b4337"
+    },
+    {
+      "path": "src/retrieval/reranker.py",
+      "size_bytes": 1364,
+      "sha256": "e999ddaee1474b0dbaa8806ea4fa533a8f6b72cca2f2a8ee005b2c490e629bb5"
+    },
+    {
+      "path": "tests/test_streamingqa_v2_experiment.py",
+      "size_bytes": 9515,
+      "sha256": "1b16e4258bb091d370dee2ea6ce210f1c8bf20a461adcfa8af1b77e7c6dcc66f"
+    },
+    {
+      "path": "tests/test_streamingqa_v2_persistence.py",
+      "size_bytes": 12215,
+      "sha256": "144b68de7e93a772a6d13acfbce6e0b1182554af0059ff11a1a83ceedf450791"
+    }
+  ]
+}

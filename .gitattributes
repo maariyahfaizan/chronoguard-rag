@@ -1,4 +1,5 @@
 *.jsonl text eol=lf
+/data/processed/week4_v2/a15_full_roundtrip_v1/inputs/streamingqa_control_sample.jsonl -text
 /audits/g2_i1_v1/adapter_profile.json -text
 /audits/g2_i1_v1/integrity.json -text
 /audits/g2_i1_v1/runner_pool.jsonl -text
